@@ -22,6 +22,12 @@ describe('migrateProject', () => {
     expect(p.dancers).toHaveLength(1)
   })
 
+  it('copes with a v0 document that has no formations at all', () => {
+    const p = migrateProject(0, { name: 'Empty', stage: { width: 40, depth: 24 }, dancers: [] })
+    expect(p.formations).toEqual([])
+    expect(p.tempo.bpm).toBeGreaterThan(0)
+  })
+
   it('leaves a current-version project unchanged', () => {
     const doc = { ...v0, tempo: { bpm: 100, startOffsetSec: 0 } }
     expect(migrateProject(CURRENT_VERSION, doc)).toEqual(doc)

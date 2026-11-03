@@ -1,0 +1,9 @@
+{
+  "name": "Fixture v0",
+  "stage": { "width": 40, "depth": 24 },
+  "dancers": [{ "id": "d1", "name": "Maya" }],
+  "formations": [
+    { "id": "f1", "name": "Opening", "positions": { "d1": { "x": 10, "y": 12 } } },
+    { "id": "f2", "name": "Cross", "positions": { "d1": { "x": 30, "y": 8 } } }
+  ]
+}

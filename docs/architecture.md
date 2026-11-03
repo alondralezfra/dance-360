@@ -1,0 +1,70 @@
+# Architecture
+
+*Last verified against the code: 2026-11-03.* Rules marked **(enforced)** are checked by `src/architecture.test.ts`; breaking one fails `npm run verify`.
+
+## Stack
+
+React + TypeScript (Vite), Konva (`react-konva`) for the stage canvas, Zustand for state, React Router, Tailwind v4, Radix (dialog/drawer), Vitest + Testing Library, Playwright. Rationale: [decisions/0001-tech-stack.md](decisions/0001-tech-stack.md).
+
+## Layout
+
+```
+src/
+  model/          Pure logic and types. No React, no storage.            (enforced)
+    playback.ts     positionsAt(formations, count): the playback engine
+    tempo.ts        counts <-> seconds, "Set 3 · Count 5" labels
+    formations.ts   stage helpers, count ordering
+    project.ts      new-project factory
+    types.ts        the saved Project shape
+  persistence/    Saving projects. Depends on model/ only.               (enforced)
+    repository.ts              the ProjectRepository interface
+    localStorageRepository.ts  browser implementation (+ one-time import of the old prototype save)
+    migrations.ts              versioned upgrades of saved data
+    fixtures/                  frozen example of every saved-data version
+  store/          Zustand stores, composed from slices.
+    projectStore.ts  the open project: session / project / roster / formation slices
+    uiStore.ts       selections (not saved)
+    autosave.ts      debounced save of the open project
+  features/       Screens, one folder per feature, each documented in docs/features/.  (enforced)
+  components/     Shared UI: ui/ (Button, Input, NumberField, Drawer), ThemeToggle
+  theme/          Theme switching + the canvas colour hook
+  lib/            Small helpers (cn)
+  router.tsx      URL map
+```
+
+## Rules
+
+1. **Counts are the source of truth.** Formations store an absolute `count` (0 = Set 1, Count 1), never seconds; `tempo.ts` converts. Fixing the tempo map shifts everything correctly. ([plan §3.1](../dance-director-app-plan.md))
+2. **Playback is a pure function.** `positionsAt(formations, count)` returns where everyone is. Anything that can produce a count (editor glide, audio clock, scrubber, phone watch mode, dancer view) renders its result. Never animate positions inside a component. [decisions/0003](decisions/0003-playback-is-a-pure-function.md)
+3. **Layering.** `model/` imports nothing from the app. `persistence/` imports only `model/`. Only `store/` and `features/projects/` import `persistence/`. Features don't import other features (pages may compose). **(enforced)**
+4. **Storage is behind `ProjectRepository`.** Browser storage (`localStorage`, `indexedDB`) is touched only in `persistence/` and `theme/`. Moving to the cloud means writing another repository and changing one line in `persistence/index.ts`. **(enforced)** [decisions/0004](decisions/0004-versioned-persistence-behind-a-repository.md)
+5. **Saved data is versioned.** Changing `Project` means: bump `CURRENT_VERSION`, add a migration, add `fixtures/v<N>.json`, add a test. Never edit an old migration. `fixtures.test.ts` fails if you forget.
+6. **Saved vs. screen state.** Anything belonging to the project lives in `projectStore` and is autosaved. Selections and other screen state live in `uiStore`. Ids in `uiStore` may go stale; readers fall back (see `useCurrentFormation`).
+7. **Style with theme tokens**, never palette colours or hex: `bg-primary`, `text-muted-foreground`, `border-border`. **(enforced)** Tokens are defined per theme in `src/index.css`; add a theme with another `[data-theme="..."]` block. [decisions/0005](decisions/0005-theme-tokens.md)
+8. **Reuse `components/ui/`.** Add a variant there rather than repeating class strings.
+9. **Touch first.** 40px minimum targets, nothing essential behind hover or right-click, panels that are a sidebar on wide screens and a drawer on narrow ones. ([plan §6.5](../dance-director-app-plan.md))
+10. **Every feature folder has a doc** in `docs/features/`. **(enforced)**
+
+## Data flow
+
+```
+ repository  --load-->  projectStore  --selectors-->  components
+     ^                       |  actions                    |
+     |                       v                             |
+  autosave  <--subscribe--  (document fields change)  <----+
+```
+
+The stage: `projectStore.formations` + `uiStore.currentFormationId` -> `usePlayhead` (a count, animated between adjacent formations) -> `positionsAt` -> `StageCanvas` draws dots.
+
+## Saved data
+
+`Project { name, stage, tempo, dancers[], formations[] }`; a formation is `{ id, name, count, transitionCounts, positions: Record<dancerId, {x, y}> }` with positions in feet. `formations` is always sorted with strictly increasing `count` (`normalizeCounts`). Stored as `dance360:project:<id>` = `{ version, updatedAt, project }`.
+
+| Version | Change |
+|---|---|
+| 0 | Original prototype: formations without timing, no tempo map |
+| 1 | `formations[].count` and `transitionCounts`; `tempo` |
+
+## Planned (from the build order)
+
+Parts, sections and assignments (step 2); audio + timeline (step 3, needs IndexedDB or cloud storage for audio files); resources and notes; accounts and cloud sync (a new `ProjectRepository`).

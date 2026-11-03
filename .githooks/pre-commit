@@ -1,0 +1,4 @@
+#!/bin/sh
+# Runs before every commit (enabled by `npm install` via the "prepare" script).
+# A commit only goes through if the full verification passes.
+exec node scripts/verify.mjs --staged
