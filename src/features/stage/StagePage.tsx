@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Drawer } from '../../components/ui/Drawer'
 import { DancerPanel } from '../cast/DancerPanel'
+import { PartLegend } from '../cast/PartLegend'
 import { FormationStrip } from './FormationStrip'
 import { StageCanvas } from './StageCanvas'
 
@@ -28,6 +29,7 @@ export function StagePage() {
           >
             Dancers
           </Button>
+          <PartLegend />
           <StageCanvas />
         </main>
       </div>

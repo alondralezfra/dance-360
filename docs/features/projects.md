@@ -5,7 +5,7 @@
 ## What it does today
 
 - **Home** (`/`): lists projects, most recently edited first; create (`+ New project`, opens it straight away) and delete (asks first). Empty state when there are none.
-- **Workspace** (`/projects/:id`): loads the project named in the URL, then shows its header (breadcrumb `Dance 360 › <project name> › Stage`, editable project name, save status, theme toggle) and the current screen. `/projects/:id` redirects to `/stage`.
+- **Workspace** (`/projects/:id`): loads the project named in the URL, then shows its header (breadcrumb `Dance 360 › <project name>`, editable project name, save status, theme toggle), a row of **tabs** (Stage, Cast & Parts; the active one is marked `aria-current`) and the current screen. `/projects/:id` redirects to `/stage`. Adding a screen = a route in `router.tsx` plus an entry in `tabs` in `ProjectWorkspace.tsx`.
 - **Loading states**: "Loading…" while opening; a friendly message and a link back for a project that doesn't exist or was saved by a newer version of the app. Unknown URLs show a not-found page.
 - **Saving**: every change is autosaved ~0.4 s later; the header shows *Saving…* / *Saved* / *Couldn't save*. Pending changes are saved immediately when you switch projects or hide/close the tab. Loading a project doesn't trigger a save.
 - **Storage**: currently the browser's `localStorage` (this device only). Each project is stored with a data-version number so older saves are upgraded when opened.

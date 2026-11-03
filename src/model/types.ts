@@ -42,6 +42,33 @@ export interface TempoMap {
   startOffsetSec: number
 }
 
+/**
+ * Part colours are a fixed palette, stored by id (not hex) so each theme can
+ * tune the actual colour. The values live in src/index.css as --part-<id>.
+ */
+export type PartColorId = 'blue' | 'red' | 'green' | 'orange' | 'sky' | 'pink' | 'yellow' | 'gray'
+
+/** A colour-coded subgroup doing its own choreography (plan §2). */
+export interface Part {
+  id: Id
+  name: string
+  color: PartColorId
+}
+
+/**
+ * A stretch of the song (e.g. "Verse 1"). Sections are contiguous: each runs
+ * from its `startCount` until the next section starts, and the first always
+ * starts at count 0. So every count belongs to exactly one section.
+ */
+export interface Section {
+  id: Id
+  name: string
+  startCount: number
+}
+
+/** sectionId -> dancerId -> partId. A missing entry means "no part yet". */
+export type Assignments = Record<Id, Record<Id, Id>>
+
 export interface Project {
   name: string
   stage: StageSettings
@@ -49,4 +76,8 @@ export interface Project {
   dancers: Dancer[]
   /** Always kept sorted by `count` (the store guarantees this). */
   formations: Formation[]
+  parts: Part[]
+  /** Always kept sorted by `startCount`, first at 0, at least one (the store guarantees this). */
+  sections: Section[]
+  assignments: Assignments
 }

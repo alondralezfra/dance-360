@@ -1,0 +1,25 @@
+{
+  "name": "Fixture v2",
+  "stage": { "width": 40, "depth": 24 },
+  "tempo": { "bpm": 120, "startOffsetSec": 0 },
+  "dancers": [
+    { "id": "d1", "name": "Maya" },
+    { "id": "d2", "name": "Jordan" }
+  ],
+  "formations": [
+    { "id": "f1", "name": "Opening", "count": 0, "transitionCounts": 4, "positions": { "d1": { "x": 10, "y": 12 }, "d2": { "x": 20, "y": 12 } } },
+    { "id": "f2", "name": "Cross", "count": 8, "transitionCounts": 4, "positions": { "d1": { "x": 30, "y": 8 }, "d2": { "x": 10, "y": 8 } } }
+  ],
+  "parts": [
+    { "id": "pa", "name": "Part A", "color": "blue" },
+    { "id": "pb", "name": "Part B", "color": "red" }
+  ],
+  "sections": [
+    { "id": "s1", "name": "Intro", "startCount": 0 },
+    { "id": "s2", "name": "Chorus", "startCount": 16 }
+  ],
+  "assignments": {
+    "s1": { "d1": "pa", "d2": "pb" },
+    "s2": { "d1": "pb" }
+  }
+}

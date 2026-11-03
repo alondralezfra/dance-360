@@ -7,8 +7,9 @@ import type { Project } from '../model/types'
 //
 //   v0  formations had no timing; no tempo map (the original prototype)
 //   v1  formations have `count` + `transitionCounts`; project has `tempo`
+//   v2  project has `parts`, `sections` and `assignments`
 
-export const CURRENT_VERSION = 1
+export const CURRENT_VERSION = 2
 
 type Doc = Record<string, unknown>
 
@@ -24,6 +25,18 @@ const migrations: Record<number, (doc: Doc) => Doc> = {
         count: i * COUNTS_PER_SET,
         transitionCounts: DEFAULT_TRANSITION_COUNTS,
       })),
+    }
+  },
+
+  // One part and one whole-dance section, with everyone already in that part, so
+  // an existing project looks and behaves exactly as it did before.
+  1: (doc) => {
+    const dancers = Array.isArray(doc.dancers) ? (doc.dancers as Doc[]) : []
+    return {
+      ...doc,
+      parts: [{ id: 'part-a', name: 'Part A', color: 'blue' }],
+      sections: [{ id: 'section-1', name: 'Section 1', startCount: 0 }],
+      assignments: { 'section-1': Object.fromEntries(dancers.map((d) => [d.id as string, 'part-a'])) },
     }
   },
 }

@@ -28,6 +28,38 @@ describe('migrateProject', () => {
     expect(p.tempo.bpm).toBeGreaterThan(0)
   })
 
+  it('v1 -> v2: adds one part and one section with every dancer already in that part', () => {
+    const v1 = {
+      ...v0,
+      tempo: { bpm: 120, startOffsetSec: 0 },
+      dancers: [
+        { id: 'd1', name: 'Maya' },
+        { id: 'd2', name: 'Jordan' },
+      ],
+    }
+    const p = migrateProject(1, v1)
+    expect(p.parts).toEqual([{ id: 'part-a', name: 'Part A', color: 'blue' }])
+    expect(p.sections).toEqual([{ id: 'section-1', name: 'Section 1', startCount: 0 }])
+    expect(p.assignments).toEqual({ 'section-1': { d1: 'part-a', d2: 'part-a' } })
+  })
+
+  it('v1 -> v2: a project with no dancers gets an empty assignment set', () => {
+    const p = migrateProject(1, { ...v0, tempo: { bpm: 120, startOffsetSec: 0 }, dancers: [] })
+    expect(p.assignments).toEqual({ 'section-1': {} })
+  })
+
+  it('v1 -> v2: copes with a missing dancers list', () => {
+    const p = migrateProject(1, { name: 'x' })
+    expect(p.assignments).toEqual({ 'section-1': {} })
+  })
+
+  it('v0 projects are carried all the way to the current version', () => {
+    const p = migrateProject(0, v0)
+    expect(p.parts).toHaveLength(1)
+    expect(p.sections).toHaveLength(1)
+    expect(p.assignments['section-1']).toEqual({ d1: 'part-a' })
+  })
+
   it('leaves a current-version project unchanged', () => {
     const doc = { ...v0, tempo: { bpm: 100, startOffsetSec: 0 } }
     expect(migrateProject(CURRENT_VERSION, doc)).toEqual(doc)

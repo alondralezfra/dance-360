@@ -1,4 +1,16 @@
-import type { Dancer, Formation, Id, Point, Project, StageSettings, TempoMap } from '../model/types'
+import type {
+  Assignments,
+  Dancer,
+  Formation,
+  Id,
+  PartColorId,
+  Part,
+  Point,
+  Project,
+  Section,
+  StageSettings,
+  TempoMap,
+} from '../model/types'
 
 /** Where the open project is in its load/save lifecycle. */
 export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -37,10 +49,40 @@ export interface FormationSlice {
   moveDancer: (formationId: Id, dancerId: Id, p: Point) => void
 }
 
-export type ProjectStore = SessionSlice & ProjectSlice & RosterSlice & FormationSlice
+export interface PartsSlice {
+  parts: Part[]
+  sections: Section[]
+  assignments: Assignments
+  /** Adds the next part (next free letter and colour). Returns its id, or null at the 8-part limit. */
+  addPart: () => Id | null
+  renamePart: (id: Id, name: string) => void
+  setPartColor: (id: Id, color: PartColorId) => void
+  /** Removes a part; dancers who were in it become unassigned. */
+  removePart: (id: Id) => void
+  /** Adds a section after the last one, copying the last section's assignments. Returns its id. */
+  addSection: () => Id
+  renameSection: (id: Id, name: string) => void
+  /** Moves a section's start. The first section always starts at 0 and can't be moved. */
+  setSectionStart: (id: Id, count: number) => void
+  /** Removes a section (never the last one); a following section stretches back over it. */
+  removeSection: (id: Id) => void
+  /** Puts a dancer in a part for a section; `null` clears it. */
+  assignDancer: (sectionId: Id, dancerId: Id, partId: Id | null) => void
+}
+
+export type ProjectStore = SessionSlice & ProjectSlice & RosterSlice & FormationSlice & PartsSlice
 
 /** The fields that make up the saved project document. */
-export const DOCUMENT_KEYS = ['name', 'stage', 'tempo', 'dancers', 'formations'] as const
+export const DOCUMENT_KEYS = [
+  'name',
+  'stage',
+  'tempo',
+  'dancers',
+  'formations',
+  'parts',
+  'sections',
+  'assignments',
+] as const
 
 export function selectDocument(s: ProjectStore): Project {
   return {
@@ -49,5 +91,8 @@ export function selectDocument(s: ProjectStore): Project {
     tempo: s.tempo,
     dancers: s.dancers,
     formations: s.formations,
+    parts: s.parts,
+    sections: s.sections,
+    assignments: s.assignments,
   }
 }

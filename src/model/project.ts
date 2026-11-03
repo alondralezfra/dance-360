@@ -17,5 +17,9 @@ export function createEmptyProject(name = 'My Dance'): Project {
     tempo: { ...DEFAULT_TEMPO },
     dancers: [],
     formations: [formation],
+    // One part and one section to start, so the assignment grid is usable immediately.
+    parts: [{ id: newId(), name: 'Part A', color: 'blue' }],
+    sections: [{ id: newId(), name: 'Section 1', startCount: 0 }],
+    assignments: {},
   }
 }

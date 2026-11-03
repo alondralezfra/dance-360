@@ -74,6 +74,12 @@ Dancers frequently switch between choreographies partway through a song, so part
 - Videos and notes can attach to a specific part within a section.
 - **Validation:** every dancer should have a part in every section; flag any gaps.
 
+**Decided while building step 2 (see `docs/decisions/0007-parts-sections-and-assignments.md`):**
+- Sections are **contiguous**: defined only by a start count, each running until the next starts; the first is pinned to count 0 and there is always at least one (so no gaps or overlaps).
+- A **new section copies the previous section's assignments**; a **new dancer starts unassigned** (neutral dot, flagged as a gap).
+- Part colours come from a fixed 8-colour, colour-blind-safe palette (stored by id, tuned per theme); a project can have up to 8 parts.
+- Parts and the assignment grid live on a **Cast & Parts** tab; the "show only Part X" stage filter is deferred until the timeline exists.
+
 ### 3.6 Video hosting
 
 Not hosting uploads (too expensive). MVP = **paste links** (YouTube, Drive, etc.) with a title, a type tag (tutorial / reference / rehearsal recording), and attachment to section and/or part. Auto-fetch thumbnail and title where possible; embed for in-app playback. Note: private Drive links only play for people with access, which matters once dancer logins exist. Hosted video can be a later add-on.

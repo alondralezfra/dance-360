@@ -14,6 +14,7 @@ src/
     playback.ts     positionsAt(formations, count): the playback engine
     tempo.ts        counts <-> seconds, "Set 3 · Count 5" labels
     formations.ts   stage helpers, count ordering
+    parts.ts        sections/parts/assignments: which part at which count, ordering, gap detection
     project.ts      new-project factory
     types.ts        the saved Project shape
   persistence/    Saving projects. Depends on model/ only.               (enforced)
@@ -22,14 +23,14 @@ src/
     migrations.ts              versioned upgrades of saved data
     fixtures/                  frozen example of every saved-data version
   store/          Zustand stores, composed from slices.
-    projectStore.ts  the open project: session / project / roster / formation slices
+    projectStore.ts  the open project: session / project / roster / formation / parts slices
     uiStore.ts       selections (not saved)
     autosave.ts      debounced save of the open project
   features/       Screens, one folder per feature, each documented in docs/features/.  (enforced)
-  components/     Shared UI: ui/ (Button, Input, NumberField, Drawer), ThemeToggle
+  components/     Shared UI: ui/ (Button, Input, Select, NumberField, Drawer), ThemeToggle
   theme/          Theme switching + the canvas colour hook
-  lib/            Small helpers (cn)
-  router.tsx      URL map
+  lib/            Small helpers (cn, readableOn)
+  router.tsx      URL map (project screens are tabs: Stage, Cast & Parts)
 ```
 
 ## Rules
@@ -40,7 +41,7 @@ src/
 4. **Storage is behind `ProjectRepository`.** Browser storage (`localStorage`, `indexedDB`) is touched only in `persistence/` and `theme/`. Moving to the cloud means writing another repository and changing one line in `persistence/index.ts`. **(enforced)** [decisions/0004](decisions/0004-versioned-persistence-behind-a-repository.md)
 5. **Saved data is versioned.** Changing `Project` means: bump `CURRENT_VERSION`, add a migration, add `fixtures/v<N>.json`, add a test. Never edit an old migration. `fixtures.test.ts` fails if you forget.
 6. **Saved vs. screen state.** Anything belonging to the project lives in `projectStore` and is autosaved. Selections and other screen state live in `uiStore`. Ids in `uiStore` may go stale; readers fall back (see `useCurrentFormation`).
-7. **Style with theme tokens**, never palette colours or hex: `bg-primary`, `text-muted-foreground`, `border-border`. **(enforced)** Tokens are defined per theme in `src/index.css`; add a theme with another `[data-theme="..."]` block. [decisions/0005](decisions/0005-theme-tokens.md)
+7. **Style with theme tokens**, never palette colours or hex: `bg-primary`, `text-muted-foreground`, `border-border`. **(enforced)** Tokens are defined per theme in `src/index.css`; add a theme with another `[data-theme="..."]` block. Part colours are tokens too: a part stores a palette id (`blue`), the value lives in `--part-<id>`, and components use `style={{ backgroundColor: 'var(--part-blue)' }}` (never hex). [decisions/0005](decisions/0005-theme-tokens.md), [0007](decisions/0007-parts-sections-and-assignments.md)
 8. **Reuse `components/ui/`.** Add a variant there rather than repeating class strings.
 9. **Touch first.** 40px minimum targets, nothing essential behind hover or right-click, panels that are a sidebar on wide screens and a drawer on narrow ones. ([plan §6.5](../dance-director-app-plan.md))
 10. **Every feature folder has a doc** in `docs/features/`. **(enforced)**
@@ -58,13 +59,21 @@ The stage: `projectStore.formations` + `uiStore.currentFormationId` -> `usePlayh
 
 ## Saved data
 
-`Project { name, stage, tempo, dancers[], formations[] }`; a formation is `{ id, name, count, transitionCounts, positions: Record<dancerId, {x, y}> }` with positions in feet. `formations` is always sorted with strictly increasing `count` (`normalizeCounts`). Stored as `dance360:project:<id>` = `{ version, updatedAt, project }`.
+`Project { name, stage, tempo, dancers[], formations[], parts[], sections[], assignments }`.
+
+- A formation is `{ id, name, count, transitionCounts, positions: Record<dancerId, {x, y}> }` with positions in feet. `formations` is always sorted with strictly increasing `count` (`normalizeCounts`).
+- A part is `{ id, name, color }` where `color` is a palette id (`blue`, `red`, `green`, `orange`, `sky`, `pink`, `yellow`, `gray`).
+- A section is `{ id, name, startCount }`. `sections` is always sorted, the first starts at 0, there is at least one, and a section runs until the next starts (`normalizeSections`), so every count is in exactly one section.
+- `assignments` is `sectionId -> dancerId -> partId`; a missing entry means "no part" (shown as a gap, `findGaps`). A dancer's part at a count is `partIdAt`.
+
+Stored as `dance360:project:<id>` = `{ version, updatedAt, project }`.
 
 | Version | Change |
 |---|---|
 | 0 | Original prototype: formations without timing, no tempo map |
 | 1 | `formations[].count` and `transitionCounts`; `tempo` |
+| 2 | `parts`, `sections`, `assignments`; migrated projects get "Part A" + "Section 1" with every dancer in Part A |
 
 ## Planned (from the build order)
 
-Parts, sections and assignments (step 2); audio + timeline (step 3, needs IndexedDB or cloud storage for audio files); resources and notes; accounts and cloud sync (a new `ProjectRepository`).
+Audio + timeline (step 3, needs IndexedDB or cloud storage for audio files); resources and notes; the Overview problems list; accounts and cloud sync (a new `ProjectRepository`).

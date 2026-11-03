@@ -4,7 +4,7 @@ import { cn } from '../../lib/cn'
 
 const buttonVariants = cva(
   // min-h keeps every button a comfortable touch target
-  'inline-flex min-h-10 items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-40',
+  'inline-flex min-h-10 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-40',
   {
     variants: {
       variant: {

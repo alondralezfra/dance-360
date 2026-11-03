@@ -5,16 +5,17 @@ A web app for dance directors (formations, cast, parts, music, resources in one 
 ## The loop: follow it for EVERY change
 
 1. **Understand.** Read `docs/architecture.md`, the feature doc, and the plan section involved. If the request conflicts with the plan or an open question is involved, ask before building.
-2. **Decide small.** For a real technical choice (library, data shape, pattern), write a decision record in `docs/decisions/` (next number, template in its README).
-3. **Tests with the code.** New logic: unit tests incl. edge and failure cases. New/changed UI: component tests, plus a Playwright test in `e2e/` for any user flow (navigation, persistence, dragging, layout). Bug: write the failing regression test first, watch it fail, then fix.
-4. **Implement** within the architecture rules below.
-5. **Update docs in the same change** (see the table in `docs/README.md`): the feature doc, `docs/architecture.md` if structure/rules/data changed, the plan if a decision was made or an open question answered, the checklist in `README.md`, and an entry under **Unreleased** in `CHANGELOG.md`. Docs describe what the app does *now*; never leave stale statements.
-6. **Verify: `npm run verify` must pass completely** (change discipline, lint, tests + coverage thresholds, type-check + build, e2e). `npm run verify:quick` is for iterating only; the final run is the full one. If it fails, fix the root cause and run it again.
-7. **Look at it.** For UI changes, run the app and exercise the change (or screenshot via Playwright). Passing tests don't prove it looks or feels right. Check phone width too.
-8. **Review your own diff** against the checklist below.
-9. **Report honestly:** what changed, tests added, docs updated, anything you couldn't verify. Never say "done" if `verify` hasn't passed.
+2. **Ask first.** For anything beyond a trivial fix, think the change through *before* writing code, then ask the user the questions that are genuinely theirs to answer (product behaviour, UX, scope, data-model consequences, trade-offs) with AskUserQuestion: 2-4 focused questions, recommended option first, each saying what it changes. Don't ask what the plan or docs already answer, or things with a conventional default: decide those yourself and list them as assumptions in your reply. Wait for the answers, record decisions that matter (plan, decision record), then build. Skip this step for small bug fixes, refactors with no behaviour change, and doc edits.
+3. **Decide small.** For a real technical choice (library, data shape, pattern), write a decision record in `docs/decisions/` (next number, template in its README).
+4. **Tests with the code.** New logic: unit tests incl. edge and failure cases. New/changed UI: component tests, plus a Playwright test in `e2e/` for any user flow (navigation, persistence, dragging, layout). Bug: write the failing regression test first, watch it fail, then fix.
+5. **Implement** within the architecture rules below.
+6. **Update docs in the same change** (see the table in `docs/README.md`): the feature doc, `docs/architecture.md` if structure/rules/data changed, the plan if a decision was made or an open question answered, the checklist in `README.md`, and an entry under **Unreleased** in `CHANGELOG.md`. Docs describe what the app does *now*; never leave stale statements.
+7. **Verify: `npm run verify` must pass completely** (change discipline, lint, tests + coverage thresholds, type-check + build, e2e). `npm run verify:quick` is for iterating only; the final run is the full one. If it fails, fix the root cause and run it again.
+8. **Look at it.** For UI changes, run the app and exercise the change (or screenshot via Playwright). Passing tests don't prove it looks or feels right. Check phone width too.
+9. **Review your own diff** against the checklist below.
+10. **Report honestly:** what changed, tests added, docs updated, the assumptions you made without asking, and anything you couldn't verify. Never say "done" if `verify` hasn't passed.
 
-A change is **not implemented** until step 6 passes. The Stop hook and the pre-commit hook enforce this; don't try to get around them.
+A change is **not implemented** until step 7 passes. The Stop hook and the pre-commit hook enforce this; don't try to get around them.
 
 ## Never
 
@@ -33,7 +34,7 @@ A change is **not implemented** until step 6 passes. The Stop hook and the pre-c
 - Each folder in `src/features/` needs a doc in `docs/features/` (a test checks).
 - Touch first: 40px targets, no hover-only or right-click-only interactions, layouts that work from phone to desktop.
 
-## Self-review checklist (step 8)
+## Self-review checklist (step 9)
 
 - Does every new behaviour have a test that would fail without it, including error and empty states?
 - Accessible names on every control (tests query by role/label)? Keyboard works? Focus sensible?

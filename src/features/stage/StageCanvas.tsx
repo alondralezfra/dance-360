@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Circle, Group, Layer, Line, Rect, Stage, Text } from 'react-konva'
 import type Konva from 'konva'
+import { readableOn } from '../../lib/color'
+import { partIdAt } from '../../model/parts'
 import { positionsAt } from '../../model/playback'
 import type { Dancer, Id } from '../../model/types'
 import { useCanvasTheme, type CanvasTheme } from '../../theme/useCanvasTheme'
@@ -53,6 +55,10 @@ interface DancerDotProps {
   y: number
   radius: number
   labelSize: number
+  /** Dot colour: the dancer's part colour right now, or neutral if they have none. */
+  fill: string
+  /** Colour for the initials, chosen to be readable on `fill`. */
+  textColor: string
   selected: boolean
   theme: CanvasTheme
   onSelect: () => void
@@ -68,6 +74,8 @@ function DancerDot({
   y,
   radius,
   labelSize,
+  fill,
+  textColor,
   selected,
   theme,
   onSelect,
@@ -101,11 +109,19 @@ function DancerDot({
         if (c) c.style.cursor = 'default'
       }}
     >
+      {selected && (
+        <Circle
+          radius={radius + 4}
+          stroke={theme.dotSelected}
+          strokeWidth={2.5}
+          listening={false}
+        />
+      )}
       <Circle
         radius={radius}
-        fill={selected ? theme.dotSelected : theme.dot}
-        stroke={selected ? theme.dotSelectedStroke : theme.dotStroke}
-        strokeWidth={selected ? 2 : 1}
+        fill={fill}
+        stroke={theme.dotOutline}
+        strokeWidth={1}
         hitStrokeWidth={hitStroke}
         shadowColor="black"
         shadowOpacity={0.2}
@@ -123,7 +139,7 @@ function DancerDot({
           verticalAlign="middle"
           fontSize={radius * 0.85}
           fontStyle="bold"
-          fill={theme.dotText}
+          fill={textColor}
           listening={false}
         />
       )}
@@ -147,6 +163,9 @@ export function StageCanvas() {
   const stage = useProject((s) => s.stage)
   const dancers = useProject((s) => s.dancers)
   const formations = useProject((s) => s.formations)
+  const parts = useProject((s) => s.parts)
+  const sections = useProject((s) => s.sections)
+  const assignments = useProject((s) => s.assignments)
   const moveDancer = useProject((s) => s.moveDancer)
   const selectedDancerId = useUi((s) => s.selectedDancerId)
   const selectDancer = useUi((s) => s.selectDancer)
@@ -279,6 +298,10 @@ export function StageCanvas() {
               const pos = positions[d.id]
               if (!pos) return null
               const px = toPx(pos.x, pos.y)
+              // A dancer's colour is their part in the section the playhead is in.
+              const partId = partIdAt(sections, assignments, d.id, count)
+              const part = parts.find((p) => p.id === partId)
+              const fill = part ? theme.parts[part.color] : theme.unassigned
               return (
                 <DancerDot
                   key={d.id}
@@ -287,6 +310,8 @@ export function StageCanvas() {
                   y={px.y}
                   radius={radius}
                   labelSize={labelSize}
+                  fill={fill}
+                  textColor={part ? readableOn(fill) : theme.dotText}
                   selected={d.id === selectedDancerId}
                   theme={theme}
                   onSelect={() => selectDancer(d.id)}

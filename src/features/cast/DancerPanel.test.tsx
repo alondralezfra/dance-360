@@ -61,6 +61,20 @@ describe('DancerPanel', () => {
     expect(useUi.getState().selectedDancerId).toBeNull()
   })
 
+  it('shows each dancer’s part colour at the current formation, or "No part"', () => {
+    useProject.getState().addDancer('Maya')
+    useProject.getState().addDancer('Jordan')
+    const [maya] = useProject.getState().dancers
+    const { sections, parts } = useProject.getState()
+    useProject.getState().assignDancer(sections[0].id, maya.id, parts[0].id)
+
+    render(<DancerPanel />)
+    const dots = screen.getAllByRole('img')
+    expect(dots[0]).toHaveAccessibleName('Part A')
+    expect(dots[0]).toHaveStyle({ backgroundColor: 'var(--part-blue)' })
+    expect(dots[1]).toHaveAccessibleName('No part')
+  })
+
   it('removes a dancer and clears their selection', async () => {
     useProject.getState().addDancer('Maya')
     useProject.getState().addDancer('Jordan')

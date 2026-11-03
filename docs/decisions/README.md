@@ -29,3 +29,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0004](0004-versioned-persistence-behind-a-repository.md) | Versioned persistence behind a repository |
 | [0005](0005-theme-tokens.md) | Theme tokens instead of raw colours |
 | [0006](0006-verification-workflow.md) | Verification workflow: nothing is done until `verify` passes |
+| [0007](0007-parts-sections-and-assignments.md) | Parts, sections and assignments (per-section parts, contiguous sections, palette-id colours) |
