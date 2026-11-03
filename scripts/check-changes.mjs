@@ -3,6 +3,7 @@
 //
 //   node scripts/check-changes.mjs            checks uncommitted work (vs HEAD)
 //   node scripts/check-changes.mjs --staged   checks only what is staged (pre-commit)
+//   node scripts/check-changes.mjs --base origin/main   checks everything since that ref (CI on pull requests)
 //
 // Nothing changed (clean tree) => passes. This is a guard rail, not a judge of
 // quality: the docs and tests still have to be real (see CLAUDE.md).
@@ -10,6 +11,12 @@
 import { execSync } from 'node:child_process'
 
 const staged = process.argv.includes('--staged')
+const baseIndex = process.argv.indexOf('--base')
+const base = baseIndex === -1 ? null : process.argv[baseIndex + 1]
+if (baseIndex !== -1 && !base) {
+  console.error('--base needs a git ref, e.g. --base origin/main')
+  process.exit(2)
+}
 
 const git = (cmd) =>
   execSync(`git -c core.quotepath=off ${cmd}`, { encoding: 'utf8' })
@@ -17,9 +24,11 @@ const git = (cmd) =>
     .map((s) => s.trim())
     .filter(Boolean)
 
-const files = staged
-  ? git('diff --cached --name-only')
-  : [...new Set([...git('diff HEAD --name-only'), ...git('ls-files --others --exclude-standard')])]
+const files = base
+  ? git(`diff ${base}...HEAD --name-only`)
+  : staged
+    ? git('diff --cached --name-only')
+    : [...new Set([...git('diff HEAD --name-only'), ...git('ls-files --others --exclude-standard')])]
 
 const isTest = (f) => /\.test\.tsx?$/.test(f) || f.startsWith('e2e/') || /^src\/.*\/fixtures\//.test(f)
 const isAppCode = (f) => /^src\/.*\.(ts|tsx|css)$/.test(f) && !isTest(f)

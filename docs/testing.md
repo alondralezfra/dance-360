@@ -31,6 +31,10 @@ Coverage thresholds (lines/statements/functions 95%, branches 90%) apply to `mod
 
 If anything under `src/` (non-test) changed, the same change must also touch: a test file (or `e2e/`), `CHANGELOG.md`, and something in `docs/` (or the root `README.md`). It runs inside `verify`, on every commit (pre-commit hook), and when Claude finishes a turn (Stop hook). It checks that the files were touched; reviewing that they are *right* is part of the workflow in `CLAUDE.md`.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs the same `npm run verify` on GitHub for every push to `main` and every pull request (Ubuntu, Node 24, Playwright's Chromium). On pull requests it first runs `node scripts/check-changes.mjs --base origin/<base branch>`, because CI sees committed work rather than uncommitted work. Failed runs upload Playwright traces. Treat a red CI run exactly like a failing local `verify`: the change is not done. Once the repository is on GitHub, protect `main` (Settings -> Branches) and require the **CI / verify** check.
+
 ## Writing tests
 
 - **New logic** -> unit tests first, covering edge cases and failure modes, not just the happy path.
