@@ -51,4 +51,4 @@ A change is **not implemented** until step 7 passes. The Stop hook and the pre-c
 
 ## Environment notes
 
-Windows + Git Bash/PowerShell. E2E uses the system Edge locally (`channel: 'msedge'`). Put scratch files in the session scratchpad, not the repo. Playwright specs start their own dev server on port 5199.
+Windows + Git Bash/PowerShell. E2E uses the system Edge locally (`channel: 'msedge'`). Put scratch files in the session scratchpad, not the repo. Playwright builds the app and serves that production build itself on port 5199 (don't leave something else on that port).
