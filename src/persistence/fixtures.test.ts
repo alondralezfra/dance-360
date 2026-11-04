@@ -56,6 +56,18 @@ describe('saved-data fixtures', () => {
     }
   })
 
+  it('every migrated part applies to all sections (null) or to sections that exist', () => {
+    for (const { version, doc } of byVersion) {
+      const p = migrateProject(version, structuredClone(doc))
+      const sections = new Set(p.sections.map((s) => s.id))
+      for (const part of p.parts) {
+        expect(part.sectionIds === null || part.sectionIds.every((id) => sections.has(id))).toBe(true)
+      }
+      // Projects saved before part scoping existed keep every part applying everywhere.
+      if (version < 3) expect(p.parts.every((part) => part.sectionIds === null)).toBe(true)
+    }
+  })
+
   it('every migrated assignment points at a real dancer, section and part', () => {
     for (const { version, doc } of byVersion) {
       const p = migrateProject(version, structuredClone(doc))

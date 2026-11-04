@@ -57,6 +57,8 @@ export interface PartsSlice {
   addPart: () => Id | null
   renamePart: (id: Id, name: string) => void
   setPartColor: (id: Id, color: PartColorId) => void
+  /** Limits a part to specific sections, or `null` for all sections. */
+  setPartSections: (id: Id, sectionIds: Id[] | null) => void
   /** Removes a part; dancers who were in it become unassigned. */
   removePart: (id: Id) => void
   /** Adds a section after the last one, copying the last section's assignments. Returns its id. */

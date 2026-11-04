@@ -30,3 +30,5 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0005](0005-theme-tokens.md) | Theme tokens instead of raw colours |
 | [0006](0006-verification-workflow.md) | Verification workflow: nothing is done until `verify` passes |
 | [0007](0007-parts-sections-and-assignments.md) | Parts, sections and assignments (per-section parts, contiguous sections, palette-id colours) |
+| [0008](0008-parts-limited-to-sections.md) | Parts limited to specific sections (one part = automatic, limited parts replace all-section parts) |
+| [0009](0009-uncovered-sections-and-default-part.md) | Sections no part applies in are not an error; the default part is "Everyone" |

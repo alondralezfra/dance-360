@@ -26,7 +26,7 @@ const renderPage = () =>
 describe('Parts', () => {
   it('lists the project’s parts', () => {
     renderPage()
-    expect(screen.getByLabelText('Name of part 1')).toHaveValue('Part A')
+    expect(screen.getByLabelText('Name of part 1')).toHaveValue('Everyone')
     expect(screen.getByLabelText('Colour of part 1')).toHaveValue('blue')
   })
 
@@ -34,7 +34,7 @@ describe('Parts', () => {
     const user = userEvent.setup()
     renderPage()
     await user.click(screen.getByRole('button', { name: '+ Add part' }))
-    expect(screen.getByLabelText('Name of part 2')).toHaveValue('Part B')
+    expect(screen.getByLabelText('Name of part 2')).toHaveValue('Part A')
     expect(screen.getByLabelText('Colour of part 2')).not.toHaveValue('blue')
   })
 
@@ -59,7 +59,7 @@ describe('Parts', () => {
     const confirm = vi.spyOn(window, 'confirm')
     const user = userEvent.setup()
     renderPage()
-    await user.click(screen.getByRole('button', { name: 'Remove Part A' }))
+    await user.click(screen.getByRole('button', { name: 'Remove Everyone' }))
     expect(confirm).not.toHaveBeenCalled()
     expect(s().parts).toEqual([])
     expect(screen.getByText(/No parts yet/)).toBeInTheDocument()
@@ -72,12 +72,12 @@ describe('Parts', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(screen.getByRole('button', { name: 'Remove Part A' }))
+    await user.click(screen.getByRole('button', { name: 'Remove Everyone' }))
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('1 assignment will be cleared'))
     expect(s().parts).toHaveLength(1)
 
     confirm.mockReturnValue(true)
-    await user.click(screen.getByRole('button', { name: 'Remove Part A' }))
+    await user.click(screen.getByRole('button', { name: 'Remove Everyone' }))
     expect(s().parts).toHaveLength(0)
   })
 
@@ -88,7 +88,7 @@ describe('Parts', () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
     const user = userEvent.setup()
     renderPage()
-    await user.click(screen.getByRole('button', { name: 'Remove Part A' }))
+    await user.click(screen.getByRole('button', { name: 'Remove Everyone' }))
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('2 assignments will be cleared'))
   })
 })
@@ -157,6 +157,7 @@ describe('Assignments', () => {
   })
 
   it('flags unassigned cells, listing who is missing where', () => {
+    s().addPart() // with two parts, dancers have to be put in one
     s().addDancer('Maya')
     renderPage()
     expect(screen.getByRole('status')).toHaveTextContent('1 missing assignment')
@@ -165,23 +166,25 @@ describe('Assignments', () => {
   })
 
   it('assigning a part saves it and clears the warning', async () => {
+    s().addPart()
     s().addDancer('Maya')
     const user = userEvent.setup()
     renderPage()
-    await user.selectOptions(screen.getByLabelText('Maya, Section 1'), 'Part A')
+    await user.selectOptions(screen.getByLabelText('Maya, Section 1'), 'Everyone')
 
     expect(s().assignments[s().sections[0].id][s().dancers[0].id]).toBe(s().parts[0].id)
-    expect(screen.getByRole('status')).toHaveTextContent('Everyone has a part in every section.')
+    expect(screen.getByRole('status')).toHaveTextContent('No missing assignments.')
     expect(screen.queryByText(/has no part in/)).not.toBeInTheDocument()
     expect(screen.getByLabelText('Maya, Section 1')).toBeValid()
   })
 
   it('choosing "No part" clears an assignment and the warning returns', async () => {
+    s().addPart()
     s().addDancer('Maya')
     s().assignDancer(s().sections[0].id, s().dancers[0].id, s().parts[0].id)
     const user = userEvent.setup()
     renderPage()
-    expect(screen.getByRole('status')).toHaveTextContent('Everyone has a part')
+    expect(screen.getByRole('status')).toHaveTextContent('No missing assignments')
     await user.selectOptions(screen.getByLabelText('Maya, Section 1'), 'No part')
     expect(screen.getByRole('status')).toHaveTextContent('1 missing assignment')
   })
@@ -194,9 +197,9 @@ describe('Assignments', () => {
     await user.click(screen.getByRole('button', { name: '+ Add section' }))
 
     const cell1 = screen.getByLabelText('Maya, Section 1')
-    expect(within(cell1).getAllByRole('option').map((o) => o.textContent)).toEqual(['No part', 'Part A', 'Part B'])
-    await user.selectOptions(cell1, 'Part A')
-    await user.selectOptions(screen.getByLabelText('Maya, Section 2'), 'Part B')
+    expect(within(cell1).getAllByRole('option').map((o) => o.textContent)).toEqual(['No part', 'Everyone', 'Part A'])
+    await user.selectOptions(cell1, 'Everyone')
+    await user.selectOptions(screen.getByLabelText('Maya, Section 2'), 'Part A')
 
     const [sec1, sec2] = s().sections
     const [a, b] = s().parts
@@ -205,20 +208,33 @@ describe('Assignments', () => {
   })
 
   it('pluralises the missing count', () => {
+    s().addPart()
     s().addDancer('Maya')
     s().addDancer('Jordan')
     renderPage()
     expect(screen.getByRole('status')).toHaveTextContent('2 missing assignments')
   })
 
-  it('shows a removed part’s cells as missing again', async () => {
+  it('shows a removed part’s cells as missing again while several parts are still left', async () => {
+    s().addPart()
+    s().addPart() // two more, so two are still left after removing the first
     s().addDancer('Maya')
     s().assignDancer(s().sections[0].id, s().dancers[0].id, s().parts[0].id)
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     renderPage()
-    await user.click(screen.getByRole('button', { name: 'Remove Part A' }))
+    await user.click(screen.getByRole('button', { name: 'Remove Everyone' }))
     expect(confirm).toHaveBeenCalled()
     expect(screen.getByRole('status')).toHaveTextContent('1 missing assignment')
+  })
+
+  it('removing the only part is not an error: with no parts, everyone just dances together', async () => {
+    s().addDancer('Maya')
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(screen.getByRole('button', { name: 'Remove Everyone' }))
+    expect(screen.getByRole('status')).toHaveTextContent('No missing assignments')
+    expect(screen.queryByLabelText('Maya, Section 1')).not.toBeInTheDocument()
+    expect(screen.getByText(/Maya, Section 1: no parts apply/)).toBeInTheDocument()
   })
 })

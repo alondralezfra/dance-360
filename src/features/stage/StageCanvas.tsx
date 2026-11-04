@@ -299,7 +299,7 @@ export function StageCanvas() {
               if (!pos) return null
               const px = toPx(pos.x, pos.y)
               // A dancer's colour is their part in the section the playhead is in.
-              const partId = partIdAt(sections, assignments, d.id, count)
+              const partId = partIdAt(sections, parts, assignments, d.id, count)
               const part = parts.find((p) => p.id === partId)
               const fill = part ? theme.parts[part.color] : theme.unassigned
               return (

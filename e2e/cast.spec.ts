@@ -54,22 +54,22 @@ test.describe('parts and sections', () => {
     await goToCast(page)
   })
 
-  test('a new project starts with Part A and Section 1', async ({ page }) => {
-    await expect(page.getByLabel('Name of part 1')).toHaveValue('Part A')
+  test('a new project starts with an Everyone part and Section 1', async ({ page }) => {
+    await expect(page.getByLabel('Name of part 1')).toHaveValue('Everyone')
     await expect(page.getByLabel('Name of section 1')).toHaveValue('Section 1')
     await expect(page.getByText('Starts at Set 1 · Count 1')).toBeVisible()
   })
 
   test('adds, renames, recolours and removes parts, and saves them', async ({ page }) => {
     await page.getByRole('button', { name: '+ Add part' }).click()
-    await expect(page.getByLabel('Name of part 2')).toHaveValue('Part B')
+    await expect(page.getByLabel('Name of part 2')).toHaveValue('Part A')
 
     await page.getByLabel('Name of part 2').fill('Floor')
     await page.getByLabel('Colour of part 2').selectOption('green')
     await waitForSaved(page)
     let saved = await savedProject(page)
     expect(saved.parts.map((p: { name: string; color: string }) => [p.name, p.color])).toEqual([
-      ['Part A', 'blue'],
+      ['Everyone', 'blue'],
       ['Floor', 'green'],
     ])
 
@@ -115,27 +115,29 @@ test.describe('assigning dancers', () => {
     await addDancer(page, 'Maya')
     await addDancer(page, 'Jordan')
     await goToCast(page)
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
 
     const status = page.getByRole('status').filter({ hasText: /assignment|Everyone/ })
     await expect(status).toHaveText('2 missing assignments')
     await expect(page.getByText('Maya has no part in Section 1')).toBeVisible()
 
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
     await expect(status).toHaveText('1 missing assignment')
-    await page.getByLabel('Jordan, Section 1').selectOption({ label: 'Part A' })
-    await expect(status).toHaveText('Everyone has a part in every section.')
+    await page.getByLabel('Jordan, Section 1').selectOption({ label: 'Everyone' })
+    await expect(status).toHaveText('No missing assignments.')
 
     await waitForSaved(page)
     await page.reload()
     await expect(page.getByLabel('Maya, Section 1')).toHaveValue(/.+/)
-    await expect(status).toHaveText('Everyone has a part in every section.')
+    await expect(status).toHaveText('No missing assignments.')
   })
 
   test('a new section copies the previous one, and a new dancer starts unassigned', async ({ page }) => {
     await createProject(page)
     await addDancer(page, 'Maya')
     await goToCast(page)
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
 
     await page.getByRole('button', { name: '+ Add section' }).click()
     await expect(page.getByLabel('Maya, Section 2')).toHaveValue(await page.getByLabel('Maya, Section 1').inputValue())
@@ -151,20 +153,22 @@ test.describe('assigning dancers', () => {
     await createProject(page)
     await addDancer(page, 'Maya')
     await goToCast(page)
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
 
     let message = ''
     page.once('dialog', (d) => {
       message = d.message()
       void d.dismiss()
     })
-    await page.getByRole('button', { name: 'Remove Part A' }).click()
+    await page.getByRole('button', { name: 'Remove Everyone' }).click()
     expect(message).toContain('1 assignment will be cleared')
-    await expect(page.getByLabel('Name of part 1')).toBeVisible() // cancelled: still there
+    await expect(page.getByRole('button', { name: 'Remove Everyone' })).toBeVisible() // cancelled: still there
 
     page.once('dialog', (d) => void d.accept())
-    await page.getByRole('button', { name: 'Remove Part A' }).click()
-    await expect(page.getByLabel('Name of part 1')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Remove Everyone' }).click()
+    await expect(page.getByRole('button', { name: 'Remove Everyone' })).toHaveCount(0)
     await expect(page.getByText('Maya has no part in Section 1')).toBeVisible()
   })
 
@@ -172,7 +176,8 @@ test.describe('assigning dancers', () => {
     await createProject(page)
     await addDancer(page, 'Maya')
     await goToCast(page)
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
     await goToStage(page)
     await page.getByRole('button', { name: 'Remove Maya' }).click()
     await waitForSaved(page)
@@ -186,10 +191,15 @@ test.describe('part colours on the stage', () => {
     await createProject(page)
     await addDancer(page, 'Maya')
 
-    expectColor(await dotColor(page, FIRST_SPOT), rgb('#94a3b8')) // no part yet
+    // with a single part everyone is in it automatically; a second part is what makes dancers need picking
+    await goToCast(page)
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await goToStage(page)
+    expectColor(await dotColor(page, FIRST_SPOT), rgb('#94a3b8')) // no part chosen yet
 
     await goToCast(page)
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
     await goToStage(page)
     expectColor(await dotColor(page, FIRST_SPOT), rgb('#0072b2')) // blue
 
@@ -203,7 +213,8 @@ test.describe('part colours on the stage', () => {
     await createProject(page)
     await addDancer(page, 'Maya')
     await goToCast(page)
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
     await goToStage(page)
     await page.getByRole('button', { name: 'Switch to dark theme' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
@@ -214,13 +225,13 @@ test.describe('part colours on the stage', () => {
     await createProject(page)
     await addDancer(page, 'Maya')
 
-    // Section 2 starts at Set 3; Maya is Part A in section 1 and Part B (a new colour) in section 2.
+    // Section 2 starts at Set 3; Maya is in Everyone in section 1 and Part A (a new colour) in section 2.
     await goToCast(page)
     await page.getByRole('button', { name: '+ Add part' }).click()
     await page.getByLabel('Colour of part 2').selectOption('red')
     await page.getByRole('button', { name: '+ Add section' }).click()
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
-    await page.getByLabel('Maya, Section 2').selectOption({ label: 'Part B' })
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
+    await page.getByLabel('Maya, Section 2').selectOption({ label: 'Part A' })
 
     // Formation 1 sits in section 1; put formation 2 at Set 3 (count 16), inside section 2.
     await goToStage(page)
@@ -239,20 +250,22 @@ test.describe('part colours on the stage', () => {
     await createProject(page)
     await addDancer(page, 'Maya')
     await goToCast(page)
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
     await goToStage(page)
 
-    await expect(page.getByRole('img', { name: 'Part A' })).toBeVisible()
+    await expect(page.getByRole('img', { name: 'Everyone' })).toBeVisible()
     const legend = page.getByRole('group', { name: 'Parts legend' })
     await expect(legend).toContainText('Section 1')
-    await expect(legend).toContainText('Part A')
+    await expect(legend).toContainText('Everyone')
   })
 
   test('selecting a dancer rings them without hiding their part colour', async ({ page }) => {
     await createProject(page)
     await addDancer(page, 'Maya')
     await goToCast(page)
-    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Part A' })
+    await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
+    await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
     await goToStage(page)
 
     await page.getByRole('listitem').click() // select in the dancer list
@@ -287,8 +300,9 @@ test.describe('upgrading older saved projects', () => {
     expectColor(await dotColor(page, { x: 10, y: 12 }), rgb('#0072b2'))
 
     await goToCast(page)
-    await expect(page.getByRole('status').filter({ hasText: 'Everyone' })).toBeVisible()
-    await expect(page.getByLabel('Maya, Section 1')).toHaveValue('part-a')
+    await expect(page.getByRole('status').filter({ hasText: 'No missing assignments' })).toBeVisible()
+    // one part applies everywhere, so Maya is in it automatically: no dropdown, nothing to pick
+    await expect(page.getByLabel('Maya, Section 1')).toHaveCount(0)
   })
 })
 

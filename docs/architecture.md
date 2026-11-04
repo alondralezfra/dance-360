@@ -14,7 +14,7 @@ src/
     playback.ts     positionsAt(formations, count): the playback engine
     tempo.ts        counts <-> seconds, "Set 3 · Count 5" labels
     formations.ts   stage helpers, count ordering
-    parts.ts        sections/parts/assignments: which part at which count, ordering, gap detection
+    parts.ts        sections/parts/assignments: which parts apply in a section, which part a dancer is in at a count, ordering, gap detection
     project.ts      new-project factory
     types.ts        the saved Project shape
   persistence/    Saving projects. Depends on model/ only.               (enforced)
@@ -27,7 +27,7 @@ src/
     uiStore.ts       selections (not saved)
     autosave.ts      debounced save of the open project
   features/       Screens, one folder per feature, each documented in docs/features/.  (enforced)
-  components/     Shared UI: ui/ (Button, Input, Select, NumberField, Drawer), ThemeToggle
+  components/     Shared UI: ui/ (Button, Input, Select, NumberField, Drawer, Popover), ThemeToggle
   theme/          Theme switching + the canvas colour hook
   lib/            Small helpers (cn, readableOn)
   router.tsx      URL map (project screens are tabs: Stage, Cast & Parts)
@@ -62,9 +62,9 @@ The stage: `projectStore.formations` + `uiStore.currentFormationId` -> `usePlayh
 `Project { name, stage, tempo, dancers[], formations[], parts[], sections[], assignments }`.
 
 - A formation is `{ id, name, count, transitionCounts, positions: Record<dancerId, {x, y}> }` with positions in feet. `formations` is always sorted with strictly increasing `count` (`normalizeCounts`).
-- A part is `{ id, name, color }` where `color` is a palette id (`blue`, `red`, `green`, `orange`, `sky`, `pink`, `yellow`, `gray`).
+- A part is `{ id, name, color, sectionIds }` where `color` is a palette id (`blue`, `red`, `green`, `orange`, `sky`, `pink`, `yellow`, `gray`) and `sectionIds` is the list of sections it applies to, or `null` for all sections (including future ones). An empty list applies nowhere.
 - A section is `{ id, name, startCount }`. `sections` is always sorted, the first starts at 0, there is at least one, and a section runs until the next starts (`normalizeSections`), so every count is in exactly one section.
-- `assignments` is `sectionId -> dancerId -> partId`; a missing entry means "no part" (shown as a gap, `findGaps`). A dancer's part at a count is `partIdAt`.
+- `assignments` is `sectionId -> dancerId -> partId`: a dancer's *chosen* part. **Never read it directly to find out who is in what part.** Use `effectivePartId` / `partIdAt` (`model/parts.ts`), which apply the rules: `availableParts` = the parts limited to that section if any (they replace the all-sections parts), otherwise the all-sections parts; if exactly one part is available everyone is in it automatically; otherwise it is the chosen part if that part is still available there, else nobody. Nobody only counts as a **gap** (`findGaps`) where two or more parts apply; where none applies (`isUncovered`) the dance isn't split and it is not an error. Stored choices for parts that don't currently apply are kept but ignored.
 
 Stored as `dance360:project:<id>` = `{ version, updatedAt, project }`.
 
@@ -73,6 +73,7 @@ Stored as `dance360:project:<id>` = `{ version, updatedAt, project }`.
 | 0 | Original prototype: formations without timing, no tempo map |
 | 1 | `formations[].count` and `transitionCounts`; `tempo` |
 | 2 | `parts`, `sections`, `assignments`; migrated projects get "Part A" + "Section 1" with every dancer in Part A |
+| 3 | `parts[].sectionIds` (the sections a part applies to; `null` = all); migrated parts all get `null` |
 
 ## Planned (from the build order)
 

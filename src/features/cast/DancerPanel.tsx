@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { cn } from '../../lib/cn'
-import { partIdAt } from '../../model/parts'
+import { isUncovered, partIdAt, sectionIndexAt } from '../../model/parts'
 import { useCurrentFormation, useProject } from '../../store/projectStore'
 import { useUi } from '../../store/uiStore'
 
@@ -12,6 +12,9 @@ export function DancerPanel() {
   const sections = useProject((s) => s.sections)
   const assignments = useProject((s) => s.assignments)
   const formation = useCurrentFormation()
+  // Where no part applies, dancers aren't "missing" a part: everyone dances together.
+  const section = sections[sectionIndexAt(sections, formation.count)]
+  const uncovered = section !== undefined && isUncovered(parts, section.id)
   const addDancer = useProject((s) => s.addDancer)
   const renameDancer = useProject((s) => s.renameDancer)
   const removeDancer = useProject((s) => s.removeDancer)
@@ -48,7 +51,7 @@ export function DancerPanel() {
         {dancers.map((d) => {
           const selected = d.id === selectedDancerId
           // The dot shows the dancer's part at the formation being edited.
-          const part = parts.find((p) => p.id === partIdAt(sections, assignments, d.id, formation.count))
+          const part = parts.find((p) => p.id === partIdAt(sections, parts, assignments, d.id, formation.count))
           return (
             <li
               key={d.id}
@@ -60,7 +63,7 @@ export function DancerPanel() {
             >
               <span
                 role="img"
-                aria-label={part ? part.name : 'No part'}
+                aria-label={part ? part.name : uncovered ? 'Everyone' : 'No part'}
                 className={cn('h-3 w-3 shrink-0 rounded-full', !part && 'bg-subtle-foreground')}
                 style={part ? { backgroundColor: `var(--part-${part.color})` } : undefined}
               />

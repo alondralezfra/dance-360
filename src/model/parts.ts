@@ -79,15 +79,66 @@ export function sectionEnd(sections: Section[], index: number): number | null {
   return sections[index + 1]?.startCount ?? null
 }
 
+/**
+ * The parts that apply in a section. A part limited to specific sections
+ * REPLACES the all-sections parts in those sections (so "Floor" and "Standing"
+ * in the choruses take over from "Part A", which applies everywhere else).
+ */
+export function availableParts(parts: Part[], sectionId: Id): Part[] {
+  const specific = parts.filter((p) => p.sectionIds !== null && p.sectionIds.includes(sectionId))
+  return specific.length > 0 ? specific : parts.filter((p) => p.sectionIds === null)
+}
+
+/**
+ * The part a dancer is in for a section, or undefined if they have none.
+ * - If only one part applies in the section, everyone is in it automatically.
+ * - Otherwise it's their chosen part, as long as that part still applies there
+ *   (a stored choice for a part that no longer applies is kept but ignored, so
+ *   widening the part's sections again brings it back).
+ */
+export function effectivePartId(
+  parts: Part[],
+  assignments: Assignments,
+  sectionId: Id,
+  dancerId: Id,
+): Id | undefined {
+  const available = availableParts(parts, sectionId)
+  if (available.length === 1) return available[0].id
+  const chosen = assignments[sectionId]?.[dancerId]
+  return available.some((p) => p.id === chosen) ? chosen : undefined
+}
+
 /** The part a dancer is in at a given count, or undefined if they have none. */
 export function partIdAt(
   sections: Section[],
+  parts: Part[],
   assignments: Assignments,
   dancerId: Id,
   count: number,
 ): Id | undefined {
   const section = sections[sectionIndexAt(sections, count)]
-  return section ? assignments[section.id]?.[dancerId] : undefined
+  return section ? effectivePartId(parts, assignments, section.id, dancerId) : undefined
+}
+
+/**
+ * The next value of a part's sections after ticking or unticking one section
+ * in the checklist. Ticking a section while the part is on "all sections"
+ * narrows it to just that section; unticking the last one goes back to all.
+ */
+export function toggleSectionInScope(sectionIds: Id[] | null, sectionId: Id): Id[] | null {
+  if (sectionIds === null) return [sectionId]
+  if (sectionIds.includes(sectionId)) {
+    const rest = sectionIds.filter((id) => id !== sectionId)
+    return rest.length > 0 ? rest : null
+  }
+  return [...sectionIds, sectionId]
+}
+
+/** "All sections", "No sections", or the chosen section names in song order. */
+export function sectionScopeLabel(sectionIds: Id[] | null, sections: Section[]): string {
+  if (sectionIds === null) return 'All sections'
+  const names = sections.filter((s) => sectionIds.includes(s.id)).map((s) => s.name)
+  return names.length > 0 ? names.join(', ') : 'No sections'
 }
 
 export interface AssignmentGap {
@@ -96,8 +147,19 @@ export interface AssignmentGap {
 }
 
 /**
- * Every (dancer, section) with no usable part: nothing assigned, or assigned to
- * a part that no longer exists. These are shown as warnings (plan §3.5).
+ * True when no part applies in a section. That is not a problem: it just means
+ * the dance isn't split there, so everyone dances together.
+ */
+export function isUncovered(parts: Part[], sectionId: Id): boolean {
+  return availableParts(parts, sectionId).length === 0
+}
+
+/**
+ * Every (dancer, section) where a dancer has to be put in a part but hasn't been.
+ * That only happens where two or more parts apply and the dancer has no valid
+ * choice. It is NOT a gap where one part applies (everyone is in it
+ * automatically) or none applies (everyone dances together). These are shown as
+ * warnings (plan §3.5).
  */
 export function findGaps(
   dancers: Dancer[],
@@ -105,12 +167,13 @@ export function findGaps(
   assignments: Assignments,
   parts: Part[],
 ): AssignmentGap[] {
-  const partIds = new Set(parts.map((p) => p.id))
   const gaps: AssignmentGap[] = []
   for (const section of sections) {
+    if (availableParts(parts, section.id).length < 2) continue
     for (const dancer of dancers) {
-      const partId = assignments[section.id]?.[dancer.id]
-      if (!partId || !partIds.has(partId)) gaps.push({ dancerId: dancer.id, sectionId: section.id })
+      if (effectivePartId(parts, assignments, section.id, dancer.id) === undefined) {
+        gaps.push({ dancerId: dancer.id, sectionId: section.id })
+      }
     }
   }
   return gaps

@@ -28,6 +28,30 @@ describe('migrateProject', () => {
     expect(p.tempo.bpm).toBeGreaterThan(0)
   })
 
+  it('v2 -> v3: every part keeps applying to all sections, and nothing else changes', () => {
+    const v2 = {
+      ...v0,
+      tempo: { bpm: 120, startOffsetSec: 0 },
+      parts: [
+        { id: 'a', name: 'Part A', color: 'blue' },
+        { id: 'b', name: 'Part B', color: 'red' },
+      ],
+      sections: [{ id: 's1', name: 'Intro', startCount: 0 }],
+      assignments: { s1: { d1: 'a' } },
+    }
+    const p = migrateProject(2, structuredClone(v2))
+    expect(p.parts).toEqual([
+      { id: 'a', name: 'Part A', color: 'blue', sectionIds: null },
+      { id: 'b', name: 'Part B', color: 'red', sectionIds: null },
+    ])
+    expect(p.sections).toEqual(v2.sections)
+    expect(p.assignments).toEqual(v2.assignments)
+  })
+
+  it('v2 -> v3: copes with a missing parts list', () => {
+    expect(migrateProject(2, { name: 'x' }).parts).toEqual([])
+  })
+
   it('v1 -> v2: adds one part and one section with every dancer already in that part', () => {
     const v1 = {
       ...v0,
@@ -38,7 +62,8 @@ describe('migrateProject', () => {
       ],
     }
     const p = migrateProject(1, v1)
-    expect(p.parts).toEqual([{ id: 'part-a', name: 'Part A', color: 'blue' }])
+    // (v1 is migrated all the way to the current version, so the part also gets v3's `sectionIds`)
+    expect(p.parts).toEqual([{ id: 'part-a', name: 'Part A', color: 'blue', sectionIds: null }])
     expect(p.sections).toEqual([{ id: 'section-1', name: 'Section 1', startCount: 0 }])
     expect(p.assignments).toEqual({ 'section-1': { d1: 'part-a', d2: 'part-a' } })
   })

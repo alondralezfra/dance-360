@@ -6,7 +6,7 @@
 
 - Shows the stage as a canvas (Konva): floor, 2 ft grid, dashed centre line, UPSTAGE / AUDIENCE labels. Stage size defaults to 40 x 24 ft and is scaled to fit the available space.
 - Dancers appear as dots with initials and a name label. **Drag** a dot to move it; it snaps to a 0.5 ft grid on release and can't leave the stage (while dragging it stops at the edge; positions are clamped when saved). The selected dancer gets a ring.
-- **Part colours**: a dot is filled with the dancer's part colour for the section the stage is currently in (unassigned dancers are neutral gray), so colours change as you move to a formation in another section. A legend at the top right shows the current section and the parts. Parts, sections and assignments are edited on the Cast & Parts tab ([cast.md](cast.md)).
+- **Part colours**: a dot is filled with the dancer's part colour for the section the stage is currently in (unassigned dancers are neutral gray), so colours change as you move to a formation in another section. A legend at the top right shows the current section and the parts that apply in it ("Everyone", in gray, where none do). Parts, sections and assignments are edited on the Cast & Parts tab ([cast.md](cast.md)).
 - **Formations** are a sequence of positions for everyone. The bottom strip lets you:
   - step to the previous/next formation, or jump to one from the list;
   - add a formation (a copy of the current one, one set later), rename it, delete it (the last one can't be deleted; deleting selects the neighbour);

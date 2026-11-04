@@ -3,11 +3,12 @@ import { newId, createEmptyProject } from '../../model/project'
 import {
   DEFAULT_SECTION_LENGTH,
   MAX_PARTS,
+  availableParts,
   nextPartColor,
   nextPartName,
   normalizeSections,
 } from '../../model/parts'
-import type { Assignments } from '../../model/types'
+import type { Assignments, Part } from '../../model/types'
 import type { PartsSlice, ProjectStore } from '../storeTypes'
 
 const empty = createEmptyProject()
@@ -20,7 +21,7 @@ export const createPartsSlice: StateCreator<ProjectStore, [], [], PartsSlice> = 
   addPart: () => {
     const { parts } = get()
     if (parts.length >= MAX_PARTS) return null
-    const part = { id: newId(), name: nextPartName(parts), color: nextPartColor(parts) }
+    const part: Part = { id: newId(), name: nextPartName(parts), color: nextPartColor(parts), sectionIds: null }
     set({ parts: [...parts, part] })
     return part.id
   },
@@ -30,6 +31,15 @@ export const createPartsSlice: StateCreator<ProjectStore, [], [], PartsSlice> = 
 
   setPartColor: (id, color) =>
     set((s) => ({ parts: s.parts.map((p) => (p.id === id ? { ...p, color } : p)) })),
+
+  setPartSections: (id, sectionIds) =>
+    set((s) => {
+      // Keep only sections that exist, once each. Existing assignments are left
+      // alone: ones for sections the part no longer covers are ignored, not lost.
+      const known = new Set(s.sections.map((x) => x.id))
+      const cleaned = sectionIds === null ? null : [...new Set(sectionIds)].filter((x) => known.has(x))
+      return { parts: s.parts.map((p) => (p.id === id ? { ...p, sectionIds: cleaned } : p)) }
+    }),
 
   removePart: (id) =>
     set((s) => {
@@ -50,8 +60,15 @@ export const createPartsSlice: StateCreator<ProjectStore, [], [], PartsSlice> = 
     }
     set({
       sections: normalizeSections([...s.sections, section]),
-      // Like new formations, a new section starts as a copy of the one before it.
+      // Like new formations, a new section starts as a copy of the one before it:
+      // the same assignments, and the same parts apply (so Chorus 3 straight after
+      // Chorus 2 keeps Chorus 2's parts).
       assignments: { ...s.assignments, [section.id]: { ...(last ? s.assignments[last.id] : {}) } },
+      parts: last
+        ? s.parts.map((p) =>
+            p.sectionIds?.includes(last.id) ? { ...p, sectionIds: [...p.sectionIds, section.id] } : p,
+          )
+        : s.parts,
     })
     return section.id
   },
@@ -73,12 +90,20 @@ export const createPartsSlice: StateCreator<ProjectStore, [], [], PartsSlice> = 
     set((s) => {
       if (s.sections.length <= 1) return s // there is always at least one section
       const { [id]: _removed, ...assignments } = s.assignments
-      return { sections: normalizeSections(s.sections.filter((x) => x.id !== id)), assignments }
+      return {
+        sections: normalizeSections(s.sections.filter((x) => x.id !== id)),
+        assignments,
+        // Parts that listed this section stop listing it (one left with none applies nowhere).
+        parts: s.parts.map((p) =>
+          p.sectionIds?.includes(id) ? { ...p, sectionIds: p.sectionIds.filter((x) => x !== id) } : p,
+        ),
+      }
     }),
 
   assignDancer: (sectionId, dancerId, partId) =>
     set((s) => {
-      if (partId !== null && !s.parts.some((p) => p.id === partId)) return s
+      // Only a part that applies in this section can be chosen there.
+      if (partId !== null && !availableParts(s.parts, sectionId).some((p) => p.id === partId)) return s
       const { [dancerId]: _old, ...others } = s.assignments[sectionId] ?? {}
       return {
         assignments: {

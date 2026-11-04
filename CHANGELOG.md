@@ -4,6 +4,26 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (parts limited to specific sections)
+- A **sections dropdown** on each part (next to the colour): "All sections" or any combination of sections (checklist; keyboard and touch friendly). Use it for songs where most sections have one uniform part and only some (e.g. Chorus 1 and Chorus 2) split into several, such as Floor and Standing.
+- Where **exactly one part applies in a section, everyone is in it automatically**: the grid cell is read-only and never shows a "missing assignment". Where several apply, the cell offers only the parts that apply there. Parts limited to a section replace the all-sections parts there.
+- A new section keeps the previous section's parts; removing a section removes it from the parts that listed it (a part left with none shows "No sections").
+- The stage legend lists only the parts that apply in the current section.
+- Popover control (`@radix-ui/react-popover`); `availableParts`, `effectivePartId`, `toggleSectionInScope`, `sectionScopeLabel` in `model/parts.ts`; `setPartSections` in the store.
+- Tests: part-limiting logic, store cascades, the dropdown (component and browser), the choruses-only scenario end to end, stage colours and legend per section, upgrading a version-2 project, and phone layout of the dropdown.
+
+### Changed
+- **A section where no part applies is no longer an error.** Previously, limiting parts so a section had none (e.g. Floor and Standing only in Verse 1, nothing in the Chorus) flagged every dancer as missing there, in cells that offered no way to fix it. Now it means everyone dances together: the grid cell reads "Everyone" (read-only), dots are the neutral gray, the legend shows a gray "Everyone" chip, and only sections where two or more parts apply can have missing assignments. See `docs/decisions/0009-uncovered-sections-and-default-part.md`.
+- **New projects start with a part called "Everyone"** (on all sections) instead of "Part A", so it reads as the uniform base that other parts override; the next part you add is "Part A". Existing projects keep their part names.
+- The grid's status line reads "No missing assignments." (was "Everyone has a part in every section.", which isn't true in an uncovered section).
+- **Behaviour change:** a project with only one part (including a brand-new project) now puts every dancer in that part automatically, instead of showing them as unassigned until picked. With two or more parts that apply in a section, dancers still need picking as before.
+- The assignment grid's scroll box now contains its screen-reader-only text; without that, hidden text in a wide grid could stretch the whole phone page sideways.
+- Part rows wrap onto a second line on narrow screens to make room for the sections control.
+- Browser tests now run against the **production build** (built fresh and served with `vite preview`) instead of the dev server. Same assertions, but they test what actually ships, and the full suite runs in about 40 seconds instead of 80-130. Under parallel load the dev server made tests that take 3 seconds on their own take 14, and a few hit the 30-second timeout.
+
+### Data format
+- Saved-data **v3**: each part gains `sectionIds` (`null` = all sections). Existing projects are upgraded on open with every part on "All sections", so nothing changes for them. See `docs/decisions/0008-parts-limited-to-sections.md`.
+
 ### Added (parts, sections and assignments: build-order step 2)
 - **Cast & Parts** tab with project tabs in the workspace header (Stage | Cast & Parts).
 - **Parts**: colour-coded groups (name + one of 8 colour-blind-safe colours); add, rename, recolour, remove (asks first if dancers are assigned).

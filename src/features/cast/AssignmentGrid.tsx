@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { Select } from '../../components/ui/Select'
 import { cn } from '../../lib/cn'
-import { findGaps } from '../../model/parts'
+import { availableParts, effectivePartId, findGaps, isUncovered } from '../../model/parts'
 import { formatCount } from '../../model/tempo'
 import { useProject } from '../../store/projectStore'
 import { PartSwatch } from './PartSwatch'
@@ -15,8 +15,6 @@ export function AssignmentGrid() {
   const assignDancer = useProject((s) => s.assignDancer)
 
   const gaps = findGaps(dancers, sections, assignments, parts)
-  const isGap = (dancerId: string, sectionId: string) =>
-    gaps.some((g) => g.dancerId === dancerId && g.sectionId === sectionId)
   const dancerName = (id: string) => dancers.find((d) => d.id === id)?.name ?? ''
   const sectionName = (id: string) => sections.find((s) => s.id === id)?.name ?? ''
 
@@ -39,11 +37,12 @@ export function AssignmentGrid() {
         <>
           <div role="status" className={cn('mb-3 text-sm', gaps.length ? 'text-danger' : 'text-muted-foreground')}>
             {gaps.length === 0
-              ? 'Everyone has a part in every section.'
+              ? 'No missing assignments.'
               : `${gaps.length} missing assignment${gaps.length === 1 ? '' : 's'}`}
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-border">
+          {/* relative: contains the absolutely-positioned sr-only text in cells, so it can't stretch the page */}
+          <div className="relative overflow-x-auto rounded-lg border border-border">
             {/* min-w-max keeps cells a usable width; on narrow screens the grid scrolls sideways inside this box */}
             <table className="w-full min-w-max border-collapse text-sm">
               <thead>
@@ -66,27 +65,56 @@ export function AssignmentGrid() {
                       {dancer.name}
                     </th>
                     {sections.map((section) => {
-                      const partId = assignments[section.id]?.[dancer.id]
+                      // Only parts that apply in this section can be chosen. When exactly one does,
+                      // everyone is in it automatically, so there is nothing to pick.
+                      const available = availableParts(parts, section.id)
+                      const uncovered = isUncovered(parts, section.id)
+                      const automatic = available.length === 1
+                      const partId = effectivePartId(parts, assignments, section.id, dancer.id)
                       const part = parts.find((p) => p.id === partId)
-                      const gap = isGap(dancer.id, section.id)
+                      const gap = partId === undefined
                       return (
                         <td key={section.id} className="px-3 py-2">
                           <div className="flex items-center gap-2">
-                            <PartSwatch color={part?.color} />
-                            <Select
-                              value={part ? part.id : ''}
-                              onChange={(e) => assignDancer(section.id, dancer.id, e.target.value || null)}
-                              aria-label={`${dancer.name}, ${section.name}`}
-                              aria-invalid={gap}
-                              className={cn('min-w-36 flex-1', gap && 'border-danger')}
-                            >
-                              <option value="">No part</option>
-                              {parts.map((p) => (
-                                <option key={p.id} value={p.id}>
-                                  {p.name}
-                                </option>
-                              ))}
-                            </Select>
+                            <PartSwatch color={part?.color} neutral={uncovered} />
+                            {uncovered ? (
+                              <span
+                                className="flex min-h-10 min-w-36 flex-1 items-center text-muted-foreground"
+                                title="No part applies in this section, so everyone dances together"
+                              >
+                                Everyone
+                                <span className="sr-only">
+                                  {' '}
+                                  ({dancer.name}, {section.name}: no parts apply)
+                                </span>
+                              </span>
+                            ) : automatic ? (
+                              <span
+                                className="flex min-h-10 min-w-36 flex-1 items-center"
+                                title="Only one part applies in this section, so everyone is in it"
+                              >
+                                {part?.name}
+                                <span className="sr-only">
+                                  {' '}
+                                  ({dancer.name}, {section.name}: automatic)
+                                </span>
+                              </span>
+                            ) : (
+                              <Select
+                                value={part ? part.id : ''}
+                                onChange={(e) => assignDancer(section.id, dancer.id, e.target.value || null)}
+                                aria-label={`${dancer.name}, ${section.name}`}
+                                aria-invalid={gap}
+                                className={cn('min-w-36 flex-1', gap && 'border-danger')}
+                              >
+                                <option value="">No part</option>
+                                {available.map((p) => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.name}
+                                  </option>
+                                ))}
+                              </Select>
+                            )}
                           </div>
                         </td>
                       )

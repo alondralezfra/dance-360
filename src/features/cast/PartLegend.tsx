@@ -1,4 +1,4 @@
-import { sectionIndexAt } from '../../model/parts'
+import { availableParts, isUncovered, sectionIndexAt } from '../../model/parts'
 import { useCurrentFormation, useProject } from '../../store/projectStore'
 import { PartSwatch } from './PartSwatch'
 
@@ -10,8 +10,10 @@ export function PartLegend() {
   const sections = useProject((s) => s.sections)
   const formation = useCurrentFormation()
   const section = sections[sectionIndexAt(sections, formation.count)]
+  // Only the parts that apply in this section, since those are the colours you can see.
+  const shown = section ? availableParts(parts, section.id) : parts
 
-  if (parts.length === 0 && !section) return null
+  if (shown.length === 0 && !section) return null
   return (
     <div
       role="group"
@@ -19,7 +21,13 @@ export function PartLegend() {
       className="pointer-events-none absolute right-2 top-2 z-10 flex max-w-[60%] flex-wrap justify-end gap-1.5"
     >
       {section && <span className={`${chip} font-medium`}>{section.name}</span>}
-      {parts.map((part) => (
+      {section && isUncovered(parts, section.id) && (
+        <span className={chip} title="No part applies in this section, so everyone dances together">
+          <PartSwatch neutral className="h-3 w-3" />
+          Everyone
+        </span>
+      )}
+      {shown.map((part) => (
         <span key={part.id} className={chip}>
           <PartSwatch color={part.color} className="h-3 w-3" />
           {part.name}

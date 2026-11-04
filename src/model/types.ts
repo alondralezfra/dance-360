@@ -53,6 +53,11 @@ export interface Part {
   id: Id
   name: string
   color: PartColorId
+  /**
+   * The sections this part applies to, or `null` for all sections (including
+   * ones added later). An empty list means it applies nowhere.
+   */
+  sectionIds: Id[] | null
 }
 
 /**
