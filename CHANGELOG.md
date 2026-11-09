@@ -4,6 +4,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Changed (process)
+- **Branching rules** added to CLAUDE.md: each piece of work starts on a fresh, purpose-named branch from an up-to-date `main`; one branch is one logical change (large features are split into slices, one PR each); small focused commits; the user opens and merges pull requests with a merge commit; no pushing to `main`, force-pushing or remote-branch deletion without being asked. Written after one branch grew to hold four unrelated pieces of work.
+
 ### Added (cloud-sync preparation)
 - **The repository is ready for cloud sync** (no account or server yet; nothing changes for users). Project storage is now one implementation (`createRepository`) over a small `RecordStore` adapter (localStorage, in-memory; IndexedDB can be added without touching the logic). Each stored project carries sync bookkeeping beside the document (local revision, last cloud revision, dirty, deleted), kept out of the project so there is **no saved-data version change and no migration**; projects saved earlier read as never synced.
 - A project the cloud will know about is deleted as a hidden tombstone so another device cannot bring it back; a late save of a deleted project is refused instead of resurrecting it. Projects the cloud never saw are removed outright, as before.
