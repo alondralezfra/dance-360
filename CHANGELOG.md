@@ -4,6 +4,23 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (the Song tab: build-order step 3, slice 2)
+- **A Song tab.** Attach a music file (MP3, M4A, WAV, OGG, FLAC...), replace it, or remove it (asks first). It shows the name, length and size. Files must be audio, at most 60 MB, and decodable; problems are explained and change nothing. Counts still work with no song.
+- **The song file stays on your device** (IndexedDB, found by a hash of its contents, so it survives reloads and works offline); the project saves only its name, length, size, type and hash. Files nothing uses any more are cleared (after replacing or removing a song, or deleting a project).
+- **A song whose file isn't on this device** (opened elsewhere, or browser data cleared) shows "The song file is not on this device" with *Choose the file again*; only the same file is accepted. Formations and counts are unaffected.
+- **Tempo:** BPM (decimals allowed) and the start point in seconds, with 0.01 s nudge buttons.
+- **A timeline:** the song's waveform lined up with a count and set grid and numbered formation markers. Drag to scroll; mouse wheel, trackpad or two-finger pinch to zoom; Zoom in / Zoom out / Fit buttons. Sharp at any browser zoom; has a text summary for screen readers.
+- New pieces: `audio/analyze.ts` (the only code that uses the browser audio engine), `model/peaks.ts`, `AudioRepository` (IndexedDB and in-memory, with a shared contract test), `songStore`, `pruneUnusedAudio`, `ProjectRepository.songHashes()`; `FileButton`, `SectionHeader`, `NumberField` `decimals`, `plus`/`minus` icons; canvas colour tokens `--timeline-wave` and `--timeline-marker`.
+- Architecture tests: only `audio/` may use the browser audio engine, and `audio/` imports no store, storage or UI code. New dev dependency: `fake-indexeddb`.
+- Decision record 0017. Feature doc `docs/features/song.md`.
+
+### Changed
+- The title block of the Parts, Sections and Assignments sections is now the shared `SectionHeader` (no visible change). The sharp-canvas helpers moved to `lib/devicePixels.ts` and the element-size hook to `lib/useElementSize.ts` so the timeline can use them too.
+- `NumberField` can keep decimal places (`decimals`); whole numbers remain the default.
+
+### Fixed
+- (Caught by the new browser tests before release.) Deleting a project now clears its song file; a closed project's leftover in-memory song was wrongly counted as in use.
+
 ### Added (docs: repository structure)
 - Decision record 0016: the project stays **one repository, modular inside** (not microservices). Records why (Supabase is the backend, one developer, `model/` and `persistence/` must stay in step), where future server-side pieces will live (a `supabase/` folder), the triggers that would make splitting worthwhile, and the order a future split would follow (workspaces first, then separate repositories). Architecture doc and plan §9 updated. No code changes.
 

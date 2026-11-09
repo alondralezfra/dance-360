@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { crispLine, fitStage, MARGIN_X, MARGIN_Y, strokeFor } from './stageLayout'
+import { fitStage, MARGIN_X, MARGIN_Y } from './stageLayout'
 
 const stage = { width: 40, depth: 24 }
 
@@ -30,10 +30,10 @@ describe('fitStage', () => {
   })
 })
 
-describe('device-pixel snapping', () => {
+describe('fitStage snaps to device pixels', () => {
   const onGrid = (v: number, dpr: number) => Math.abs(v * dpr - Math.round(v * dpr)) < 1e-9
 
-  it('snaps the stage edges to whole device pixels at any ratio', () => {
+  it('puts the stage edges on whole device pixels at any ratio', () => {
     for (const dpr of [1, 1.25, 1.5, 2, 2.5]) {
       for (const size of [{ width: 913, height: 517 }, { width: 1366.4, height: 640.7 }]) {
         const l = fitStage(size, stage, dpr)
@@ -45,23 +45,5 @@ describe('device-pixel snapping', () => {
   it('stays centred to within a device pixel after snapping', () => {
     const l = fitStage({ width: 913, height: 517 }, stage, 1.25)
     expect(Math.abs(l.originX * 2 + l.stageW - 913)).toBeLessThanOrEqual(1 / 1.25)
-  })
-
-  it('draws strokes in whole device pixels, at least one', () => {
-    expect(strokeFor(1, 1.25)).toBeCloseTo(1 / 1.25)
-    expect(strokeFor(1.5, 2)).toBe(1.5)
-    expect(strokeFor(0.1, 3)).toBeCloseTo(1 / 3)
-  })
-
-  it('puts both edges of a line on device pixel boundaries', () => {
-    for (const dpr of [1, 1.25, 1.5, 2]) {
-      for (const v of [10.3, 57.77, 100]) {
-        const stroke = strokeFor(1, dpr)
-        const centre = crispLine(v, stroke, dpr)
-        expect(onGrid(centre - stroke / 2, dpr)).toBe(true)
-        expect(onGrid(centre + stroke / 2, dpr)).toBe(true)
-        expect(Math.abs(centre - v)).toBeLessThanOrEqual(1 / dpr) // moves it by under a device pixel
-      }
-    }
   })
 })

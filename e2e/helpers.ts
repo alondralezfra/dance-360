@@ -99,3 +99,83 @@ export async function dotColor(page: Page, feet: { x: number; y: number }) {
 export function expectColor(actual: number[], expected: number[]) {
   actual.forEach((channel, i) => expect(Math.abs(channel - expected[i]), `rgb(${actual}) vs rgb(${expected})`).toBeLessThanOrEqual(3))
 }
+
+/** A real, playable mono WAV file: a sine tone that is loud for the first half and quiet for the second. */
+export function wavFile({ seconds = 6, frequency = 440, sampleRate = 8000 } = {}): Buffer {
+  const count = Math.floor(seconds * sampleRate)
+  const data = Buffer.alloc(count * 2)
+  for (let i = 0; i < count; i++) {
+    const t = i / sampleRate
+    const level = t < seconds / 2 ? 1 : 0.25
+    data.writeInt16LE(Math.round(Math.sin(2 * Math.PI * frequency * t) * 12000 * level), i * 2)
+  }
+  const header = Buffer.alloc(44)
+  header.write('RIFF', 0)
+  header.writeUInt32LE(36 + data.length, 4)
+  header.write('WAVE', 8)
+  header.write('fmt ', 12)
+  header.writeUInt32LE(16, 16)
+  header.writeUInt16LE(1, 20) // PCM
+  header.writeUInt16LE(1, 22) // mono
+  header.writeUInt32LE(sampleRate, 24)
+  header.writeUInt32LE(sampleRate * 2, 28)
+  header.writeUInt16LE(2, 32)
+  header.writeUInt16LE(16, 34)
+  header.write('data', 36)
+  header.writeUInt32LE(data.length, 40)
+  return Buffer.concat([header, data])
+}
+
+export async function goToSong(page: Page) {
+  await page.getByRole('link', { name: 'Song', exact: true }).click()
+  await expect(page).toHaveURL(/\/song$/)
+}
+
+/** Choose a file in the (hidden) file picker on the Song tab. `which` picks among several pickers on the page. */
+export async function chooseFile(page: Page, file: { name: string; mimeType: string; buffer: Buffer }, which = 0) {
+  await page.locator('input[type="file"]').nth(which).setInputFiles(file)
+}
+
+/** The song files kept in the browser's database right now (their hashes). Does not create the database if it is absent. */
+export async function storedSongs(page: Page): Promise<string[]> {
+  return page.evaluate(async () => {
+    const known = await indexedDB.databases()
+    if (!known.some((d) => d.name === 'dance360-audio')) return []
+    return new Promise<string[]>((resolve, reject) => {
+      const open = indexedDB.open('dance360-audio')
+      open.onerror = () => reject(open.error)
+      open.onsuccess = () => {
+        const db = open.result
+        const keys = db.transaction('files').objectStore('files').getAllKeys()
+        keys.onsuccess = () => {
+          db.close()
+          resolve(keys.result.map(String))
+        }
+      }
+    })
+  })
+}
+
+/** Everything drawn on the timeline canvas, as an image string: two draws are equal only if every pixel is. */
+export async function timelineImage(page: Page): Promise<string> {
+  return page.locator('canvas[role="img"]').evaluate((c) => (c as HTMLCanvasElement).toDataURL())
+}
+
+/**
+ * How many pixels along a line through the lower part of the timeline differ from the plain background
+ * (its most common colour): the waveform ink plus the few grid lines crossing it. Compare before and after.
+ */
+export async function waveformPixels(page: Page): Promise<number> {
+  return page.locator('canvas[role="img"]').evaluate((c) => {
+    const canvas = c as HTMLCanvasElement
+    const { width, height } = canvas
+    const row = canvas.getContext('2d')!.getImageData(0, Math.round(height * 0.62), width, 1).data
+    const counts = new Map<string, number>()
+    for (let x = 0; x < width; x++) {
+      const key = row[x * 4] + ',' + row[x * 4 + 1] + ',' + row[x * 4 + 2]
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+    const background = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]
+    return width - (counts.get(background) ?? 0)
+  })
+}

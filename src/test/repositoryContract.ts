@@ -59,6 +59,47 @@ export function describeRepositoryContract(name: string, make: () => Repo | Prom
       })
     })
 
+    describe('song hashes', () => {
+      const withSong = (name: string, hash: string) => ({
+        ...createEmptyProject(name),
+        song: { name: 'a.mp3', durationSec: 10, size: 1, mime: 'audio/mpeg', hash },
+      })
+
+      it('is empty when no project has a song', async () => {
+        await repo.create(createEmptyProject())
+        expect(await repo.songHashes()).toEqual(new Set())
+      })
+
+      it('lists the hash of each song once, however many projects share it', async () => {
+        await repo.create(withSong('A', 'h1'))
+        await repo.create(withSong('B', 'h1'))
+        await repo.create(withSong('C', 'h2'))
+        await repo.create(createEmptyProject('No song'))
+        expect(await repo.songHashes()).toEqual(new Set(['h1', 'h2']))
+      })
+
+      it('follows a project when its song is replaced or removed', async () => {
+        const id = await repo.create(withSong('A', 'old'))
+        await repo.save(id, withSong('A', 'new'))
+        expect(await repo.songHashes()).toEqual(new Set(['new']))
+        await repo.save(id, createEmptyProject('A'))
+        expect(await repo.songHashes()).toEqual(new Set())
+      })
+
+      it('still counts a deleted project that is waiting to be synced (it could come back)', async () => {
+        const id = await repo.create(withSong('A', 'h1'))
+        await repo.markSynced(id, { localRevision: 1, remoteRevision: 1 })
+        await repo.remove(id)
+        expect(await repo.songHashes()).toEqual(new Set(['h1']))
+      })
+
+      it('stops counting a project that was deleted outright', async () => {
+        const id = await repo.create(withSong('A', 'h1'))
+        await repo.remove(id)
+        expect(await repo.songHashes()).toEqual(new Set())
+      })
+    })
+
     describe('deleting', () => {
       it('hides a deleted project from load and list', async () => {
         const id = await repo.create(createEmptyProject())

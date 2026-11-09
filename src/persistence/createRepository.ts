@@ -87,6 +87,16 @@ export function createRepository(
       else await store.put(id, { ...record, updatedAt: now(), sync: next })
     },
 
+    async songHashes() {
+      const hashes = new Set<string>()
+      for (const id of await store.ids()) {
+        const hash = (await read(id))?.project.song
+        const value = hash && typeof hash === 'object' ? (hash as { hash?: unknown }).hash : undefined
+        if (typeof value === 'string') hashes.add(value)
+      }
+      return hashes
+    },
+
     async listSyncRecords() {
       const records: SyncRecord[] = []
       for (const id of await store.ids()) {
