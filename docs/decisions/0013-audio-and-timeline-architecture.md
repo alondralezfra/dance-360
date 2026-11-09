@@ -1,6 +1,6 @@
 # 0013. Audio and timeline: how they fit the count model
 
-- Status: Accepted (design only; nothing built yet. This is build-order step 3.)
+- Status: Accepted (build-order step 3. Slice 1 is built: see the update at the end. The rest is design only.)
 - Date: 2026-11-09
 - Builds on [0002](0002-counts-are-the-source-of-truth.md) and [0003](0003-playback-is-a-pure-function.md).
 
@@ -35,3 +35,6 @@ Step 3 adds the song, a timeline (waveform, count grid, formation markers), play
 
 ## Alternatives considered
 Decoding the whole song into a Web Audio buffer for playback (precise, but memory-heavy and no pitch-kept slow-down); waiting for cloud storage before audio (blocks step 3); storing peaks in the project (large, derived, would bloat saves and undo snapshots).
+
+## Update 2026-11-09: slice 1 built
+Saved-data **v4** exists (`song: null` and `tempo.changes: []` on migrated projects; fixture `v4.json`; the v0 migration now writes its default tempo out instead of borrowing a constant, so old migrations stay frozen). The song is `{ name, durationSec, size, mime, hash }`. `model/timeline.ts` (view maths, zoom limits 0.1 to 64 px per count, grid lines thinned so they are never closer than 8px, marker hit-testing, `danceLength`) and `model/tapSnap.ts` (`tapToCount`, `placeFormationAt`) are pure and tested. The store gained `song` and `setSong`; undo covers the song, and a rename combined with a song change is not merged into one typing step. Still to build: slices 2 to 5.

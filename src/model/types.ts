@@ -35,11 +35,40 @@ export interface StageSettings {
   depth: number // feet
 }
 
-/** Converts counts to audio time. Tempo changes can be added later. */
+/** A change of speed partway through the song, from `atCount` onward. */
+export interface TempoChange {
+  atCount: number
+  bpm: number
+}
+
+/** Converts counts to audio time. */
 export interface TempoMap {
   bpm: number
   /** Audio time (seconds) at which count 0 (Set 1, Count 1) lands. */
   startOffsetSec: number
+  /**
+   * Tempo changes after the start. Always empty for now: the saved shape has room
+   * for them (decisions/0013), but `countToSeconds` / `secondsToCount` do not read
+   * them yet, so nothing may add one until they do.
+   */
+  changes: TempoChange[]
+}
+
+/**
+ * The song's details. The audio file itself is NOT in the project: it is kept
+ * separately on the device, found by `hash`, so a project opened elsewhere can ask
+ * for the file again and recognise it (decisions/0013).
+ */
+export interface Song {
+  /** The file's name, for display. */
+  name: string
+  durationSec: number
+  /** File size in bytes. */
+  size: number
+  /** e.g. "audio/mpeg". */
+  mime: string
+  /** SHA-256 of the file contents, hex. Identifies the file wherever it is stored. */
+  hash: string
 }
 
 /**
@@ -78,6 +107,8 @@ export interface Project {
   name: string
   stage: StageSettings
   tempo: TempoMap
+  /** The attached song, or null if none yet. */
+  song: Song | null
   dancers: Dancer[]
   /** Always kept sorted by `count` (the store guarantees this). */
   formations: Formation[]

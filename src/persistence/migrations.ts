@@ -1,4 +1,4 @@
-import { COUNTS_PER_SET, DEFAULT_TEMPO, DEFAULT_TRANSITION_COUNTS } from '../model/tempo'
+import { COUNTS_PER_SET, DEFAULT_TRANSITION_COUNTS } from '../model/tempo'
 import type { Project } from '../model/types'
 
 // Saved projects are wrapped in an envelope that records which version of the
@@ -9,8 +9,9 @@ import type { Project } from '../model/types'
 //   v1  formations have `count` + `transitionCounts`; project has `tempo`
 //   v2  project has `parts`, `sections` and `assignments`
 //   v3  each part has `sectionIds` (the sections it applies to; null = all)
+//   v4  project has `song` (null until one is attached); `tempo` has `changes` (always empty for now)
 
-export const CURRENT_VERSION = 3
+export const CURRENT_VERSION = 4
 
 type Doc = Record<string, unknown>
 
@@ -20,7 +21,7 @@ const migrations: Record<number, (doc: Doc) => Doc> = {
     const formations = Array.isArray(doc.formations) ? doc.formations : []
     return {
       ...doc,
-      tempo: { ...DEFAULT_TEMPO },
+      tempo: { bpm: 120, startOffsetSec: 0 },
       formations: formations.map((f: Doc, i: number) => ({
         ...f,
         count: i * COUNTS_PER_SET,
@@ -45,6 +46,16 @@ const migrations: Record<number, (doc: Doc) => Doc> = {
   2: (doc) => {
     const parts = Array.isArray(doc.parts) ? (doc.parts as Doc[]) : []
     return { ...doc, parts: parts.map((p) => ({ ...p, sectionIds: null })) }
+  },
+
+  // No song yet; room for tempo changes (empty). Bpm and start point are kept as they were.
+  3: (doc) => {
+    const tempo = doc.tempo && typeof doc.tempo === 'object' ? (doc.tempo as Doc) : {}
+    return {
+      ...doc,
+      song: null,
+      tempo: { bpm: 120, startOffsetSec: 0, ...tempo, changes: [] },
+    }
   },
 }
 

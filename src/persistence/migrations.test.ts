@@ -48,6 +48,39 @@ describe('migrateProject', () => {
     expect(p.assignments).toEqual(v2.assignments)
   })
 
+  it('v3 -> v4: no song yet, and the tempo gains an empty list of tempo changes', () => {
+    const v3 = { ...v0, tempo: { bpm: 96, startOffsetSec: 1.5 }, parts: [], sections: [], assignments: {} }
+    const p = migrateProject(3, structuredClone(v3))
+    expect(p.song).toBeNull()
+    expect(p.tempo).toEqual({ bpm: 96, startOffsetSec: 1.5, changes: [] })
+  })
+
+  it('v3 -> v4: changes nothing else', () => {
+    const v3 = {
+      ...v0,
+      tempo: { bpm: 120, startOffsetSec: 0 },
+      parts: [{ id: 'a', name: 'A', color: 'blue', sectionIds: null }],
+      sections: [{ id: 's1', name: 'Intro', startCount: 0 }],
+      assignments: { s1: { d1: 'a' } },
+    }
+    const p = migrateProject(3, structuredClone(v3))
+    expect(p.parts).toEqual(v3.parts)
+    expect(p.sections).toEqual(v3.sections)
+    expect(p.assignments).toEqual(v3.assignments)
+    expect(p.dancers).toEqual(v3.dancers)
+  })
+
+  it('v3 -> v4: copes with a missing or broken tempo', () => {
+    expect(migrateProject(3, { name: 'x' }).tempo).toEqual({ bpm: 120, startOffsetSec: 0, changes: [] })
+    expect(migrateProject(3, { name: 'x', tempo: null }).tempo.changes).toEqual([])
+  })
+
+  it('v0 projects reach v4 with a clean tempo and no song', () => {
+    const p = migrateProject(0, v0)
+    expect(p.tempo).toEqual({ bpm: 120, startOffsetSec: 0, changes: [] })
+    expect(p.song).toBeNull()
+  })
+
   it('v2 -> v3: copes with a missing parts list', () => {
     expect(migrateProject(2, { name: 'x' }).parts).toEqual([])
   })

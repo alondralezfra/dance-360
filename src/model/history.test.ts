@@ -148,6 +148,13 @@ describe('editGroup', () => {
     expect(editGroup(before, rename(renamed, 'parts', 0, 'Floor'))).toBeNull()
   })
 
+  it('is null when the song changed, even alongside a rename', () => {
+    const before = base()
+    const song = { name: 'a.mp3', durationSec: 10, size: 1, mime: 'audio/mpeg', hash: 'h' }
+    expect(editGroup(before, { ...before, song })).toBeNull()
+    expect(editGroup(before, { ...rename(before, 'dancers', 0, 'Mia'), song })).toBeNull()
+  })
+
   it('is null when something besides the name changed (a formation retimed, a part recoloured)', () => {
     const before = base()
     const retimed = { ...before, formations: before.formations.map((f) => ({ ...f, count: f.count + 8 })) }

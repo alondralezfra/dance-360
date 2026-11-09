@@ -7,7 +7,7 @@ import {
   toSetAndCount,
 } from './tempo'
 
-const tempo = { bpm: 120, startOffsetSec: 1.5 }
+const tempo = { bpm: 120, startOffsetSec: 1.5, changes: [] }
 
 describe('tempo map', () => {
   it('converts counts to seconds', () => {
