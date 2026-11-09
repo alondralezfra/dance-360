@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/Button'
+import { IconButton } from '../../components/ui/IconButton'
 import { Input } from '../../components/ui/Input'
 import { Select } from '../../components/ui/Select'
 import { MAX_PARTS, PART_COLOR_IDS, PART_COLOR_NAMES } from '../../model/parts'
@@ -82,16 +83,14 @@ export function PartsEditor() {
               value={part.sectionIds}
               onChange={(value) => setPartSections(part.id, value)}
             />
-            <Button
+            <IconButton
               variant="danger-ghost"
-              size="icon"
+              icon="close"
               className="ml-auto"
-              onClick={() => remove(part.id, part.name)}
-              aria-label={`Remove ${part.name}`}
+              label={`Remove ${part.name}`}
               title="Remove part"
-            >
-              ✕
-            </Button>
+              onClick={() => remove(part.id, part.name)}
+            />
           </li>
         ))}
       </ul>

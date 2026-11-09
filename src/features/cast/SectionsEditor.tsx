@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/Button'
+import { IconButton } from '../../components/ui/IconButton'
 import { Input } from '../../components/ui/Input'
 import { NumberField } from '../../components/ui/NumberField'
 import { COUNTS_PER_SET, formatCount, toSetAndCount } from '../../model/tempo'
@@ -61,17 +62,15 @@ export function SectionsEditor() {
                   />
                 </div>
               )}
-              <Button
+              <IconButton
                 variant="danger-ghost"
-                size="icon"
+                icon="close"
                 className="ml-auto"
-                onClick={() => removeSection(section.id)}
-                disabled={sections.length <= 1}
-                aria-label={`Remove ${section.name}`}
+                label={`Remove ${section.name}`}
                 title={sections.length <= 1 ? 'There must be at least one section' : 'Remove section'}
-              >
-                ✕
-              </Button>
+                disabled={sections.length <= 1}
+                onClick={() => removeSection(section.id)}
+              />
             </li>
           )
         })}

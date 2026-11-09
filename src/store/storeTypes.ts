@@ -1,3 +1,4 @@
+import type { History } from '../model/history'
 import type {
   Assignments,
   Dancer,
@@ -44,6 +45,8 @@ export interface FormationSlice {
   addFormation: (afterId: Id) => Id
   removeFormation: (id: Id) => void
   renameFormation: (id: Id, name: string) => void
+  /** Moves a formation to a new place (0-based) in the running order; the landing counts stay in their slots. */
+  reorderFormation: (id: Id, toIndex: number) => void
   setFormationCount: (id: Id, count: number) => void
   setFormationTransition: (id: Id, counts: number) => void
   moveDancer: (formationId: Id, dancerId: Id, p: Point) => void
@@ -72,7 +75,21 @@ export interface PartsSlice {
   assignDancer: (sectionId: Id, dancerId: Id, partId: Id | null) => void
 }
 
-export type ProjectStore = SessionSlice & ProjectSlice & RosterSlice & FormationSlice & PartsSlice
+export interface HistorySlice {
+  /** Undo/redo steps for the open project. Session only: never saved, cleared when a project opens or closes. */
+  history: History<Project>
+  /** Steps back to the project as it was before the latest edit. Does nothing if there is none. */
+  undo: () => void
+  /** Re-applies the edit that was just undone. Does nothing if there is none. */
+  redo: () => void
+}
+
+export type ProjectStore = SessionSlice &
+  ProjectSlice &
+  RosterSlice &
+  FormationSlice &
+  PartsSlice &
+  HistorySlice
 
 /** The fields that make up the saved project document. */
 export const DOCUMENT_KEYS = [

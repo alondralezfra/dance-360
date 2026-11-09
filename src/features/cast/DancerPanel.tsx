@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button } from '../../components/ui/Button'
+import { IconButton } from '../../components/ui/IconButton'
 import { Input } from '../../components/ui/Input'
 import { cn } from '../../lib/cn'
 import { isUncovered, partIdAt, sectionIndexAt } from '../../model/parts'
@@ -67,29 +68,28 @@ export function DancerPanel() {
                 className={cn('h-3 w-3 shrink-0 rounded-full', !part && 'bg-subtle-foreground')}
                 style={part ? { backgroundColor: `var(--part-${part.color})` } : undefined}
               />
-              <input
+              <Input
+                variant="inline"
                 value={d.name}
                 onChange={(e) => renameDancer(d.id, e.target.value)}
                 onClick={(e) => {
                   e.stopPropagation()
                   selectDancer(d.id)
                 }}
-                className="min-w-0 flex-1 rounded bg-transparent px-1 py-1 text-sm focus:bg-surface focus:outline focus:outline-ring"
+                className="min-w-0 flex-1"
                 aria-label="Dancer name"
               />
-              <Button
+              <IconButton
                 variant="danger-ghost"
-                size="icon"
+                icon="close"
+                label={`Remove ${d.name}`}
+                title="Remove dancer"
                 onClick={(e) => {
                   e.stopPropagation()
                   removeDancer(d.id)
                   if (selected) selectDancer(null)
                 }}
-                aria-label={`Remove ${d.name}`}
-                title="Remove dancer"
-              >
-                ✕
-              </Button>
+              />
             </li>
           )
         })}

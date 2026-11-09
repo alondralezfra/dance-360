@@ -84,3 +84,17 @@ test.describe('desktop layout', () => {
     await expect(page.getByRole('button', { name: 'Dancers', exact: true })).toBeHidden()
   })
 })
+
+test.describe('project tabs', () => {
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 780 }]) {
+    test(`have no stray scrollbar at ${viewport.width}px wide`, async ({ page }) => {
+      await page.setViewportSize(viewport)
+      await createProject(page)
+      const overflow = await page.getByRole('navigation', { name: 'Project sections' }).evaluate((el) => ({
+        x: el.scrollWidth - el.clientWidth,
+        y: el.scrollHeight - el.clientHeight,
+      }))
+      expect(overflow).toEqual({ x: 0, y: 0 })
+    })
+  }
+})

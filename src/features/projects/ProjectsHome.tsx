@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Button } from '../../components/ui/Button'
+import { IconButton } from '../../components/ui/IconButton'
 import { createEmptyProject } from '../../model/project'
 import { repository, type ProjectSummary } from '../../persistence'
 
@@ -66,15 +67,13 @@ export function ProjectsHome() {
                   Edited {new Date(p.updatedAt).toLocaleDateString()}
                 </div>
               </Link>
-              <Button
+              <IconButton
                 variant="danger-ghost"
-                size="icon"
-                onClick={() => remove(p)}
-                aria-label={`Delete ${p.name}`}
+                icon="close"
+                label={`Delete ${p.name}`}
                 title="Delete project"
-              >
-                ✕
-              </Button>
+                onClick={() => remove(p)}
+              />
             </li>
           ))}
         </ul>

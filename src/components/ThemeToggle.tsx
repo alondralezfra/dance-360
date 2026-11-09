@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { getTheme, setTheme } from '../theme/theme'
-import { Button } from './ui/Button'
+import { IconButton } from './ui/IconButton'
 
 function subscribe(onChange: () => void) {
   const observer = new MutationObserver(onChange)
@@ -15,14 +15,11 @@ export function ThemeToggle() {
   const theme = useSyncExternalStore(subscribe, getTheme)
   const next = theme === 'dark' ? 'light' : 'dark'
   return (
-    <Button
+    <IconButton
       variant="ghost"
-      size="icon"
+      icon={theme === 'dark' ? 'sun' : 'moon'}
+      label={`Switch to ${next} theme`}
       onClick={() => setTheme(next)}
-      aria-label={`Switch to ${next} theme`}
-      title={`Switch to ${next} theme`}
-    >
-      {theme === 'dark' ? '☀' : '☾'}
-    </Button>
+    />
   )
 }

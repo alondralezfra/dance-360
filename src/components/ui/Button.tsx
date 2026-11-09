@@ -16,6 +16,8 @@ const buttonVariants = cva(
           'border border-border-strong bg-surface text-foreground hover:border-danger hover:text-danger',
         'danger-ghost':
           'text-subtle-foreground hover:bg-danger-soft hover:text-danger',
+        // A selectable item (formation, filter): marked by aria-pressed, so what looks selected is what assistive tech hears.
+        chip: 'border border-border bg-surface text-foreground hover:border-border-strong aria-pressed:border-primary aria-pressed:bg-primary-soft aria-pressed:font-medium aria-pressed:text-primary-soft-foreground',
       },
       size: {
         md: 'px-3 py-2',

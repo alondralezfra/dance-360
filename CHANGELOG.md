@@ -4,6 +4,51 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (cloud-sync preparation)
+- **The repository is ready for cloud sync** (no account or server yet; nothing changes for users). Project storage is now one implementation (`createRepository`) over a small `RecordStore` adapter (localStorage, in-memory; IndexedDB can be added without touching the logic). Each stored project carries sync bookkeeping beside the document (local revision, last cloud revision, dirty, deleted), kept out of the project so there is **no saved-data version change and no migration**; projects saved earlier read as never synced.
+- A project the cloud will know about is deleted as a hidden tombstone so another device cannot bring it back; a late save of a deleted project is refused instead of resurrecting it. Projects the cloud never saw are removed outright, as before.
+- `SyncSource` interface (for the future sync engine only) and a shared repository **contract test suite** every repository must pass (run against localStorage and in-memory).
+- Decision record 0015: local-first sync, conflicts that ask (use theirs / keep mine as a copy), one director on many devices first, the Supabase table and compare-and-set design, versions across devices, privacy and opt-in, and the build slices. Plan §6 updated.
+
+### Changed (canvas performance)
+- **Smooth stage on phones.** Measured on a CPU ~4x slower than a laptop (roughly a mid-range phone), 40 dancers went from ~32fps to a steady 60fps during a formation glide, 100 dancers from ~16fps to ~42fps, and 200 dancers now hold 60fps on a laptop. This is the path audio playback will use.
+- Dot motion no longer re-renders the stage every frame: a playhead clock (outside React) drives `useDotMotion`, which moves the dots directly on the canvas using `positionsAt`. React re-renders only for edits, selection, size changes and section changes (colours). `StageCanvas` is split into `StageFloor`, `DancerDot` and the motion hook; dots and floor are memoised with stable callbacks.
+- **Dots no longer have a soft drop shadow** (it cost about half of each frame at 100 dancers); they keep their crisp outline.
+- `usePlayhead` now takes the clock and drives it (instead of returning a count).
+- Decision record 0014 (measurements, method, results, what was left out on purpose).
+- Tests: no per-frame React renders during a glide, dots still move and land on the formation, colours change exactly at section boundaries, clock and motion hook units.
+
+### Added (docs: audio and timeline design)
+- Decision record 0013 (how audio, the timeline, tap-to-snap and the metronome fit the count model; saved-data v4 plan; build slices and risks). Plan §9 updated: tempo changes, music file storage and half-counts answered for now. No code or data changes.
+
+### Added (undo / redo)
+- **Undo and Redo for every project edit** (dots, formations, reordering, dancers, parts, sections, assignments, names): buttons in the project header and Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z (or Ctrl+Y). Typing in a name box is one step; the last 100 steps are kept for the session and are never saved, so a reload or opening another project starts clean. Shortcuts are ignored inside text boxes so the browser's text undo still works. Undone states are autosaved.
+- `model/history.ts` (pure snapshot history), `store/history.ts` (records edits by watching the store), `undo`/`redo` store actions, `undo`/`redo` icons. No saved-data change. Decision record 0012; plan §9 updated (version history is still open).
+
+### Added (components, sharper stage)
+- **Shared components:** `Icon` (one inline-SVG icon set), `IconButton` (icon + required accessible label), `Checkbox`, a shared `fieldClass` look for text-like controls, a `chip` variant on `Button` (selected state from `aria-pressed`) and an `inline` variant on `Input`. Catalog and rules: `docs/components.md`; decision record 0011.
+- `src/architecture.test.ts` now fails if a screen uses a raw `<button>`, `<input>`, `<select>`, `<textarea>` or `<svg>`, or a text symbol as an icon (a deliberate extension of that file).
+- `useDevicePixelRatio` hook (`lib/`).
+
+### Changed
+- Text-symbol icons (✕ ◀ ▶ ▲ ▼ ▾ ☀ ☾ ›) are now `Icon`s; the four copy-pasted remove buttons, the formation chips, the dancer-name field, the section dropdown and its checkboxes now use the shared components. Dancer rows and the project-name field are 40px tall (touch target).
+- The collapsed formation bar button reads "Show formation bar" (visible text matches its accessible name; it was "▲ Formations").
+- Stage layout snaps the floor, grid and dots to whole device pixels. The "centred" unit test now allows one device pixel of rounding.
+
+### Fixed
+- **Stray scrollbar next to the Cast & Parts tab:** the tab bar was 1px taller inside than its box (the underline trick plus `overflow-x: auto`), a regression from moving the tabs into the header.
+- **Blurry stage text, grid and dots:** the canvas kept its original resolution after browser zoom (or moving the window between screens) changed the pixel ratio, so the browser stretched it. It now re-renders at the new ratio, and edges, lines, dots and labels are aligned to whole device pixels.
+
+### Added (reorder formations, hideable panels, bigger stage)
+- **Drag to reorder formations** in the bottom strip (mouse: drag; touch: press and hold, then drag; keyboard: Alt + Left/Right). The song's timing slots stay put and the formation moves into the new slot, keeping its name, positions and travel counts. `moveFormation` in `model/formations.ts`, `reorderFormation` in the store, drag handling in `features/stage/FormationList.tsx` using `@dnd-kit`. No saved-data change.
+- **Slide-away panels:** the dancer sidebar (wide screens) and the formation bar (all screens) can be hidden for a bigger stage and shown again with a button; remembered per device (`store/layoutStore.ts`, `persistence/devicePreferences.ts`), not stored in the project.
+- Decision record 0010.
+
+### Changed
+- **Bigger stage:** smaller margins around it, a more compact formation bar (timing fields share the controls row), and on wide screens the project tabs share the header row (about 50px more height).
+- Stage fitting maths extracted into a pure, tested `stageLayout.ts`; browser tests now use it instead of a copy.
+- Known limit: under browser zoom (Ctrl +) the header and bars keep their CSS-pixel size, so the stage still gets a smaller share of the screen than at 100%; hiding the formation bar gives the room back. See decision 0010.
+
 ### Added (parts limited to specific sections)
 - A **sections dropdown** on each part (next to the colour): "All sections" or any combination of sections (checklist; keyboard and touch friendly). Use it for songs where most sections have one uniform part and only some (e.g. Chorus 1 and Chorus 2) split into several, such as Floor and Standing.
 - Where **exactly one part applies in a section, everyone is in it automatically**: the grid cell is read-only and never shows a "missing assignment". Where several apply, the cell offers only the parts that apply there. Parts limited to a section replace the all-sections parts there.

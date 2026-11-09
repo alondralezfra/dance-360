@@ -221,7 +221,7 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 2. **Adaptable UI pieces:** panels that can be a sidebar or a drawer depending on width, so one codebase covers all tiers.
 3. **Playback engine separate from screens:** the logic that turns counts into positions over time must be independent of layout, so it's reused in the editor, phone watch mode, and the dancer view.
 4. **Mobile web first, app later:** a responsive site installable to the home screen (PWA) may cover most needs; native app later if offline use or better audio handling is needed. Offline matters because rehearsal spaces often have poor signal.
-5. **Cloud data + autosave + sync conflict handling** so edits on a phone and a laptop reconcile cleanly.
+5. **Cloud data + autosave + sync conflict handling** so edits on a phone and a laptop reconcile cleanly. *Decided (docs/decisions/0015): local-first with background sync; a conflict stops and asks ("use theirs" / "keep mine as a copy"); first release is one director on many devices; sync is opt-in because a roster is personal data.*
 
 **Known technical risk:** audio playback on phones has quirks (autoplay restrictions, timing accuracy varies), which affects how precisely formations land on counts. Research when choosing tools.
 
@@ -283,11 +283,12 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 - **Transition semantics:** arrive-on vs. leave-on at a marked count; default transition length?
 - **Roster library:** include in MVP or copy-roster-between-projects instead?
 - **Notes:** separate tab, or only anchored inside Stage/Resources?
-- **Tempo changes:** how much support for songs with changing BPM in the MVP?
-- **Music files:** upload vs. link, and any licensing considerations when sharing with dancers.
+- **Tempo changes:** *Decided (docs/decisions/0013): one BPM per project in the MVP; the saved tempo gets an empty list of tempo changes in the same migration that adds the song, so changes can be supported later without another data change.*
+- **Music files:** *Decided for now (0013): the file is stored in the browser (IndexedDB), the project saves only its name/length/hash, and another device asks you to re-attach the file.* Still open: licensing considerations when sharing with dancers, and cloud storage (opt-in).
+- **Half-counts ("&"):** *Decided for now (0013): whole counts only.* Revisit with the choreographers before or soon after the timeline exists; it is a data migration, cheapest while there are few projects.
 - **Stage setup:** fixed stage shapes/sizes, or fully customizable (including audience orientation)?
 - **Formation tools:** helpers like align, distribute evenly, mirror, line/circle presets, path preview (nice-to-have). Smart assignment of dancers to a hand-placed shape is a bigger idea of its own: see §10.
-- **Undo/redo and version history** for formations.
+- **Version history** (saved snapshots you can return to later) for formations. *Undo/redo itself is decided and built: session-only, last 100 steps, every project edit, snapshot-based (docs/decisions/0012). Revisit if live co-editing becomes a goal.*
 - **Next step after this doc:** research tools/frameworks/platforms (languages, frontend framework, canvas library, audio handling, backend/database, hosting) with the risks above in mind.
 
 ---

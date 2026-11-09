@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test'
+import { fitStage } from '../src/features/stage/stageLayout'
 
 /** The prototype's original save format (v0), used to test the one-time import. */
 export const legacyProject = {
@@ -54,16 +55,11 @@ export async function savedProject(page: Page) {
   })
 }
 
-/**
- * Where a point on stage (in feet) is drawn on screen. Mirrors the layout math
- * in StageCanvas (36px margin, stage centred and scaled to fit).
- */
+/** Where a point on stage (in feet) is drawn on screen, using the app's own layout maths. */
 export async function stagePixel(page: Page, feet: { x: number; y: number }, stage = { width: 40, depth: 24 }) {
   const box = (await page.locator('canvas').first().boundingBox())!
-  const margin = 36
-  const scale = Math.max(1, Math.min((box.width - margin * 2) / stage.width, (box.height - margin * 2) / stage.depth))
-  const originX = (box.width - stage.width * scale) / 2
-  const originY = (box.height - stage.depth * scale) / 2
+  const dpr = await page.evaluate(() => window.devicePixelRatio)
+  const { scale, originX, originY } = fitStage(box, stage, dpr)
   return { x: box.x + originX + feet.x * scale, y: box.y + originY + feet.y * scale, scale }
 }
 

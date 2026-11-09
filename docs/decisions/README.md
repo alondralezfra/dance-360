@@ -32,3 +32,9 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0007](0007-parts-sections-and-assignments.md) | Parts, sections and assignments (per-section parts, contiguous sections, palette-id colours) |
 | [0008](0008-parts-limited-to-sections.md) | Parts limited to specific sections (one part = automatic, limited parts replace all-section parts) |
 | [0009](0009-uncovered-sections-and-default-part.md) | Sections no part applies in are not an error; the default part is "Everyone" |
+| [0010](0010-reordering-formations-and-collapsible-panels.md) | Reordering formations (timing slots stay put), collapsible panels, per-device preferences, `@dnd-kit` |
+| [0011](0011-component-based-ui.md) | Component-based UI: build controls once (Icon, IconButton, Checkbox, field style), reuse, enforced by a test |
+| [0012](0012-undo-redo-as-snapshots.md) | Undo/redo as project snapshots (session only, 100 steps, recorded by watching the store) |
+| [0013](0013-audio-and-timeline-architecture.md) | Audio and timeline design: whole counts, one BPM (shaped for changes), IndexedDB audio + re-attach, `audio/` layer, tap-to-snap + metronome first |
+| [0014](0014-canvas-performance.md) | Canvas performance: dot motion outside React via a playhead clock, no dot shadows (40 dancers at 60fps on a ~4x slower CPU) |
+| [0015](0015-cloud-storage-and-sync.md) | Cloud storage and sync: local-first, conflicts ask (use theirs / keep mine as copy), one director first; repository prepared (RecordStore, sync bookkeeping, tombstones, contract tests) |

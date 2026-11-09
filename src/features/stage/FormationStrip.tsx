@@ -1,10 +1,11 @@
 import { NumberField } from '../../components/ui/NumberField'
 import { Button } from '../../components/ui/Button'
+import { IconButton } from '../../components/ui/IconButton'
 import { Input } from '../../components/ui/Input'
-import { cn } from '../../lib/cn'
 import { COUNTS_PER_SET, toSetAndCount } from '../../model/tempo'
 import { useProject } from '../../store/projectStore'
 import { useUi } from '../../store/uiStore'
+import { FormationList } from './FormationList'
 
 export function FormationStrip() {
   const formations = useProject((s) => s.formations)
@@ -12,6 +13,7 @@ export function FormationStrip() {
   const selectFormation = useUi((s) => s.selectFormation)
   const addFormation = useProject((s) => s.addFormation)
   const removeFormation = useProject((s) => s.removeFormation)
+  const reorderFormation = useProject((s) => s.reorderFormation)
   const renameFormation = useProject((s) => s.renameFormation)
   const setFormationCount = useProject((s) => s.setFormationCount)
   const setFormationTransition = useProject((s) => s.setFormationTransition)
@@ -31,31 +33,51 @@ export function FormationStrip() {
   }
 
   return (
-    <div className="flex flex-col gap-3 p-3">
+    <div className="flex flex-col gap-2 p-2">
       <div className="flex flex-wrap items-center gap-2">
-        <Button
+        <IconButton
+          icon="chevronLeft"
+          label="Previous formation"
           onClick={() => selectFormation(formations[index - 1].id)}
           disabled={index <= 0}
-          aria-label="Previous formation"
-        >
-          ◀
-        </Button>
+        />
         <Input
           value={current.name}
           onChange={(e) => renameFormation(current.id, e.target.value)}
           className="w-40 font-medium"
           aria-label="Formation name"
         />
-        <Button
+        <IconButton
+          icon="chevronRight"
+          label="Next formation"
           onClick={() => selectFormation(formations[index + 1].id)}
           disabled={index >= formations.length - 1}
-          aria-label="Next formation"
-        >
-          ▶
-        </Button>
+        />
         <span className="text-sm text-muted-foreground">
           {index + 1} of {formations.length}
         </span>
+        {/* When this formation lands in the song, and how long dancers take to get there. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <NumberField
+            label="Set"
+            min={1}
+            value={at.set}
+            onCommit={(set) => setFormationCount(current.id, (set - 1) * COUNTS_PER_SET + at.count - 1)}
+          />
+          <NumberField
+            label="Count"
+            min={1}
+            max={COUNTS_PER_SET}
+            value={at.count}
+            onCommit={(count) => setFormationCount(current.id, (at.set - 1) * COUNTS_PER_SET + count - 1)}
+          />
+          <NumberField
+            label="Travel counts"
+            min={0}
+            value={current.transitionCounts}
+            onCommit={(n) => setFormationTransition(current.id, n)}
+          />
+        </div>
         <div className="ml-auto flex flex-wrap gap-2">
           <Button variant="primary" onClick={handleAdd}>
             + New formation
@@ -66,46 +88,12 @@ export function FormationStrip() {
         </div>
       </div>
 
-      {/* When this formation lands in the song, and how long dancers take to get there. */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <NumberField
-          label="Set"
-          min={1}
-          value={at.set}
-          onCommit={(set) => setFormationCount(current.id, (set - 1) * COUNTS_PER_SET + at.count - 1)}
-        />
-        <NumberField
-          label="Count"
-          min={1}
-          max={COUNTS_PER_SET}
-          value={at.count}
-          onCommit={(count) => setFormationCount(current.id, (at.set - 1) * COUNTS_PER_SET + count - 1)}
-        />
-        <NumberField
-          label="Travel counts"
-          min={0}
-          value={current.transitionCounts}
-          onCommit={(n) => setFormationTransition(current.id, n)}
-        />
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {formations.map((f, i) => (
-          <button
-            key={f.id}
-            onClick={() => selectFormation(f.id)}
-            className={cn(
-              'shrink-0 rounded-md border px-3 py-2 text-left text-sm',
-              f.id === current.id
-                ? 'border-primary bg-primary-soft font-medium text-primary-soft-foreground'
-                : 'border-border bg-surface text-foreground hover:border-border-strong',
-            )}
-          >
-            <span className="mr-1 text-subtle-foreground">{i + 1}.</span>
-            {f.name || 'Untitled'}
-          </button>
-        ))}
-      </div>
+      <FormationList
+        formations={formations}
+        currentId={current.id}
+        onSelect={selectFormation}
+        onReorder={reorderFormation}
+      />
     </div>
   )
 }

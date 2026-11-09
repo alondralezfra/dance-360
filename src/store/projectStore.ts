@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { create } from 'zustand'
 import type { Formation } from '../model/types'
 import { createFormationSlice } from './slices/formationSlice'
+import { createHistorySlice } from './slices/historySlice'
 import { createPartsSlice } from './slices/partsSlice'
 import { createProjectSlice } from './slices/projectSlice'
 import { createRosterSlice } from './slices/rosterSlice'
@@ -16,6 +17,7 @@ export const useProject = create<ProjectStore>()((...a) => ({
   ...createRosterSlice(...a),
   ...createFormationSlice(...a),
   ...createPartsSlice(...a),
+  ...createHistorySlice(...a),
 }))
 
 /** The formation being edited (falls back to the first if the selection is stale). */

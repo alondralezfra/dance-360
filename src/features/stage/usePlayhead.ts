@@ -1,6 +1,7 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { transitionStart } from '../../model/playback'
 import type { Formation } from '../../model/types'
+import type { PlayheadClock } from './playheadClock'
 
 /** How long the preview glide takes when you step between formations (ms). */
 const GLIDE_MS = 700
@@ -9,15 +10,15 @@ const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
- * The count the stage is currently showing.
+ * Drives the playhead clock: the count the stage is currently showing.
  *
  * Normally that's just the selected formation's count. When you step to the
  * neighbouring formation, the count is animated across that transition so the
- * dots glide. Positions are NOT computed here: the stage feeds this count to
- * the pure `positionsAt()` function, the same way audio playback will later.
+ * dots glide. Positions are NOT computed here: the stage feeds the clock's count
+ * to the pure `positionsAt()` function, the same way audio playback will later
+ * (audio would be another thing that sets the same clock).
  */
-export function usePlayhead(formations: Formation[], current: Formation) {
-  const [count, setCount] = useState(current.count)
+export function usePlayhead(clock: PlayheadClock, formations: Formation[], current: Formation) {
   const lastId = useRef(current.id)
   const frame = useRef<number | null>(null)
   const formationsRef = useRef(formations)
@@ -36,8 +37,8 @@ export function usePlayhead(formations: Formation[], current: Formation) {
   /** Stop any glide and jump to the selected formation (e.g. when a drag starts). */
   const settle = useCallback(() => {
     cancel()
-    setCount(currentCountRef.current)
-  }, [cancel])
+    clock.set(currentCountRef.current)
+  }, [cancel, clock])
 
   // useLayoutEffect runs before the browser paints, so there's no flicker.
   useLayoutEffect(() => {
@@ -53,7 +54,7 @@ export function usePlayhead(formations: Formation[], current: Formation) {
     const step = toIndex - fromIndex
 
     if (!switched || !from || Math.abs(step) !== 1 || prefersReducedMotion()) {
-      setCount(current.count)
+      clock.set(current.count)
       return
     }
 
@@ -64,25 +65,25 @@ export function usePlayhead(formations: Formation[], current: Formation) {
         ? [transitionStart(current, from), current.count]
         : [from.count, transitionStart(from, current)]
     if (start === end) {
-      setCount(current.count)
+      clock.set(current.count)
       return
     }
 
-    setCount(start)
+    clock.set(start)
     const began = performance.now()
     const tick = (now: number) => {
       const t = Math.min(1, (now - began) / GLIDE_MS)
       if (t < 1) {
-        setCount(start + (end - start) * t)
+        clock.set(start + (end - start) * t)
         frame.current = requestAnimationFrame(tick)
       } else {
         frame.current = null
-        setCount(current.count)
+        clock.set(current.count)
       }
     }
     frame.current = requestAnimationFrame(tick)
     return cancel
-  }, [current, cancel])
+  }, [current, cancel, clock])
 
-  return { count, settle }
+  return { settle }
 }
