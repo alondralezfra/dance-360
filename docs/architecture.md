@@ -14,6 +14,8 @@ src/
     playback.ts     positionsAt(formations, count): the playback engine
     tempo.ts        counts <-> seconds, "Set 3 · Count 5" labels
     history.ts      undo/redo as a pure snapshot stack (record/undo/redo, typing merge)
+    timeline.ts     the timeline panel's maths: count <-> pixel, zoom/pan, grid lines, marker hit-testing, dance length
+    tapSnap.ts      tap-to-snap: a tap time -> a whole count, and placing a formation on it
     formations.ts   stage helpers, count ordering, moveFormation (reorder; counts stay in their slots)
     parts.ts        sections/parts/assignments: which parts apply in a section, which part a dancer is in at a count, ordering, gap detection
     project.ts      new-project factory
@@ -73,7 +75,10 @@ Undo is a stack of earlier `Project` snapshots in `projectStore.history` (sessio
 
 ## Saved data
 
-`Project { name, stage, tempo, dancers[], formations[], parts[], sections[], assignments }`.
+`Project { name, stage, tempo, song, dancers[], formations[], parts[], sections[], assignments }`.
+
+- `tempo` is `{ bpm, startOffsetSec, changes[] }`. `changes` (`{ atCount, bpm }`) is always empty for now: the shape has room for tempo changes, but `countToSeconds` / `secondsToCount` do not read them yet, so nothing may add one until they do.
+- `song` is `null` or `{ name, durationSec, size, mime, hash }`. The audio file is **not** in the project: it is stored separately on the device and found by `hash` ([decisions/0013](decisions/0013-audio-and-timeline-architecture.md)).
 
 - A formation is `{ id, name, count, transitionCounts, positions: Record<dancerId, {x, y}> }` with positions in feet. `formations` is always sorted with strictly increasing `count` (`normalizeCounts`). Reordering formations (`moveFormation`) keeps the *counts* in their slots and moves the formation content into them, so the invariant holds without a data change ([decisions/0010](decisions/0010-reordering-formations-and-collapsible-panels.md)).
 - A part is `{ id, name, color, sectionIds }` where `color` is a palette id (`blue`, `red`, `green`, `orange`, `sky`, `pink`, `yellow`, `gray`) and `sectionIds` is the list of sections it applies to, or `null` for all sections (including future ones). An empty list applies nowhere.
@@ -88,7 +93,8 @@ Stored as `dance360:project:<id>` = `{ version, updatedAt, project, sync }`. `sy
 | 1 | `formations[].count` and `transitionCounts`; `tempo` |
 | 2 | `parts`, `sections`, `assignments`; migrated projects get "Part A" + "Section 1" with every dancer in Part A |
 | 3 | `parts[].sectionIds` (the sections a part applies to; `null` = all); migrated parts all get `null` |
+| 4 | `song` (migrated projects get `null`) and `tempo.changes` (migrated projects get `[]`); bpm and start offset are kept |
 
 ## Planned (from the build order)
 
-Audio + timeline (step 3). Designed, not built: [decisions/0013](decisions/0013-audio-and-timeline-architecture.md) (an `audio/` folder for browser audio APIs, `model/timeline.ts`, an `AudioRepository` over IndexedDB, saved-data v4 with `song` and `tempo.changes`, a `transportStore`, `features/timeline/`). Resources and notes; the Overview problems list; accounts and cloud sync (designed in [decisions/0015](decisions/0015-cloud-storage-and-sync.md): a sync engine over `SyncSource`, a Supabase remote store, conflicts that ask).
+Audio + timeline (step 3). Slice 1 is built (the v4 data shape, `model/timeline.ts`, `model/tapSnap.ts`); the rest is designed, not built: [decisions/0013](decisions/0013-audio-and-timeline-architecture.md) (an `audio/` folder for browser audio APIs, `model/timeline.ts`, an `AudioRepository` over IndexedDB, saved-data v4 with `song` and `tempo.changes`, a `transportStore`, `features/timeline/`). Resources and notes; the Overview problems list; accounts and cloud sync (designed in [decisions/0015](decisions/0015-cloud-storage-and-sync.md): a sync engine over `SyncSource`, a Supabase remote store, conflicts that ask).

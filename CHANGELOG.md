@@ -4,6 +4,15 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (song and timeline model: build-order step 3, slice 1)
+- **Saved-data v4:** a project has `song` (`null` until one is attached; name, length, size, type and a content hash, never the audio itself) and its `tempo` gains `changes` (always empty for now). Existing projects are upgraded on open with no song and no tempo changes; their bpm and start point are kept. Fixture `v4.json`, migration tests, and `setSong` in the store; undo covers the song. See decisions/0013.
+- `model/timeline.ts`: pure maths for the timeline panel (count to pixel and back, zoom around the pointer, panning within bounds, grid lines that thin out as you zoom out, snapping, marker hit-testing, how long the dance is).
+- `model/tapSnap.ts`: tap-to-snap rule (a tap time, minus latency, becomes a whole count; a tapped formation lands there without leaving its place in the order).
+- No visible change yet: the song, timeline and playback screens come in the next slices.
+
+### Changed
+- The v0 migration writes its default tempo (120 bpm, start 0) out in full instead of reading the shared default constant, so it cannot change when the default does. Behaviour is identical.
+
 ### Changed (process)
 - **Branching rules** added to CLAUDE.md: each piece of work starts on a fresh, purpose-named branch from an up-to-date `main`; one branch is one logical change (large features are split into slices, one PR each); small focused commits; the user opens and merges pull requests with a merge commit; no pushing to `main`, force-pushing or remote-branch deletion without being asked. Written after one branch grew to hold four unrelated pieces of work.
 

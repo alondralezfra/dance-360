@@ -9,6 +9,7 @@ import type {
   Point,
   Project,
   Section,
+  Song,
   StageSettings,
   TempoMap,
 } from '../model/types'
@@ -26,10 +27,12 @@ export interface SessionSlice {
   closeProject: () => void
 }
 
-export interface ProjectSlice extends Pick<Project, 'name' | 'stage' | 'tempo'> {
+export interface ProjectSlice extends Pick<Project, 'name' | 'stage' | 'tempo' | 'song'> {
   setProjectName: (name: string) => void
   setStage: (stage: StageSettings) => void
   setTempo: (tempo: TempoMap) => void
+  /** Attaches the song, or removes it with `null`. */
+  setSong: (song: Song | null) => void
 }
 
 export interface RosterSlice {
@@ -96,6 +99,7 @@ export const DOCUMENT_KEYS = [
   'name',
   'stage',
   'tempo',
+  'song',
   'dancers',
   'formations',
   'parts',
@@ -108,6 +112,7 @@ export function selectDocument(s: ProjectStore): Project {
     name: s.name,
     stage: s.stage,
     tempo: s.tempo,
+    song: s.song,
     dancers: s.dancers,
     formations: s.formations,
     parts: s.parts,

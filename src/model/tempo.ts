@@ -3,7 +3,7 @@ import type { TempoMap } from './types'
 export const COUNTS_PER_SET = 8
 export const DEFAULT_TRANSITION_COUNTS = 4
 
-export const DEFAULT_TEMPO: TempoMap = { bpm: 120, startOffsetSec: 0 }
+export const DEFAULT_TEMPO: TempoMap = { bpm: 120, startOffsetSec: 0, changes: [] }
 
 /** Audio time (seconds) at which an absolute count lands. Counts may be fractional. */
 export function countToSeconds(count: number, tempo: TempoMap): number {

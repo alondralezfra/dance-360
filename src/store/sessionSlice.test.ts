@@ -86,9 +86,18 @@ describe('project settings', () => {
   it('renames, restages and retempos the project', () => {
     state().setProjectName('Renamed')
     state().setStage({ width: 50, depth: 30 })
-    state().setTempo({ bpm: 90, startOffsetSec: 2 })
+    state().setTempo({ bpm: 90, startOffsetSec: 2, changes: [] })
     expect(state().name).toBe('Renamed')
     expect(state().stage).toEqual({ width: 50, depth: 30 })
-    expect(state().tempo).toEqual({ bpm: 90, startOffsetSec: 2 })
+    expect(state().tempo).toEqual({ bpm: 90, startOffsetSec: 2, changes: [] })
+  })
+
+  it('attaches and removes the song', () => {
+    expect(state().song).toBeNull()
+    const song = { name: 'Track.mp3', durationSec: 201.4, size: 4_800_000, mime: 'audio/mpeg', hash: 'abc123' }
+    state().setSong(song)
+    expect(state().song).toEqual(song)
+    state().setSong(null)
+    expect(state().song).toBeNull()
   })
 })

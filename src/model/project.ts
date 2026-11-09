@@ -14,7 +14,8 @@ export function createEmptyProject(name = 'My Dance'): Project {
   return {
     name,
     stage: { width: 40, depth: 24 },
-    tempo: { ...DEFAULT_TEMPO },
+    tempo: { ...DEFAULT_TEMPO, changes: [] },
+    song: null,
     dancers: [],
     formations: [formation],
     // One part covering every section, named so it reads as the uniform base that

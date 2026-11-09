@@ -73,7 +73,7 @@ const sameEntity = (a: object, b: object) => {
 }
 
 const COLLECTIONS = ['dancers', 'formations', 'parts', 'sections'] as const
-const OTHER_KEYS = ['stage', 'tempo', 'assignments'] as const
+const OTHER_KEYS = ['stage', 'tempo', 'song', 'assignments'] as const
 
 /**
  * If the only difference between two projects is one thing's name being edited
