@@ -1,5 +1,6 @@
 import { Button } from '../../components/ui/Button'
 import { IconButton } from '../../components/ui/IconButton'
+import { SectionHeader } from '../../components/ui/SectionHeader'
 import { Input } from '../../components/ui/Input'
 import { NumberField } from '../../components/ui/NumberField'
 import { COUNTS_PER_SET, formatCount, toSetAndCount } from '../../model/tempo'
@@ -14,19 +15,17 @@ export function SectionsEditor() {
 
   return (
     <section aria-labelledby="sections-heading">
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0 flex-1 basis-56">
-          <h2 id="sections-heading" className="text-lg font-semibold">
-            Sections
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Parts of the song, like Verse 1 or Chorus. Each runs until the next one starts.
-          </p>
-        </div>
-        <Button variant="primary" onClick={addSection}>
-          + Add section
-        </Button>
-      </div>
+      <SectionHeader
+        id="sections-heading"
+        title="Sections"
+        actions={
+          <Button variant="primary" onClick={addSection}>
+            + Add section
+          </Button>
+        }
+      >
+        Parts of the song, like Verse 1 or Chorus. Each runs until the next one starts.
+      </SectionHeader>
 
       <ul className="grid grid-cols-1 gap-2">
         {sections.map((section, i) => {

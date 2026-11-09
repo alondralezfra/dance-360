@@ -1,5 +1,6 @@
 import { Button } from '../../components/ui/Button'
 import { IconButton } from '../../components/ui/IconButton'
+import { SectionHeader } from '../../components/ui/SectionHeader'
 import { Input } from '../../components/ui/Input'
 import { Select } from '../../components/ui/Select'
 import { MAX_PARTS, PART_COLOR_IDS, PART_COLOR_NAMES } from '../../model/parts'
@@ -32,20 +33,18 @@ export function PartsEditor() {
 
   return (
     <section aria-labelledby="parts-heading">
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0 flex-1 basis-56">
-          <h2 id="parts-heading" className="text-lg font-semibold">
-            Parts
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Colour-coded groups doing different choreography. Limit a part to specific sections if it only applies
-            there; where just one part applies, everyone is in it automatically.
-          </p>
-        </div>
-        <Button variant="primary" onClick={addPart} disabled={parts.length >= MAX_PARTS}>
-          + Add part
-        </Button>
-      </div>
+      <SectionHeader
+        id="parts-heading"
+        title="Parts"
+        actions={
+          <Button variant="primary" onClick={addPart} disabled={parts.length >= MAX_PARTS}>
+            + Add part
+          </Button>
+        }
+      >
+        Colour-coded groups doing different choreography. Limit a part to specific sections if it only applies
+        there; where just one part applies, everyone is in it automatically.
+      </SectionHeader>
 
       {parts.length === 0 && (
         <p className="rounded-lg border border-dashed border-border-strong p-4 text-sm text-muted-foreground">

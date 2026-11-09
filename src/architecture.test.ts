@@ -61,6 +61,27 @@ describe('layering', () => {
     expect(bad).toEqual([])
   })
 
+  it('the browser audio engine is only touched in audio/', () => {
+    const bad = offenders(
+      appFiles.filter(([p]) => !p.startsWith('/src/audio/')),
+      (path, code) =>
+        /\b(AudioContext|OfflineAudioContext|webkitAudioContext|HTMLAudioElement|createMediaElementSource)\b|new Audio\(/.test(code)
+          ? `${path} uses the browser audio engine directly`
+          : null,
+    )
+    expect(bad).toEqual([])
+  })
+
+  it('audio/ only talks to the browser: no store, storage, UI or theme imports', () => {
+    const bad = offenders(inDir('audio'), (path, code) => {
+      const forbidden = importsOf(code).filter(
+        (i) => /^(react|react-dom|zustand|react-router)/.test(i) || /\.\.\/(store|persistence|features|components|theme)/.test(i),
+      )
+      return forbidden.length ? `${path} imports ${forbidden.join(', ')}` : null
+    })
+    expect(bad).toEqual([])
+  })
+
   it('screens (features/) do not reach into other features', () => {
     const bad = offenders(inDir('features'), (path, code) => {
       const own = path.split('/')[3]

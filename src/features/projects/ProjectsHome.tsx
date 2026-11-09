@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { IconButton } from '../../components/ui/IconButton'
 import { createEmptyProject } from '../../model/project'
 import { repository, type ProjectSummary } from '../../persistence'
+import { pruneUnusedAudio } from '../../store/audioCleanup'
 
 export function ProjectsHome() {
   const navigate = useNavigate()
@@ -28,6 +29,7 @@ export function ProjectsHome() {
   const remove = async (p: ProjectSummary) => {
     if (!window.confirm(`Delete "${p.name}"? This can't be undone.`)) return
     await repository.remove(p.id)
+    void pruneUnusedAudio() // the project's song file, if nothing else uses it
     setProjects((list) => list?.filter((x) => x.id !== p.id) ?? null)
   }
 

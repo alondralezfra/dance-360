@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { SectionHeader } from '../../components/ui/SectionHeader'
 import { Select } from '../../components/ui/Select'
 import { cn } from '../../lib/cn'
 import { availableParts, effectivePartId, findGaps, isUncovered } from '../../model/parts'
@@ -20,10 +21,9 @@ export function AssignmentGrid() {
 
   return (
     <section aria-labelledby="assignments-heading">
-      <h2 id="assignments-heading" className="text-lg font-semibold">
-        Assignments
-      </h2>
-      <p className="mb-3 text-sm text-muted-foreground">Which part each dancer is in, section by section.</p>
+      <SectionHeader id="assignments-heading" title="Assignments">
+        Which part each dancer is in, section by section.
+      </SectionHeader>
 
       {dancers.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border-strong p-4 text-sm text-muted-foreground">

@@ -1,7 +1,8 @@
 import { memo } from 'react'
 import { Layer, Line, Rect, Text } from 'react-konva'
 import type { CanvasTheme } from '../../theme/useCanvasTheme'
-import { crispLine, strokeFor, type StageLayout } from './stageLayout'
+import { crispLine, strokeFor } from '../../lib/devicePixels'
+import type { StageLayout } from './stageLayout'
 
 /** Grid line spacing in feet. */
 const GRID_FEET = 2

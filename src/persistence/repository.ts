@@ -24,6 +24,12 @@ export interface ProjectRepository {
   create(project: Project): Promise<Id>
   /** Deletes a project. It disappears from the app immediately. */
   remove(id: Id): Promise<void>
+  /**
+   * The hash of every song any stored project uses, including deleted projects still
+   * awaiting sync (they could come back). Song files whose hash is not in here are
+   * unused and can be cleared from the device.
+   */
+  songHashes(): Promise<Set<string>>
 }
 
 /** A project as the sync engine sees it: the document plus how it relates to the cloud. */

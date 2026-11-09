@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Layer, Stage } from 'react-konva'
 import type Konva from 'konva'
 import { readableOn } from '../../lib/color'
+import { snapToDevice } from '../../lib/devicePixels'
 import { useDevicePixelRatio } from '../../lib/useDevicePixelRatio'
+import { useElementSize } from '../../lib/useElementSize'
 import { partIdAt, sectionIndexAt } from '../../model/parts'
 import { positionsAt } from '../../model/playback'
 import type { Id } from '../../model/types'
@@ -12,7 +14,7 @@ import { useUi } from '../../store/uiStore'
 import { DancerDot } from './DancerDot'
 import { createPlayheadClock } from './playheadClock'
 import { StageFloor } from './StageFloor'
-import { fitStage, snapToDevice } from './stageLayout'
+import { fitStage } from './stageLayout'
 import { useDotMotion } from './useDotMotion'
 import { usePlayhead } from './usePlayhead'
 
@@ -23,23 +25,6 @@ const DOT_FEET = 1.2
 
 const snap = (v: number) => Math.round(v / SNAP_FEET) * SNAP_FEET
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi)
-
-/** Track the pixel size of a container element so the canvas can fill it. */
-function useElementSize<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
-  const [size, setSize] = useState({ width: 0, height: 0 })
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect
-      setSize({ width, height })
-    })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-  return [ref, size] as const
-}
 
 /**
  * The stage: floor, grid and dancers.

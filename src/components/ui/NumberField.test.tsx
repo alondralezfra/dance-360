@@ -87,4 +87,44 @@ describe('NumberField', () => {
     rerender(<NumberField label="Count" value={6} onCommit={() => {}} />)
     expect(screen.getByLabelText('Count')).toHaveValue('6')
   })
+
+  describe('with decimals', () => {
+    it('keeps the decimal places asked for and rounds the rest', async () => {
+      const { input, onCommit, user } = setup({ decimals: 2, value: 1.25 })
+      await user.clear(input)
+      await user.type(input, '127.5678{Enter}')
+      expect(onCommit).toHaveBeenCalledExactlyOnceWith(127.57)
+    })
+
+    it('shows a decimal value as it is, and uses a decimal keyboard', () => {
+      const { input } = setup({ decimals: 1, value: 127.5 })
+      expect(input).toHaveValue('127.5')
+      expect(input).toHaveAttribute('inputmode', 'decimal')
+    })
+
+    it('still clamps to the minimum and maximum', async () => {
+      const { input, onCommit, user } = setup({ decimals: 1, min: 20, max: 300, value: 120 })
+      await user.clear(input)
+      await user.type(input, '999.9{Enter}')
+      expect(onCommit).toHaveBeenLastCalledWith(300)
+      await user.clear(input)
+      await user.type(input, '3.5{Enter}')
+      expect(onCommit).toHaveBeenLastCalledWith(20)
+    })
+
+    it('does not commit a value that rounds to what it already is', async () => {
+      const { input, onCommit, user } = setup({ decimals: 1, value: 120.5 })
+      await user.clear(input)
+      await user.type(input, '120.54{Enter}')
+      expect(onCommit).not.toHaveBeenCalled()
+    })
+  })
+
+  it('whole-number fields still round typed decimals and use a numeric keyboard', async () => {
+    const { input, onCommit, user } = setup()
+    expect(input).toHaveAttribute('inputmode', 'numeric')
+    await user.clear(input)
+    await user.type(input, '7.6{Enter}')
+    expect(onCommit).toHaveBeenCalledExactlyOnceWith(8)
+  })
 })

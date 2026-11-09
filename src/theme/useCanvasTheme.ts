@@ -11,6 +11,10 @@ export interface CanvasTheme {
   grid: string
   gridCenter: string
   label: string
+  /** The song waveform on the timeline. */
+  wave: string
+  /** Formation markers on the timeline. */
+  marker: string
   /** Dot fill for a dancer with no part. */
   unassigned: string
   dotOutline: string
@@ -31,6 +35,8 @@ function read(): CanvasTheme {
     grid: v('--stage-grid'),
     gridCenter: v('--stage-grid-center'),
     label: v('--stage-label'),
+    wave: v('--timeline-wave'),
+    marker: v('--timeline-marker'),
     unassigned: v('--dot-unassigned'),
     dotOutline: v('--dot-outline'),
     dotSelected: v('--dot-selected'),

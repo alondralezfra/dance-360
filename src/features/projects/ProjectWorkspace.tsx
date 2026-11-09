@@ -14,6 +14,7 @@ import { useUndoShortcuts } from './useUndoShortcuts'
 const tabs = [
   { to: 'stage', label: 'Stage' },
   { to: 'cast', label: 'Cast & Parts' },
+  { to: 'song', label: 'Song' },
 ]
 
 const saveLabel: Record<SaveState, string> = {

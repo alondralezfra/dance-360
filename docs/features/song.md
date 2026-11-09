@@ -1,0 +1,31 @@
+# Song (music, tempo and timeline)
+
+*Code: `src/features/song/`, `src/audio/`, `src/store/songStore.ts`, `src/persistence/*Audio*`. Route: `/projects/:id/song`. Plan: §3.2, §5.2. Design: [decisions/0013](../decisions/0013-audio-and-timeline-architecture.md), [0017](../decisions/0017-song-tab-and-audio-storage.md).*
+
+## What it does today
+
+The **Song** tab, next to Stage and Cast & Parts, has three sections.
+
+- **Song.** Attach a music file (MP3, M4A, WAV, OGG, FLAC...) with *Attach song*; *Replace song* swaps it; *Remove song* asks first and says your formations and counts are not affected. The card shows the file name, length and size. Counts work with or without a song, so a project can be built first and the music attached later.
+  - **Checks:** the file must be audio (by its type, or its extension when the type is blank), at most 60 MB, and decodable. A problem is shown as a message you can dismiss ("does not look like an audio file", "too large", "could not be read as audio", "not enough space on this device"); nothing changes when an attempt fails.
+  - **Where the file lives:** in this browser's IndexedDB (kept across reloads and offline), found by a hash of its contents. The project saves only the song's name, length, size, type and hash, never the audio. The same file in two projects is stored once; a song's file is cleared from the device when no project uses it any more (after replacing or removing it, or deleting its project).
+  - **A song whose file isn't on this device** (the project was opened on another device, or browser data was cleared) shows a notice, "The song file is not on this device", with *Choose the file again*. Only the same file is accepted (the hash must match); a different one is refused with an explanation. Your formations and counts are unaffected.
+- **Tempo.** *BPM* (decimals allowed, 20 to 300) and *Start point (seconds)* (the moment in the song when Set 1, Count 1 lands, to the millisecond), with buttons to nudge the start point 0.01 s earlier or later. Changing either moves every formation against the music, since formations are stored in counts.
+- **Timeline.** The song laid out against the counts: waveform, a grid of counts and sets (thinned out as you zoom out so lines never crowd, with "Set N" labels, thinned to every few sets when zoomed out so they never crowd (and always the same sets as you scroll), and count numbers when there is room), and a numbered marker for each formation. If the song starts before count 0 (a start point later than 0), the intro is shown to the left of count 0. **Drag** to scroll, **mouse wheel / trackpad** or **two-finger pinch** to zoom around the pointer, sideways scrolling pans, buttons *Zoom in*, *Zoom out* and *Fit* (the whole dance). Without a song it shows the counts and markers alone. The canvas has a text summary for screen readers ("Timeline of 3 formations over 403 counts, with the waveform of ...").
+- Attaching, replacing, removing and tempo edits are undoable like any project edit and are autosaved.
+
+## How it works
+
+- **Data.** `project.song` (`Song`: name, durationSec, size, mime, hash) and `project.tempo` (`bpm`, `startOffsetSec`, `changes`, which is always empty for now). Saved-data v4.
+- **Reading a file** (`audio/analyze.ts`, the only code that touches the browser's audio engine): decode at 8 kHz (so a four-minute song is about 15 MB while analysed, not 85 MB), then `peaksFromChannels` (pure, `model/peaks.ts`) summarises it as 100 loudness levels per second. The duration is exact (samples over sample rate). The peaks are cached beside the file in IndexedDB, keyed by hash, and recomputed if missing; they are derived data and never in the project.
+- **State** (`store/songStore.ts`, not saved, not undoable): whether the file is `none`, `checking`, `present` or `missing`, the peaks (and which song they belong to, so another project's waveform is never shown), whether it is busy, and an error message. `refresh()` looks at the open project's song whenever the project or song changes; `attach`, `reattach` and `remove` do the work. `store/audioCleanup.ts` clears files nothing uses (after saving pending edits; always keeps the open project's song).
+- **Drawing** (`drawTimeline.ts`): a plain function over a canvas context, placed by the pure maths in `model/timeline.ts` and sized to whole device pixels (`lib/devicePixels.ts`), so it is sharp at any zoom. `useTimelineGestures` turns pointer, wheel and pinch events into calls to that maths.
+- Colours come from two canvas tokens (`--timeline-wave`, `--timeline-marker`) plus the stage's grid and label tokens, so it follows light and dark.
+
+## Not yet built
+
+Playback (play and pause, a moving playhead, the stage following the song), the metronome, placing and dragging formations on the timeline, tap-to-snap placement, and latency calibration: later slices of build-order step 3 (decision 0013). Tempo changes within a song, auto beat detection, slow-down and section looping are not scheduled.
+
+## Tests
+
+`Song.test.tsx` (the sections, timeline panel and page), `drawTimeline.test.ts`, `useTimelineGestures.test.tsx`, `src/store/songStore.test.ts`, `src/store/audioCleanup.test.ts`, `src/audio/analyze.test.ts`, `src/model/peaks.test.ts` and `timeline.test.ts`, `src/persistence/audioRepositories.test.ts` (one contract for the in-memory and IndexedDB stores), and `e2e/song.spec.ts`, which uses a real generated WAV file: attaching and decoding in the real browser, the waveform drawn on the canvas, persistence across reloads, replace/remove and clearing of unused files, bad files, a song whose file is missing and choosing it again, tempo, zoom and drag, undo and redo, and the phone layout.

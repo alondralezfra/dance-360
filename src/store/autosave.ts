@@ -8,7 +8,8 @@ const DELAY_MS = 400
 let pending: { id: Id; project: Project } | null = null
 let timer: ReturnType<typeof setTimeout> | null = null
 
-async function flush() {
+/** Saves any pending change right now (instead of waiting for the delay) and resolves when it has been written. */
+export async function flush() {
   if (timer) clearTimeout(timer)
   timer = null
   const job = pending
