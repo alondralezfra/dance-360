@@ -17,11 +17,20 @@ A web app for dance directors (formations, cast, parts, music, resources in one 
 
 A change is **not implemented** until step 7 passes. The Stop hook and the pre-commit hook enforce this; don't try to get around them.
 
+## Branches and commits: before the first edit, and all the way through
+
+- **Start each piece of work on a fresh branch from an up-to-date `main`**: `git checkout main && git pull --ff-only`, then `git checkout -b <type>/<what>` with type `feature/`, `fix/`, `refactor/` or `docs/`. Do this *before* the first edit. At the start of every task run `git branch --show-current`: if the checked-out branch is already merged, unrelated, or named for something else, don't continue on it.
+- **One branch = one logical change** that can be reviewed, merged and reverted on its own, named for what it contains. A large feature is split into slices, each its own branch and PR, merged before a dependent slice starts. If a branch's scope grows, stop and split it instead of renaming it. An unrelated finding gets its own branch, not a drive-by edit.
+- **Commit small, focused steps**, staging only the files of that change (the pre-commit hook runs the full verify on every commit, so each commit must stand on its own). Commits only happen when the user asks, so say when a unit of work is verified and ready, so work doesn't pile up uncommitted. When changes start to entangle, commit earlier rather than later.
+- **The user opens and merges pull requests** (`gh` is not installed). When a branch is ready, push it only if asked, and give them a PR title, a description and the link `https://github.com/alondralezfra/dance-360/compare/main...<branch>?expand=1`. They merge with a merge commit (not squash) so focused commits survive. CI runs only on pull requests and on pushes to `main`, so a branch is not CI-checked until its PR exists.
+- **After a merge:** `git checkout main && git pull --ff-only`, confirm the merge is there, delete the merged local branch with `git branch -d`, and only then start the next branch. Ask before deleting anything on the remote.
+
 ## Never
 
 - Never weaken, skip (`.skip`, `.only`), loosen, or delete a test, or lower a coverage threshold, to make something pass. A test may be removed only when the behaviour it covers is deliberately removed, and then say so in the changelog.
 - Never commit with `--no-verify`, disable hooks, or edit `scripts/`, `.githooks/`, `.claude/settings.json`, or `src/architecture.test.ts` to dodge a check (change them only when deliberately changing the process, and tell the user).
 - Never commit unless the user asks. When committing: one logical change, imperative subject line, body explains why.
+- Never push to `main`, force-push, merge a pull request, or delete a remote branch unless the user explicitly asks. Pushing a feature branch also waits for the user to ask.
 - Never edit an old migration; never change saved data without the migration steps below.
 
 ## Architecture rules (details and rationale: `docs/architecture.md`)
