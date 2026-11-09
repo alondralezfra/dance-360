@@ -5,6 +5,7 @@ Living documentation for Dance 360. It is updated in the **same change** as the 
 | Document | What it answers |
 |---|---|
 | [../dance-director-app-plan.md](../dance-director-app-plan.md) | **What are we building and why?** The product plan, MVP and open questions. |
+| [components.md](components.md) | **Which shared UI components exist, and when do I add one?** |
 | [architecture.md](architecture.md) | **How is the code organised, and what rules keep it that way?** |
 | [features/](features/) | **What does each feature do today?** One file per folder in `src/features/`. |
 | [decisions/](decisions/) | **Why did we choose X?** Short decision records (ADRs); never edited after the fact, only superseded. |

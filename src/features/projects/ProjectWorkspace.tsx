@@ -1,10 +1,20 @@
 import { useEffect } from 'react'
-import { Link, Outlet, useParams } from 'react-router'
+import { Link, NavLink, Outlet, useParams } from 'react-router'
 import { ThemeToggle } from '../../components/ThemeToggle'
+import { Icon } from '../../components/ui/Icon'
 import { Input } from '../../components/ui/Input'
+import { cn } from '../../lib/cn'
 import { useProject } from '../../store/projectStore'
 import { useUi } from '../../store/uiStore'
 import type { SaveState } from '../../store/storeTypes'
+import { UndoRedoButtons } from './UndoRedoButtons'
+import { useUndoShortcuts } from './useUndoShortcuts'
+
+/** The project's screens. Relative links resolve under /projects/:id. */
+const tabs = [
+  { to: 'stage', label: 'Stage' },
+  { to: 'cast', label: 'Cast & Parts' },
+]
 
 const saveLabel: Record<SaveState, string> = {
   saved: 'Saved',
@@ -23,6 +33,7 @@ export function ProjectWorkspace() {
   const name = useProject((s) => s.name)
   const setProjectName = useProject((s) => s.setProjectName)
   const saveState = useProject((s) => s.saveState)
+  useUndoShortcuts()
 
   useEffect(() => {
     if (!projectId) return
@@ -36,26 +47,50 @@ export function ProjectWorkspace() {
 
   return (
     <div className="flex h-dvh flex-col bg-background text-foreground">
-      <header className="flex items-center gap-3 border-b border-border bg-surface px-4 py-2">
-        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2">
-          <Link to="/" className="text-lg font-semibold hover:text-primary">
+      <header className="flex flex-wrap items-center gap-x-3 border-b border-border bg-surface px-4">
+        <nav aria-label="Breadcrumb" className="order-1 flex min-w-0 flex-1 items-center gap-2 py-2 md:order-none md:flex-none">
+          <Link to="/" className="text-lg font-semibold whitespace-nowrap hover:text-primary">
             Dance 360
           </Link>
-          <span className="text-subtle-foreground">›</span>
+          <Icon name="chevronRight" className="text-subtle-foreground" />
           {ready ? (
             <Input
               value={name}
               onChange={(e) => setProjectName(e.target.value)}
               aria-label="Project name"
-              className="min-w-0 max-w-56 border-transparent bg-transparent"
+              variant="inline"
+              className="min-w-0 max-w-56"
             />
           ) : (
             <span className="text-muted-foreground">Project</span>
           )}
-          <span className="text-subtle-foreground">›</span>
-          <span className="text-muted-foreground">Stage</span>
         </nav>
-        <div className="ml-auto flex items-center gap-3">
+        {ready && (
+          // On a phone the tabs share the second row with Undo/Redo: the row minus their width.
+          <nav
+            aria-label="Project sections"
+            className="order-3 flex w-[calc(100%-5.75rem)] gap-1 overflow-x-auto md:order-none md:ml-2 md:w-auto"
+          >
+            {tabs.map((tab) => (
+              <NavLink
+                key={tab.to}
+                to={tab.to}
+                className={({ isActive }) =>
+                  cn(
+                    'inline-flex min-h-11 items-center border-b-2 px-3 text-sm font-medium whitespace-nowrap',
+                    isActive
+                      ? 'border-primary text-foreground'
+                      : 'border-transparent text-muted-foreground hover:text-foreground',
+                  )
+                }
+              >
+                {tab.label}
+              </NavLink>
+            ))}
+          </nav>
+        )}
+        {ready && <UndoRedoButtons className="order-4 md:order-none md:ml-auto" />}
+        <div className={cn('order-2 ml-auto flex items-center gap-3 py-2 md:order-none', ready && 'md:ml-0')}>
           {ready && (
             <span
               role="status"

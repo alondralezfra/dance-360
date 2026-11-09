@@ -4,11 +4,94 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
-### Added
+### Added (cloud-sync preparation)
+- **The repository is ready for cloud sync** (no account or server yet; nothing changes for users). Project storage is now one implementation (`createRepository`) over a small `RecordStore` adapter (localStorage, in-memory; IndexedDB can be added without touching the logic). Each stored project carries sync bookkeeping beside the document (local revision, last cloud revision, dirty, deleted), kept out of the project so there is **no saved-data version change and no migration**; projects saved earlier read as never synced.
+- A project the cloud will know about is deleted as a hidden tombstone so another device cannot bring it back; a late save of a deleted project is refused instead of resurrecting it. Projects the cloud never saw are removed outright, as before.
+- `SyncSource` interface (for the future sync engine only) and a shared repository **contract test suite** every repository must pass (run against localStorage and in-memory).
+- Decision record 0015: local-first sync, conflicts that ask (use theirs / keep mine as a copy), one director on many devices first, the Supabase table and compare-and-set design, versions across devices, privacy and opt-in, and the build slices. Plan §6 updated.
+
+### Changed (canvas performance)
+- **Smooth stage on phones.** Measured on a CPU ~4x slower than a laptop (roughly a mid-range phone), 40 dancers went from ~32fps to a steady 60fps during a formation glide, 100 dancers from ~16fps to ~42fps, and 200 dancers now hold 60fps on a laptop. This is the path audio playback will use.
+- Dot motion no longer re-renders the stage every frame: a playhead clock (outside React) drives `useDotMotion`, which moves the dots directly on the canvas using `positionsAt`. React re-renders only for edits, selection, size changes and section changes (colours). `StageCanvas` is split into `StageFloor`, `DancerDot` and the motion hook; dots and floor are memoised with stable callbacks.
+- **Dots no longer have a soft drop shadow** (it cost about half of each frame at 100 dancers); they keep their crisp outline.
+- `usePlayhead` now takes the clock and drives it (instead of returning a count).
+- Decision record 0014 (measurements, method, results, what was left out on purpose).
+- Tests: no per-frame React renders during a glide, dots still move and land on the formation, colours change exactly at section boundaries, clock and motion hook units.
+
+### Added (docs: audio and timeline design)
+- Decision record 0013 (how audio, the timeline, tap-to-snap and the metronome fit the count model; saved-data v4 plan; build slices and risks). Plan §9 updated: tempo changes, music file storage and half-counts answered for now. No code or data changes.
+
+### Added (undo / redo)
+- **Undo and Redo for every project edit** (dots, formations, reordering, dancers, parts, sections, assignments, names): buttons in the project header and Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z (or Ctrl+Y). Typing in a name box is one step; the last 100 steps are kept for the session and are never saved, so a reload or opening another project starts clean. Shortcuts are ignored inside text boxes so the browser's text undo still works. Undone states are autosaved.
+- `model/history.ts` (pure snapshot history), `store/history.ts` (records edits by watching the store), `undo`/`redo` store actions, `undo`/`redo` icons. No saved-data change. Decision record 0012; plan §9 updated (version history is still open).
+
+### Added (components, sharper stage)
+- **Shared components:** `Icon` (one inline-SVG icon set), `IconButton` (icon + required accessible label), `Checkbox`, a shared `fieldClass` look for text-like controls, a `chip` variant on `Button` (selected state from `aria-pressed`) and an `inline` variant on `Input`. Catalog and rules: `docs/components.md`; decision record 0011.
+- `src/architecture.test.ts` now fails if a screen uses a raw `<button>`, `<input>`, `<select>`, `<textarea>` or `<svg>`, or a text symbol as an icon (a deliberate extension of that file).
+- `useDevicePixelRatio` hook (`lib/`).
+
+### Changed
+- Text-symbol icons (✕ ◀ ▶ ▲ ▼ ▾ ☀ ☾ ›) are now `Icon`s; the four copy-pasted remove buttons, the formation chips, the dancer-name field, the section dropdown and its checkboxes now use the shared components. Dancer rows and the project-name field are 40px tall (touch target).
+- The collapsed formation bar button reads "Show formation bar" (visible text matches its accessible name; it was "▲ Formations").
+- Stage layout snaps the floor, grid and dots to whole device pixels. The "centred" unit test now allows one device pixel of rounding.
+
+### Fixed
+- **Stray scrollbar next to the Cast & Parts tab:** the tab bar was 1px taller inside than its box (the underline trick plus `overflow-x: auto`), a regression from moving the tabs into the header.
+- **Blurry stage text, grid and dots:** the canvas kept its original resolution after browser zoom (or moving the window between screens) changed the pixel ratio, so the browser stretched it. It now re-renders at the new ratio, and edges, lines, dots and labels are aligned to whole device pixels.
+
+### Added (reorder formations, hideable panels, bigger stage)
+- **Drag to reorder formations** in the bottom strip (mouse: drag; touch: press and hold, then drag; keyboard: Alt + Left/Right). The song's timing slots stay put and the formation moves into the new slot, keeping its name, positions and travel counts. `moveFormation` in `model/formations.ts`, `reorderFormation` in the store, drag handling in `features/stage/FormationList.tsx` using `@dnd-kit`. No saved-data change.
+- **Slide-away panels:** the dancer sidebar (wide screens) and the formation bar (all screens) can be hidden for a bigger stage and shown again with a button; remembered per device (`store/layoutStore.ts`, `persistence/devicePreferences.ts`), not stored in the project.
+- Decision record 0010.
+
+### Changed
+- **Bigger stage:** smaller margins around it, a more compact formation bar (timing fields share the controls row), and on wide screens the project tabs share the header row (about 50px more height).
+- Stage fitting maths extracted into a pure, tested `stageLayout.ts`; browser tests now use it instead of a copy.
+- Known limit: under browser zoom (Ctrl +) the header and bars keep their CSS-pixel size, so the stage still gets a smaller share of the screen than at 100%; hiding the formation bar gives the room back. See decision 0010.
+
+### Added (parts limited to specific sections)
+- A **sections dropdown** on each part (next to the colour): "All sections" or any combination of sections (checklist; keyboard and touch friendly). Use it for songs where most sections have one uniform part and only some (e.g. Chorus 1 and Chorus 2) split into several, such as Floor and Standing.
+- Where **exactly one part applies in a section, everyone is in it automatically**: the grid cell is read-only and never shows a "missing assignment". Where several apply, the cell offers only the parts that apply there. Parts limited to a section replace the all-sections parts there.
+- A new section keeps the previous section's parts; removing a section removes it from the parts that listed it (a part left with none shows "No sections").
+- The stage legend lists only the parts that apply in the current section.
+- Popover control (`@radix-ui/react-popover`); `availableParts`, `effectivePartId`, `toggleSectionInScope`, `sectionScopeLabel` in `model/parts.ts`; `setPartSections` in the store.
+- Tests: part-limiting logic, store cascades, the dropdown (component and browser), the choruses-only scenario end to end, stage colours and legend per section, upgrading a version-2 project, and phone layout of the dropdown.
+
+### Changed
+- **A section where no part applies is no longer an error.** Previously, limiting parts so a section had none (e.g. Floor and Standing only in Verse 1, nothing in the Chorus) flagged every dancer as missing there, in cells that offered no way to fix it. Now it means everyone dances together: the grid cell reads "Everyone" (read-only), dots are the neutral gray, the legend shows a gray "Everyone" chip, and only sections where two or more parts apply can have missing assignments. See `docs/decisions/0009-uncovered-sections-and-default-part.md`.
+- **New projects start with a part called "Everyone"** (on all sections) instead of "Part A", so it reads as the uniform base that other parts override; the next part you add is "Part A". Existing projects keep their part names.
+- The grid's status line reads "No missing assignments." (was "Everyone has a part in every section.", which isn't true in an uncovered section).
+- **Behaviour change:** a project with only one part (including a brand-new project) now puts every dancer in that part automatically, instead of showing them as unassigned until picked. With two or more parts that apply in a section, dancers still need picking as before.
+- The assignment grid's scroll box now contains its screen-reader-only text; without that, hidden text in a wide grid could stretch the whole phone page sideways.
+- Part rows wrap onto a second line on narrow screens to make room for the sections control.
+- Browser tests now run against the **production build** (built fresh and served with `vite preview`) instead of the dev server. Same assertions, but they test what actually ships, and the full suite runs in about 40 seconds instead of 80-130. Under parallel load the dev server made tests that take 3 seconds on their own take 14, and a few hit the 30-second timeout.
+
+### Data format
+- Saved-data **v3**: each part gains `sectionIds` (`null` = all sections). Existing projects are upgraded on open with every part on "All sections", so nothing changes for them. See `docs/decisions/0008-parts-limited-to-sections.md`.
+
+### Added (parts, sections and assignments: build-order step 2)
+- **Cast & Parts** tab with project tabs in the workspace header (Stage | Cast & Parts).
+- **Parts**: colour-coded groups (name + one of 8 colour-blind-safe colours); add, rename, recolour, remove (asks first if dancers are assigned).
+- **Sections**: contiguous stretches of the song defined by a start count; add (copies the previous section's assignments), rename, move, remove.
+- **Assignment grid**: dancers by sections, each cell a dropdown of parts; missing assignments are outlined, counted and listed. Scrolls sideways on narrow screens.
+- **Stage**: dots are coloured by the dancer's part in the current section (neutral gray if unassigned), with a legend showing the section and parts. The dancer list dots show the same colours.
+- Select control; `model/parts.ts` (part/section/assignment logic) and `lib/color.ts` (readable initials).
+- Tests: part/section logic, store, migration + fixture for data v2, Cast & Parts and legend components, and browser tests that read real dot colours from the canvas (both themes), mid-song colour changes, upgrading an old project, and phone layout.
+
+### Changed
+- The selected dancer on the stage is drawn with a ring instead of changing colour, so the part colour stays visible. Canvas colour tokens: `--dot`/`--dot-stroke`/`--dot-selected-stroke` replaced by `--dot-unassigned`, `--dot-outline`, and a ring-colour `--dot-selected`; new `--part-*` tokens.
+- Buttons never wrap their label onto several lines.
+- Header: the "Stage" breadcrumb segment was replaced by the tabs.
+
+### Data format
+- Saved-data **v2**: projects gain `parts`, `sections` and `assignments`. Existing projects are upgraded on open to one part ("Part A") and one section ("Section 1") with every dancer already in Part A, so they look the same as before. See `docs/decisions/0007-parts-sections-and-assignments.md`.
+
+### Added (workflow)
 - Verification workflow: `npm run verify` (change discipline, lint, tests + coverage, type-check + build, browser tests), a Claude Code Stop hook and a git pre-commit hook that enforce it, and `CLAUDE.md` describing the process. See `docs/decisions/0006-verification-workflow.md`.
 - Test suite: component tests (dancer panel, formation strip, number field, theme, playhead, projects home), integration tests (repository, autosave, project loading), architecture-rule tests, saved-data fixtures, and 27 Playwright browser tests covering projects, the stage editor (including real drags), theme and phone layout.
 - Documentation set in `docs/`: architecture, testing, per-feature docs, and decision records.
 - GitHub Actions workflow (`.github/workflows/ci.yml`) running `npm run verify` on pushes to `main` and pull requests; `scripts/check-changes.mjs --base <ref>` checks a whole branch for tests, docs and changelog.
+- `CLAUDE.md` workflow gained an "Ask first" step: before building anything non-trivial, ask the product questions that are the owner's to answer.
 
 ## 0.1.0 — 2026-11-03 (foundation)
 

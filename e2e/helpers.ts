@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test'
+import { fitStage } from '../src/features/stage/stageLayout'
 
 /** The prototype's original save format (v0), used to test the one-time import. */
 export const legacyProject = {
@@ -54,15 +55,47 @@ export async function savedProject(page: Page) {
   })
 }
 
-/**
- * Where a point on stage (in feet) is drawn on screen. Mirrors the layout math
- * in StageCanvas (36px margin, stage centred and scaled to fit).
- */
+/** Where a point on stage (in feet) is drawn on screen, using the app's own layout maths. */
 export async function stagePixel(page: Page, feet: { x: number; y: number }, stage = { width: 40, depth: 24 }) {
   const box = (await page.locator('canvas').first().boundingBox())!
-  const margin = 36
-  const scale = Math.max(1, Math.min((box.width - margin * 2) / stage.width, (box.height - margin * 2) / stage.depth))
-  const originX = (box.width - stage.width * scale) / 2
-  const originY = (box.height - stage.depth * scale) / 2
+  const dpr = await page.evaluate(() => window.devicePixelRatio)
+  const { scale, originX, originY } = fitStage(box, stage, dpr)
   return { x: box.x + originX + feet.x * scale, y: box.y + originY + feet.y * scale, scale }
+}
+
+export async function goToCast(page: Page) {
+  await page.getByRole('link', { name: 'Cast & Parts' }).click()
+  await expect(page).toHaveURL(/\/cast$/)
+}
+
+export async function goToStage(page: Page) {
+  await page.getByRole('link', { name: 'Stage', exact: true }).click()
+  await expect(page).toHaveURL(/\/stage$/)
+}
+
+/** [r, g, b] of a hex colour like "#0072b2". */
+export const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+
+/**
+ * The colour drawn for a dancer's dot, read from the canvas pixels. Samples
+ * just below the centre, clear of the initials, inside the dot.
+ */
+export async function dotColor(page: Page, feet: { x: number; y: number }) {
+  const { x, y, scale } = await stagePixel(page, feet)
+  const radius = 0.6 * scale // DOT_FEET / 2 in StageCanvas
+  return page.evaluate(
+    ({ x, y }) => {
+      const canvas = [...document.querySelectorAll('canvas')].at(-1)! // the dancers layer is on top
+      const box = canvas.getBoundingClientRect()
+      const ratio = canvas.width / box.width
+      const data = canvas.getContext('2d')!.getImageData((x - box.left) * ratio, (y - box.top) * ratio, 1, 1).data
+      return [data[0], data[1], data[2]]
+    },
+    { x, y: y + 0.65 * radius },
+  )
+}
+
+/** Compare two colours allowing a little rounding. */
+export function expectColor(actual: number[], expected: number[]) {
+  actual.forEach((channel, i) => expect(Math.abs(channel - expected[i]), `rgb(${actual}) vs rgb(${expected})`).toBeLessThanOrEqual(3))
 }

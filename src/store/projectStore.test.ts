@@ -111,6 +111,22 @@ describe('formations', () => {
     expect(new Set(counts).size).toBe(counts.length)
   })
 
+  it('reorders formations while the counts stay in their slots', () => {
+    const a = state().formations[0].id
+    const b = state().addFormation(a)
+    const counts = state().formations.map((f) => f.count)
+    state().reorderFormation(b, 0)
+    expect(state().formations.map((f) => f.id)).toEqual([b, a])
+    expect(state().formations.map((f) => f.count)).toEqual(counts)
+  })
+
+  it('does not change the formations array for a no-op reorder', () => {
+    const before = state().formations
+    state().reorderFormation(before[0].id, 0)
+    state().reorderFormation('missing', 0)
+    expect(state().formations).toBe(before)
+  })
+
   it('always keeps at least one formation', () => {
     state().removeFormation(state().formations[0].id)
     expect(state().formations).toHaveLength(1)

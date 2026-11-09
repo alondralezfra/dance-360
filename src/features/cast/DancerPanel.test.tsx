@@ -61,6 +61,35 @@ describe('DancerPanel', () => {
     expect(useUi.getState().selectedDancerId).toBeNull()
   })
 
+  it('with only one part, every dancer is shown in it automatically', () => {
+    useProject.getState().addDancer('Maya')
+    useProject.getState().addDancer('Jordan')
+    render(<DancerPanel />)
+    for (const dot of screen.getAllByRole('img')) expect(dot).toHaveAccessibleName('Everyone')
+  })
+
+  it('labels the dot "Everyone" where no part applies, rather than "No part"', () => {
+    useProject.getState().addDancer('Maya')
+    useProject.getState().removePart(useProject.getState().parts[0].id)
+    render(<DancerPanel />)
+    expect(screen.getByRole('img')).toHaveAccessibleName('Everyone')
+  })
+
+  it('shows each dancer’s part colour at the current formation, or "No part"', () => {
+    useProject.getState().addPart() // with two parts, dancers have to be put in one
+    useProject.getState().addDancer('Maya')
+    useProject.getState().addDancer('Jordan')
+    const [maya] = useProject.getState().dancers
+    const { sections, parts } = useProject.getState()
+    useProject.getState().assignDancer(sections[0].id, maya.id, parts[0].id)
+
+    render(<DancerPanel />)
+    const dots = screen.getAllByRole('img')
+    expect(dots[0]).toHaveAccessibleName('Everyone')
+    expect(dots[0]).toHaveStyle({ backgroundColor: 'var(--part-blue)' })
+    expect(dots[1]).toHaveAccessibleName('No part')
+  })
+
   it('removes a dancer and clears their selection', async () => {
     useProject.getState().addDancer('Maya')
     useProject.getState().addDancer('Jordan')

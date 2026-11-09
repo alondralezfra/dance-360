@@ -14,5 +14,7 @@ A layered system where each layer does what it is best at:
 
 4. GitHub Actions (`.github/workflows/ci.yml`) runs the same `verify` on every push to `main` and pull request, so the gate also holds when work doesn't come through a local hook.
 
+5. Before building anything non-trivial, Claude asks the user the product/UX/scope questions that are theirs to answer (step 2 of the loop in `CLAUDE.md`), so decisions are made up front rather than discovered in review.
+
 ## Consequences
 Changes cost more up front (tests, docs, a full verify run of about a minute) and in exchange regressions and doc drift are caught immediately. The checks verify that tests/docs were *touched*, not that they are good, so the review checklist in `CLAUDE.md` still matters. Thresholds and rules may be tightened over time but never loosened to make a change pass. See [../testing.md](../testing.md).

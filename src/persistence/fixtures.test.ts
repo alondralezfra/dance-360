@@ -32,6 +32,9 @@ describe('saved-data fixtures', () => {
       expect(keys(migrated.tempo)).toEqual(keys(fresh.tempo))
       expect(keys(migrated.formations[0])).toEqual(keys(fresh.formations[0]))
       expect(keys(migrated.dancers[0])).toEqual(['id', 'name'])
+      expect(keys(migrated.parts[0])).toEqual(keys(fresh.parts[0]))
+      expect(keys(migrated.sections[0])).toEqual(keys(fresh.sections[0]))
+      expect(typeof migrated.assignments).toBe('object')
     })
 
     it(`v${version} fixture keeps the user's data`, () => {
@@ -42,6 +45,44 @@ describe('saved-data fixtures', () => {
       )
     })
   }
+
+  it('migrated sections are valid: first at 0, strictly increasing, at least one', () => {
+    for (const { version, doc } of byVersion) {
+      const starts = migrateProject(version, structuredClone(doc)).sections.map((s) => s.startCount)
+      expect(starts.length).toBeGreaterThan(0)
+      expect(starts[0]).toBe(0)
+      expect(starts).toEqual([...starts].sort((a, b) => a - b))
+      expect(new Set(starts).size).toBe(starts.length)
+    }
+  })
+
+  it('every migrated part applies to all sections (null) or to sections that exist', () => {
+    for (const { version, doc } of byVersion) {
+      const p = migrateProject(version, structuredClone(doc))
+      const sections = new Set(p.sections.map((s) => s.id))
+      for (const part of p.parts) {
+        expect(part.sectionIds === null || part.sectionIds.every((id) => sections.has(id))).toBe(true)
+      }
+      // Projects saved before part scoping existed keep every part applying everywhere.
+      if (version < 3) expect(p.parts.every((part) => part.sectionIds === null)).toBe(true)
+    }
+  })
+
+  it('every migrated assignment points at a real dancer, section and part', () => {
+    for (const { version, doc } of byVersion) {
+      const p = migrateProject(version, structuredClone(doc))
+      const dancers = new Set(p.dancers.map((d) => d.id))
+      const sections = new Set(p.sections.map((s) => s.id))
+      const parts = new Set(p.parts.map((x) => x.id))
+      for (const [sectionId, byDancer] of Object.entries(p.assignments)) {
+        expect(sections.has(sectionId)).toBe(true)
+        for (const [dancerId, partId] of Object.entries(byDancer)) {
+          expect(dancers.has(dancerId)).toBe(true)
+          expect(parts.has(partId)).toBe(true)
+        }
+      }
+    }
+  })
 
   it('migrated formations are strictly ordered by count', () => {
     for (const { version, doc } of byVersion) {

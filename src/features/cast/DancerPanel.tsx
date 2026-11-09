@@ -1,12 +1,21 @@
 import { useState } from 'react'
 import { Button } from '../../components/ui/Button'
+import { IconButton } from '../../components/ui/IconButton'
 import { Input } from '../../components/ui/Input'
 import { cn } from '../../lib/cn'
-import { useProject } from '../../store/projectStore'
+import { isUncovered, partIdAt, sectionIndexAt } from '../../model/parts'
+import { useCurrentFormation, useProject } from '../../store/projectStore'
 import { useUi } from '../../store/uiStore'
 
 export function DancerPanel() {
   const dancers = useProject((s) => s.dancers)
+  const parts = useProject((s) => s.parts)
+  const sections = useProject((s) => s.sections)
+  const assignments = useProject((s) => s.assignments)
+  const formation = useCurrentFormation()
+  // Where no part applies, dancers aren't "missing" a part: everyone dances together.
+  const section = sections[sectionIndexAt(sections, formation.count)]
+  const uncovered = section !== undefined && isUncovered(parts, section.id)
   const addDancer = useProject((s) => s.addDancer)
   const renameDancer = useProject((s) => s.renameDancer)
   const removeDancer = useProject((s) => s.removeDancer)
@@ -42,6 +51,8 @@ export function DancerPanel() {
       <ul className="flex-1 overflow-y-auto px-2 pb-4">
         {dancers.map((d) => {
           const selected = d.id === selectedDancerId
+          // The dot shows the dancer's part at the formation being edited.
+          const part = parts.find((p) => p.id === partIdAt(sections, parts, assignments, d.id, formation.count))
           return (
             <li
               key={d.id}
@@ -52,34 +63,33 @@ export function DancerPanel() {
               )}
             >
               <span
-                className={cn(
-                  'h-3 w-3 shrink-0 rounded-full',
-                  selected ? 'bg-selected' : 'bg-primary',
-                )}
+                role="img"
+                aria-label={part ? part.name : uncovered ? 'Everyone' : 'No part'}
+                className={cn('h-3 w-3 shrink-0 rounded-full', !part && 'bg-subtle-foreground')}
+                style={part ? { backgroundColor: `var(--part-${part.color})` } : undefined}
               />
-              <input
+              <Input
+                variant="inline"
                 value={d.name}
                 onChange={(e) => renameDancer(d.id, e.target.value)}
                 onClick={(e) => {
                   e.stopPropagation()
                   selectDancer(d.id)
                 }}
-                className="min-w-0 flex-1 rounded bg-transparent px-1 py-1 text-sm focus:bg-surface focus:outline focus:outline-ring"
+                className="min-w-0 flex-1"
                 aria-label="Dancer name"
               />
-              <Button
+              <IconButton
                 variant="danger-ghost"
-                size="icon"
+                icon="close"
+                label={`Remove ${d.name}`}
+                title="Remove dancer"
                 onClick={(e) => {
                   e.stopPropagation()
                   removeDancer(d.id)
                   if (selected) selectDancer(null)
                 }}
-                aria-label={`Remove ${d.name}`}
-                title="Remove dancer"
-              >
-                ✕
-              </Button>
+              />
             </li>
           )
         })}

@@ -43,12 +43,21 @@
   --stage-grid: #e2e8f0;
   --stage-grid-center: #94a3b8;
   --stage-label: #94a3b8;
-  --dot: #6366f1;
-  --dot-stroke: #3730a3;
-  --dot-selected: #f59e0b;
-  --dot-selected-stroke: #92400e;
+  --dot-unassigned: #94a3b8; /* a dancer with no part in the current section */
+  --dot-outline: rgb(15 23 42 / 0.45);
+  --dot-selected: #0f172a; /* the ring drawn around the selected dancer */
   --dot-text: #ffffff;
   --dot-label: #334155;
+
+  /* Part colours (Okabe-Ito, colour-blind safe). Parts store the id, e.g. "blue". */
+  --part-blue: #0072b2;
+  --part-red: #d55e00;
+  --part-green: #009e73;
+  --part-orange: #e69f00;
+  --part-sky: #56b4e9;
+  --part-pink: #cc79a7;
+  --part-yellow: #f0e442;
+  --part-gray: #7b818c;
 }
 
 :root[data-theme="dark"] {
@@ -83,12 +92,20 @@
   --stage-grid: #1e293b;
   --stage-grid-center: #475569;
   --stage-label: #64748b;
-  --dot: #818cf8;
-  --dot-stroke: #4338ca;
-  --dot-selected: #fbbf24;
-  --dot-selected-stroke: #b45309;
+  --dot-unassigned: #64748b;
+  --dot-outline: rgb(248 250 252 / 0.55);
+  --dot-selected: #f8fafc;
   --dot-text: #0b1120;
   --dot-label: #cbd5e1;
+
+  --part-blue: #3d9be0;
+  --part-red: #f0804a;
+  --part-green: #1fbf93;
+  --part-orange: #f2b01e;
+  --part-sky: #7cc6f0;
+  --part-pink: #db97bf;
+  --part-yellow: #f5ea5e;
+  --part-gray: #9aa1ad;
 }
 
 /* Expose the tokens to Tailwind as utilities (bg-surface, text-foreground, ...). */

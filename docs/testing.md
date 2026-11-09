@@ -10,7 +10,7 @@
 | `npm run verify:quick` | Same minus the browser tests. For iterating only. |
 | `npm test` / `npm run test:watch` | Unit + component tests. |
 | `npm run test:coverage` | Same, enforcing coverage thresholds. |
-| `npm run test:e2e` | Browser tests (Playwright). Starts the dev server itself. |
+| `npm run test:e2e` | Browser tests (Playwright). Builds the app and serves the production build itself (port 5199). |
 
 `verify` runs, stopping at the first failure: **change discipline** -> **lint** -> **unit/integration + coverage** -> **type-check + build** -> **end-to-end**.
 

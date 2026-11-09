@@ -99,6 +99,28 @@ describe('styling', () => {
   })
 })
 
+describe('components', () => {
+  // Controls are built once, in components/ui/, and reused (see docs/components.md).
+  // If a screen needs a control that doesn't exist, add a variant/prop there first.
+  const screens = appFiles.filter(([p]) => p.endsWith('.tsx') && !p.startsWith('/src/components/ui/'))
+
+  it('screens use the shared controls instead of raw <button>, <input>, <select>, <textarea> or <svg>', () => {
+    const bad = offenders(screens, (path, code) => {
+      const hit = code.match(/<(button|input|select|textarea|svg)[\s>]/)
+      return hit ? `${path} uses a raw <${hit[1]}>: use Button / Input / Select / Checkbox / Icon from components/ui` : null
+    })
+    expect(bad).toEqual([])
+  })
+
+  it('icons are Icon components, not text symbols that change with the font', () => {
+    const bad = offenders(screens, (path, code) => {
+      const hit = code.match(/[✕✖◀▶▲▼▾▴☀☾›‹]/)
+      return hit ? `${path} uses the text symbol "${hit[0]}": add it to Icon and use <Icon>/<IconButton>` : null
+    })
+    expect(bad).toEqual([])
+  })
+})
+
 describe('documentation', () => {
   it('every feature folder has a doc in docs/features/', () => {
     const features = new Set(

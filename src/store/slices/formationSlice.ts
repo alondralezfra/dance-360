@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand'
-import { clampToStage, normalizeCounts } from '../../model/formations'
+import { clampToStage, moveFormation, normalizeCounts } from '../../model/formations'
 import { newId } from '../../model/project'
 import { COUNTS_PER_SET } from '../../model/tempo'
 import type { Formation } from '../../model/types'
@@ -38,6 +38,12 @@ export const createFormationSlice: StateCreator<ProjectStore, [], [], FormationS
     set((s) => ({
       formations: s.formations.map((f) => (f.id === id ? { ...f, name } : f)),
     })),
+
+  reorderFormation: (id, toIndex) =>
+    set((s) => {
+      const formations = moveFormation(s.formations, id, toIndex)
+      return formations === s.formations ? s : { formations }
+    }),
 
   setFormationCount: (id, count) =>
     set((s) => ({

@@ -35,5 +35,12 @@ export const createRosterSlice: StateCreator<ProjectStore, [], [], RosterSlice> 
         const { [id]: _removed, ...rest } = f.positions
         return { ...f, positions: rest }
       }),
+      // ...and from every section's part assignments.
+      assignments: Object.fromEntries(
+        Object.entries(s.assignments).map(([sectionId, byDancer]) => {
+          const { [id]: _gone, ...rest } = byDancer
+          return [sectionId, rest]
+        }),
+      ),
     })),
 })

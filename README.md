@@ -31,7 +31,7 @@ A change isn't done until `npm run verify` passes. See [docs/testing.md](docs/te
 
 - [x] 0. Foundation: versioned persistence, playback engine, themed UI kit, routing, tests
 - [x] 1. Static formation editor (stage + dots + multiple formations, with timing in counts)
-- [ ] 2. Roster + parts + assignment grid, linked to dot colors
+- [x] 2. Roster + parts + assignment grid, linked to dot colors
 - [ ] 3. Audio + tempo map + timeline + playback
 - [ ] 4. Resources + notes
 - [ ] 5. Overview problem checks

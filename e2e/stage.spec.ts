@@ -156,3 +156,26 @@ test.describe('stage editor', () => {
     expect(errors).toEqual([])
   })
 })
+
+test.describe('crisp canvas', () => {
+  test.use({ viewport: { width: 1280, height: 800 } })
+
+  // Browser zoom (Ctrl +/-) changes the device pixel ratio. If the canvas keeps its old
+  // resolution the browser stretches it and text and thin lines go blurry.
+  test('the canvas re-renders at the new pixel ratio when the browser zooms', async ({ page }) => {
+    await createProject(page)
+    await addDancer(page, 'Maya')
+    const cdp = await page.context().newCDPSession(page)
+    for (const ratio of [2, 1.25, 1]) {
+      // What zoom really does: a smaller CSS viewport on the same physical screen, at a higher ratio.
+      await cdp.send('Emulation.setDeviceMetricsOverride', { width: Math.round(1280 / ratio), height: Math.round(800 / ratio), deviceScaleFactor: ratio, mobile: false })
+      await expect
+        .poll(() =>
+          page.evaluate(() =>
+            [...document.querySelectorAll('canvas')].map((c) => Math.round(c.width / c.getBoundingClientRect().width * 100) / 100),
+          ),
+        )
+        .toEqual([ratio, ratio])
+    }
+  })
+})

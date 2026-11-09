@@ -74,6 +74,14 @@ Dancers frequently switch between choreographies partway through a song, so part
 - Videos and notes can attach to a specific part within a section.
 - **Validation:** every dancer should have a part in every section; flag any gaps.
 
+**Decided while building step 2 (see `docs/decisions/0007-parts-sections-and-assignments.md`):**
+- Sections are **contiguous**: defined only by a start count, each running until the next starts; the first is pinned to count 0 and there is always at least one (so no gaps or overlaps).
+- A **new section copies the previous section's assignments**; a **new dancer starts unassigned** (neutral dot, flagged as a gap).
+- Part colours come from a fixed 8-colour, colour-blind-safe palette (stored by id, tuned per theme); a project can have up to 8 parts.
+- Parts and the assignment grid live on a **Cast & Parts** tab; the "show only Part X" stage filter is deferred until the timeline exists.
+- **A part can be limited to specific sections** (a checklist dropdown: "All sections" or any combination), see `docs/decisions/0008-parts-limited-to-sections.md`. In a section, parts limited to it replace the all-sections parts; where **exactly one part applies, everyone is in it automatically** (no per-dancer picking, no "missing assignment"). A new section keeps the previous section's parts. This lets a song be one uniform part with only some sections (e.g. the choruses) split into several.
+- **A section where no part applies is not an error** (the dance isn't split there, so everyone dances together; shown as "Everyone" in gray). A "missing assignment" only means two or more parts apply and a dancer hasn't been put in one. New projects start with one part called **Everyone** on all sections. See `docs/decisions/0009-uncovered-sections-and-default-part.md`.
+
 ### 3.6 Video hosting
 
 Not hosting uploads (too expensive). MVP = **paste links** (YouTube, Drive, etc.) with a title, a type tag (tutorial / reference / rehearsal recording), and attachment to section and/or part. Auto-fetch thumbnail and title where possible; embed for in-app playback. Note: private Drive links only play for people with access, which matters once dancer logins exist. Hosted video can be a later add-on.
@@ -213,7 +221,7 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 2. **Adaptable UI pieces:** panels that can be a sidebar or a drawer depending on width, so one codebase covers all tiers.
 3. **Playback engine separate from screens:** the logic that turns counts into positions over time must be independent of layout, so it's reused in the editor, phone watch mode, and the dancer view.
 4. **Mobile web first, app later:** a responsive site installable to the home screen (PWA) may cover most needs; native app later if offline use or better audio handling is needed. Offline matters because rehearsal spaces often have poor signal.
-5. **Cloud data + autosave + sync conflict handling** so edits on a phone and a laptop reconcile cleanly.
+5. **Cloud data + autosave + sync conflict handling** so edits on a phone and a laptop reconcile cleanly. *Decided (docs/decisions/0015): local-first with background sync; a conflict stops and asks ("use theirs" / "keep mine as a copy"); first release is one director on many devices; sync is opt-in because a roster is personal data.*
 
 **Known technical risk:** audio playback on phones has quirks (autoplay restrictions, timing accuracy varies), which affects how precisely formations land on counts. Research when choosing tools.
 
@@ -266,6 +274,7 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 - **Hosted video uploads** (once cost is manageable)
 - **Native app** if the PWA falls short
 - **Multi-project/team features:** roster library across projects, duplicating a project as a template
+- **Smart formation suggestions:** place a target shape and let the app assign each dancer a spot, minimising how far everyone moves (idea, see §10)
 
 ---
 
@@ -274,9 +283,40 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 - **Transition semantics:** arrive-on vs. leave-on at a marked count; default transition length?
 - **Roster library:** include in MVP or copy-roster-between-projects instead?
 - **Notes:** separate tab, or only anchored inside Stage/Resources?
-- **Tempo changes:** how much support for songs with changing BPM in the MVP?
-- **Music files:** upload vs. link, and any licensing considerations when sharing with dancers.
+- **Tempo changes:** *Decided (docs/decisions/0013): one BPM per project in the MVP; the saved tempo gets an empty list of tempo changes in the same migration that adds the song, so changes can be supported later without another data change.*
+- **Music files:** *Decided for now (0013): the file is stored in the browser (IndexedDB), the project saves only its name/length/hash, and another device asks you to re-attach the file.* Still open: licensing considerations when sharing with dancers, and cloud storage (opt-in).
+- **Half-counts ("&"):** *Decided for now (0013): whole counts only.* Revisit with the choreographers before or soon after the timeline exists; it is a data migration, cheapest while there are few projects.
 - **Stage setup:** fixed stage shapes/sizes, or fully customizable (including audience orientation)?
-- **Formation tools:** helpers like align, distribute evenly, mirror, line/circle presets, path preview (nice-to-have).
-- **Undo/redo and version history** for formations.
+- **Formation tools:** helpers like align, distribute evenly, mirror, line/circle presets, path preview (nice-to-have). Smart assignment of dancers to a hand-placed shape is a bigger idea of its own: see §10.
+- **Version history** (saved snapshots you can return to later) for formations. *Undo/redo itself is decided and built: session-only, last 100 steps, every project edit, snapshot-based (docs/decisions/0012). Revisit if live co-editing becomes a goal.*
 - **Next step after this doc:** research tools/frameworks/platforms (languages, frontend framework, canvas library, audio handling, backend/database, hosting) with the risks above in mind.
+
+---
+
+## 10. Idea: smart formation suggestions *(an idea to explore, not scheduled)*
+
+### The idea (from the creator)
+The director has a formation on stage (say a box, with parts and everything set up). For the next formation they only **place the dots for the shape they want, without saying who goes where**. The app then fills in the next formation: it decides which dancer goes to which spot so that it makes the most sense spatially and **dancers move as little as possible**. The creator is open to other uses of machine learning or AI, but only ones that are simple, easy to use and genuinely helpful. **No redundant AI features.**
+
+### What this actually needs
+The core of it is not machine learning. Matching N dancers to N target spots so that the total (or worst) travel is smallest is a classic **assignment problem** with exact, instant solutions (the Hungarian algorithm; N is only about 8-40). That is better than ML for this job: deterministic, no training data, free, works offline, predictable, and explainable ("this assignment moves everyone 112 ft in total"). So the recommendation is to build it as an ordinary "Smart assign" tool and be honest in the UI about what it is, rather than branding it AI.
+
+### Design questions to settle when we build it
+- **Input:** the director drops unlabelled target dots (any number up to the cast size; extra dancers stay where they are, or the rest are placed in the nearest free spots).
+- **What "best" means.** All dancers share the same travel time (the formation's travel counts), so the **longest move** sets the pace. Options: minimise total distance, minimise the longest move, or minimise the sum of squared distances (a good balance, and it tends to avoid paths crossing). Probably pick a sensible default and let the director switch.
+- **Constraints that make it genuinely useful:** keep dancers of the same part together or on the same side; pin some dancers so they don't move; stay inside the stage; avoid dancers' paths colliding or crossing mid-transition (checkable with `positionsAt`).
+- **Always a preview.** Show each dancer's path, let the director accept, tweak (swap two dancers) or undo. It never silently changes a formation.
+
+### Other AI/ML ideas, judged by "does this save a real step?"
+- **Worth considering:**
+  1. *Tidy a rough shape:* snap hand-placed dots to a clean line, circle, box or arc with even spacing. Mostly geometry, no ML needed.
+  2. *Path conflict warnings:* flag dancers who would collide or cross during a transition. Pure algorithm built on the playback engine.
+  3. *Beat and tempo detection* from the audio (already planned in §3.2). Signal processing rather than ML.
+  4. *Sketch or describe a shape:* "a diamond", or a photo of a whiteboard drawing, turned into dots. This is the one place modern AI (a language or vision model) adds a capability that is otherwise hard. Only worth it if directors really ask for it, and it needs a cost and privacy decision because content leaves the device.
+- **Probably not worth it:** AI-written choreography, formations generated from the music (hard to trust), chatbots, or auto-summarised notes. The director can already do these faster than they could check an AI's output.
+
+### Rules for any AI or smart feature
+Previewable and undoable in one step; never changes data without confirmation; explains what it did; works offline and without an account where possible; never uploads audio, video or the roster without explicit opt-in; and has a clear benefit to the director over doing it by hand.
+
+### Where it fits
+It needs **undo/redo** (see §9) to be safe to use, and works best after multi-select and the basic formation tools exist. Suggested order: undo/redo, then tidy-a-shape and path conflict warnings, then smart assignment.

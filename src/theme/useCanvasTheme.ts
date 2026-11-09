@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from 'react'
+import { PART_COLOR_IDS } from '../model/parts'
+import type { PartColorId } from '../model/types'
 
 // Konva draws to a <canvas>, so it can't use Tailwind classes. This reads the
 // same CSS variables the rest of the UI uses, so the stage follows the theme.
@@ -9,12 +11,15 @@ export interface CanvasTheme {
   grid: string
   gridCenter: string
   label: string
-  dot: string
-  dotStroke: string
+  /** Dot fill for a dancer with no part. */
+  unassigned: string
+  dotOutline: string
+  /** The ring drawn around the selected dancer. */
   dotSelected: string
-  dotSelectedStroke: string
   dotText: string
   dotLabel: string
+  /** Dot fill for each part colour. */
+  parts: Record<PartColorId, string>
 }
 
 function read(): CanvasTheme {
@@ -26,12 +31,12 @@ function read(): CanvasTheme {
     grid: v('--stage-grid'),
     gridCenter: v('--stage-grid-center'),
     label: v('--stage-label'),
-    dot: v('--dot'),
-    dotStroke: v('--dot-stroke'),
+    unassigned: v('--dot-unassigned'),
+    dotOutline: v('--dot-outline'),
     dotSelected: v('--dot-selected'),
-    dotSelectedStroke: v('--dot-selected-stroke'),
     dotText: v('--dot-text'),
     dotLabel: v('--dot-label'),
+    parts: Object.fromEntries(PART_COLOR_IDS.map((id) => [id, v(`--part-${id}`)])) as Record<PartColorId, string>,
   }
 }
 

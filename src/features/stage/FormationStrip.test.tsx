@@ -121,4 +121,56 @@ describe('FormationStrip', () => {
     await user.type(set, '9{Enter}')
     expect(formations().map((f) => f.name)).toEqual(['Formation 2', 'Formation 1'])
   })
+
+  describe('reordering', () => {
+    const names = () => formations().map((f) => f.name)
+    const counts = () => formations().map((f) => f.count)
+
+    async function threeFormations() {
+      const user = userEvent.setup()
+      render(<FormationStrip />)
+      await user.click(screen.getByRole('button', { name: '+ New formation' }))
+      await user.click(screen.getByRole('button', { name: '+ New formation' }))
+      return user
+    }
+
+    it('moves a formation earlier with Alt+Left, keeping each place on its count', async () => {
+      const user = await threeFormations()
+      const before = counts()
+      screen.getByRole('button', { name: /^3\.\s*Formation 3$/ }).focus()
+      await user.keyboard('{Alt>}{ArrowLeft}{/Alt}')
+      expect(names()).toEqual(['Formation 1', 'Formation 3', 'Formation 2'])
+      expect(counts()).toEqual(before)
+    })
+
+    it('moves a formation later with Alt+Right', async () => {
+      const user = await threeFormations()
+      screen.getByRole('button', { name: /^1\.\s*Formation 1$/ }).focus()
+      await user.keyboard('{Alt>}{ArrowRight}{/Alt}')
+      expect(names()).toEqual(['Formation 2', 'Formation 1', 'Formation 3'])
+    })
+
+    it('does nothing at the ends, and plain arrows do not reorder', async () => {
+      const user = await threeFormations()
+      screen.getByRole('button', { name: /^1\.\s*Formation 1$/ }).focus()
+      await user.keyboard('{Alt>}{ArrowLeft}{/Alt}{ArrowRight}')
+      expect(names()).toEqual(['Formation 1', 'Formation 2', 'Formation 3'])
+    })
+
+    it('keeps the same formation selected after it moves', async () => {
+      const user = await threeFormations()
+      const moving = formations()[2]
+      await user.click(screen.getByRole('button', { name: /^3\.\s*Formation 3$/ }))
+      await user.keyboard('{Alt>}{ArrowLeft}{/Alt}')
+      expect(useUi.getState().currentFormationId).toBe(moving.id)
+      expect(screen.getByText('2 of 3')).toBeInTheDocument()
+    })
+
+    it('a plain click still selects (it is not mistaken for a drag)', async () => {
+      const user = await threeFormations()
+      await user.click(screen.getByRole('button', { name: /^2\.\s*Formation 2$/ }))
+      expect(screen.getByText('2 of 3')).toBeInTheDocument()
+      expect(names()).toEqual(['Formation 1', 'Formation 2', 'Formation 3'])
+    })
+  })
 })

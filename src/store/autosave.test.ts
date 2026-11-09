@@ -57,6 +57,24 @@ describe('autosave', () => {
     expect(project.dancers).toHaveLength(3)
   })
 
+  it.each([
+    ['a part is added', () => state().addPart()],
+    ['a section is added', () => state().addSection()],
+    ['someone is assigned to a part', () => {
+      state().addDancer('Maya')
+      state().assignDancer(state().sections[0].id, state().dancers[0].id, state().parts[0].id)
+    }],
+  ])('saves when %s', async (_name, change) => {
+    open('p1')
+    change()
+    await vi.advanceTimersByTimeAsync(400)
+    expect(save).toHaveBeenCalledTimes(1)
+    const project = save.mock.calls[0][1] as { parts: unknown[]; sections: unknown[]; assignments: object }
+    expect(project).toHaveProperty('parts')
+    expect(project).toHaveProperty('sections')
+    expect(project).toHaveProperty('assignments')
+  })
+
   it('does not save just because a project finished loading', async () => {
     open('p1')
     await vi.advanceTimersByTimeAsync(1000)
