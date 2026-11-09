@@ -43,6 +43,10 @@ src/
   router.tsx      URL map (project screens are tabs: Stage, Cast & Parts)
 ```
 
+## One repository
+
+This is one repository on purpose (decisions/0016): the backend is Supabase, there is one developer, and `model/` and `persistence/` must stay identical for the UI and any server-side code. The folder boundaries below are enforced by tests, which gives the modularity of separate repositories without their cost. Server-side code (database migrations, access policies, small functions) will live in a `supabase/` folder here when the sync work starts. Splitting into workspaces, and only then into separate repositories, is reconsidered when a trigger fires: a second owner, a different runtime or deploy cadence, independent scaling or security, or a build that can't be made fast. Details and the order of a future split are in 0016.
+
 ## Rules
 
 1. **Counts are the source of truth.** Formations store an absolute `count` (0 = Set 1, Count 1), never seconds; `tempo.ts` converts. Fixing the tempo map shifts everything correctly. ([plan §3.1](../dance-director-app-plan.md))

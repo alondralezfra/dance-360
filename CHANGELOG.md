@@ -4,6 +4,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (docs: repository structure)
+- Decision record 0016: the project stays **one repository, modular inside** (not microservices). Records why (Supabase is the backend, one developer, `model/` and `persistence/` must stay in step), where future server-side pieces will live (a `supabase/` folder), the triggers that would make splitting worthwhile, and the order a future split would follow (workspaces first, then separate repositories). Architecture doc and plan §9 updated. No code changes.
+
 ### Added (song and timeline model: build-order step 3, slice 1)
 - **Saved-data v4:** a project has `song` (`null` until one is attached; name, length, size, type and a content hash, never the audio itself) and its `tempo` gains `changes` (always empty for now). Existing projects are upgraded on open with no song and no tempo changes; their bpm and start point are kept. Fixture `v4.json`, migration tests, and `setSong` in the store; undo covers the song. See decisions/0013.
 - `model/timeline.ts`: pure maths for the timeline panel (count to pixel and back, zoom around the pointer, panning within bounds, grid lines that thin out as you zoom out, snapping, marker hit-testing, how long the dance is).

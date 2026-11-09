@@ -289,6 +289,7 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 - **Stage setup:** fixed stage shapes/sizes, or fully customizable (including audience orientation)?
 - **Formation tools:** helpers like align, distribute evenly, mirror, line/circle presets, path preview (nice-to-have). Smart assignment of dancers to a hand-placed shape is a bigger idea of its own: see §10.
 - **Version history** (saved snapshots you can return to later) for formations. *Undo/redo itself is decided and built: session-only, last 100 steps, every project edit, snapshot-based (docs/decisions/0012). Revisit if live co-editing becomes a goal.*
+- **Repository structure:** *Decided (docs/decisions/0016): one repository, modular inside (the backend is Supabase; server code goes in a `supabase/` folder). Splitting into workspaces and then separate repositories is reconsidered only when a stated trigger fires.*
 - **Next step after this doc:** research tools/frameworks/platforms (languages, frontend framework, canvas library, audio handling, backend/database, hosting) with the risks above in mind.
 
 ---

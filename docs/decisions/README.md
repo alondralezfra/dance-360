@@ -38,3 +38,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0013](0013-audio-and-timeline-architecture.md) | Audio and timeline design: whole counts, one BPM (shaped for changes), IndexedDB audio + re-attach, `audio/` layer, tap-to-snap + metronome first |
 | [0014](0014-canvas-performance.md) | Canvas performance: dot motion outside React via a playhead clock, no dot shadows (40 dancers at 60fps on a ~4x slower CPU) |
 | [0015](0015-cloud-storage-and-sync.md) | Cloud storage and sync: local-first, conflicts ask (use theirs / keep mine as copy), one director first; repository prepared (RecordStore, sync bookkeeping, tombstones, contract tests) |
+| [0016](0016-single-repository-modular-monolith.md) | One repository, modular inside; where server-side pieces go, and the triggers for splitting later |
