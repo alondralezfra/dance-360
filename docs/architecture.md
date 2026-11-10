@@ -17,6 +17,7 @@ src/
     timeline.ts     the timeline panel's maths: count <-> pixel, zoom/pan, grid lines, marker hit-testing, dance length
     tapSnap.ts      tap-to-snap: a tap time -> a whole count, and placing a formation on it
     peaks.ts        waveform peaks from decoded samples (pure), and the loudness over a stretch of time
+    tempoEstimate.ts  estimates a song's tempo and first beat from decoded samples (pure); fft.ts is its spectrum
     formations.ts   stage helpers, count ordering, moveFormation (reorder; counts stay in their slots)
     parts.ts        sections/parts/assignments: which parts apply in a section, which part a dancer is in at a count, ordering, gap detection
     project.ts      new-project factory

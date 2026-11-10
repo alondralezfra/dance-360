@@ -4,6 +4,12 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (the tempo is estimated from the song)
+- **Attach a song and its tempo is worked out for you.** The BPM and where the first beat lands are estimated from the music. If the tempo is still the default, it is filled in (with a note that it is an estimate to check against the waveform); if you have already set your own tempo it is never overwritten, and the estimate is offered with a *Use this tempo* button. If the song has no steady beat it says "Could not tell the tempo" and changes nothing. Attaching the song and the estimated tempo are one undo step.
+- **Half**, **Double** (an estimate is often exactly half or double what you count to) and **Estimate from song** (work it out again on request) buttons in the Tempo section.
+- How it works, measured accuracy and known limits are in decision 0018. On made-up beat tracks it finds 90 to 160 BPM to within a quarter of a BPM, with jitter and noise, and the first beat to within 20 ms; slow songs often come out doubled and very fast ones (170+) can be off. **It has not been tested on real recorded music.**
+- New: `model/tempoEstimate.ts` and `model/fft.ts` (pure), `isDefaultTempo`, `setSong(song, tempo?)`, `songStore` `tempoNote` / `acceptEstimate` / `estimateFromSong`, `analyzeAudio` now also returns the tempo (skippable), `src/test/syntheticAudio.ts` (made-up beat tracks for unit and browser tests). No saved-data change.
+
 ### Added (the Song tab: build-order step 3, slice 2)
 - **A Song tab.** Attach a music file (MP3, M4A, WAV, OGG, FLAC...), replace it, or remove it (asks first). It shows the name, length and size. Files must be audio, at most 60 MB, and decodable; problems are explained and change nothing. Counts still work with no song.
 - **The song file stays on your device** (IndexedDB, found by a hash of its contents, so it survives reloads and works offline); the project saves only its name, length, size, type and hash. Files nothing uses any more are cleared (after replacing or removing a song, or deleting a project).

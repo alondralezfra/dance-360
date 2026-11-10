@@ -44,7 +44,7 @@ Formations are stored as **"Set X, Count Y"**, never as raw timestamps. The temp
 
 1. **Grid placement:** click/drag formation markers along a waveform with a count grid drawn over it; markers snap to counts.
 2. **Tap-to-snap:** the director plays the song and taps a button to advance formations; each tap **snaps to the nearest count** so imprecise tapping doesn't matter.
-3. *(Later)* **Auto beat detection:** app suggests a beat grid from the audio; director confirms.
+3. **Auto beat detection:** app suggests a beat grid from the audio; director confirms. *Tempo and first beat are estimated when a song is attached (docs/decisions/0018); a full beat grid (every beat, tempo changes) is still later.*
 4. *(Later)* **Tap tempo:** tap along to find BPM and starting point.
 5. *(Optional)* **No-audio mode:** build with counts and a metronome, attach the final audio later.
 6. *(Optional)* **Song section labels:** markers like "verse / chorus / drop" for fast navigation.

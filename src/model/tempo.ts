@@ -5,6 +5,11 @@ export const DEFAULT_TRANSITION_COUNTS = 4
 
 export const DEFAULT_TEMPO: TempoMap = { bpm: 120, startOffsetSec: 0, changes: [] }
 
+/** True while nobody has set the tempo: still the 120 BPM, start-at-zero a new project begins with. */
+export function isDefaultTempo(tempo: TempoMap): boolean {
+  return tempo.bpm === DEFAULT_TEMPO.bpm && tempo.startOffsetSec === DEFAULT_TEMPO.startOffsetSec && tempo.changes.length === 0
+}
+
 /** Audio time (seconds) at which an absolute count lands. Counts may be fractional. */
 export function countToSeconds(count: number, tempo: TempoMap): number {
   return tempo.startOffsetSec + (count * 60) / tempo.bpm

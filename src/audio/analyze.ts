@@ -4,6 +4,7 @@
 // (decisions/0013). It knows nothing about projects, stores or screens.
 
 import { peaksFromChannels, type Peaks } from '../model/peaks'
+import { estimateTempoFromSamples, MIN_CONFIDENCE, type TempoEstimate } from '../model/tempoEstimate'
 
 /** Decoded audio, as plain numbers. */
 export interface DecodedAudio {
@@ -42,14 +43,26 @@ export const decodeWithBrowser: Decode = async (data) => {
 export interface Analysis {
   durationSec: number
   peaks: Peaks
+  /** The tempo and first beat found in the song, or null if its beat is too unclear to report (or it wasn't asked for). */
+  tempo: TempoEstimate | null
+}
+
+export interface AnalyzeOptions {
+  /** Work out the tempo too (takes a little longer). Default true. */
+  estimateTempo?: boolean
 }
 
 /**
- * The song's exact length and its waveform peaks. Decoding takes the buffer over
- * (the browser empties it), so pass a copy if the bytes are needed afterwards.
- * Throws `UnreadableAudioError` if the file can't be decoded or holds no audio.
+ * The song's exact length, its waveform peaks and (unless switched off) an estimate of
+ * its tempo. Decoding takes the buffer over (the browser empties it), so pass a copy if
+ * the bytes are needed afterwards. Throws `UnreadableAudioError` if the file can't be
+ * decoded or holds no audio.
  */
-export async function analyzeAudio(data: ArrayBuffer, decode: Decode = decodeWithBrowser): Promise<Analysis> {
+export async function analyzeAudio(
+  data: ArrayBuffer,
+  decode: Decode = decodeWithBrowser,
+  options: AnalyzeOptions = {},
+): Promise<Analysis> {
   let decoded: DecodedAudio
   try {
     decoded = await decode(data)
@@ -59,5 +72,10 @@ export async function analyzeAudio(data: ArrayBuffer, decode: Decode = decodeWit
   const peaks = peaksFromChannels(decoded.channels, decoded.sampleRate)
   if (peaks.data.length === 0) throw new UnreadableAudioError('That file does not seem to contain any audio.')
   const samples = decoded.channels.reduce((max, c) => Math.max(max, c.length), 0)
-  return { durationSec: samples / decoded.sampleRate, peaks }
+  let tempo: TempoEstimate | null = null
+  if (options.estimateTempo !== false) {
+    const found = estimateTempoFromSamples(decoded.channels, decoded.sampleRate)
+    if (found && found.confidence >= MIN_CONFIDENCE) tempo = found
+  }
+  return { durationSec: samples / decoded.sampleRate, peaks, tempo }
 }

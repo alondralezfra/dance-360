@@ -92,6 +92,21 @@ describe('project settings', () => {
     expect(state().tempo).toEqual({ bpm: 90, startOffsetSec: 2, changes: [] })
   })
 
+  it('sets the song and the tempo together, so one undo step covers both', () => {
+    const song = { name: 'a.mp3', durationSec: 10, size: 1, mime: 'audio/mpeg', hash: 'h' }
+    state().setSong(song, { bpm: 128.4, startOffsetSec: 0.5, changes: [] })
+    expect(state().song).toEqual(song)
+    expect(state().tempo).toEqual({ bpm: 128.4, startOffsetSec: 0.5, changes: [] })
+    state().setSong(null) // (the store is shared between these tests)
+  })
+
+  it('leaves the tempo alone when only a song is given', () => {
+    state().setTempo({ bpm: 96, startOffsetSec: 2, changes: [] })
+    state().setSong({ name: 'a.mp3', durationSec: 10, size: 1, mime: 'audio/mpeg', hash: 'h' })
+    expect(state().tempo).toEqual({ bpm: 96, startOffsetSec: 2, changes: [] })
+    state().setSong(null)
+  })
+
   it('attaches and removes the song', () => {
     expect(state().song).toBeNull()
     const song = { name: 'Track.mp3', durationSec: 201.4, size: 4_800_000, mime: 'audio/mpeg', hash: 'abc123' }
