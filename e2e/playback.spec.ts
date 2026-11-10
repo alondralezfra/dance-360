@@ -319,12 +319,16 @@ test.describe('playback on a phone', () => {
     for (const where of ['song', 'stage'] as const) {
       if (where === 'stage') await goToStage(page)
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+      // boundingBox() does not wait for an element to be shown, and the bottom bar slides in when the Stage opens
+      await expect(playButton(page)).toBeVisible()
+      await expect(slider(page)).toBeVisible()
       const play = (await playButton(page).boundingBox())!
       expect(play.height).toBeGreaterThanOrEqual(40)
       expect(play.x + play.width).toBeLessThanOrEqual(390)
       const range = (await slider(page).boundingBox())!
       expect(range.height).toBeGreaterThanOrEqual(40)
       expect(range.x + range.width).toBeLessThanOrEqual(390)
+      await expect(page.getByRole('checkbox', { name: 'Click on every count' })).toBeVisible()
       const box = (await page.getByRole('checkbox', { name: 'Click on every count' }).boundingBox())!
       expect(box.x + box.width).toBeLessThanOrEqual(390)
     }
