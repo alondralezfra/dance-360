@@ -23,7 +23,7 @@ beforeEach(() => {
   // (the pixel-ratio hook asks the browser about its screen; jsdom has no answer)
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }))
   useProject.setState({ ...createEmptyProject(), projectId: 'p1', status: 'ready', song: null })
-  useSong.setState({ file: 'none', peaks: null, peaksHash: null, busy: false, error: null })
+  useSong.setState({ file: 'none', peaks: null, peaksHash: null, tempoNote: null, busy: false, error: null })
 })
 
 describe('SongSection', () => {
@@ -203,6 +203,110 @@ describe('TempoSection', () => {
     render(<TempoSection />)
     expect(screen.getByRole('button', { name: 'Start 0.01 seconds earlier' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Start 0.01 seconds later' })).toBeEnabled()
+  })
+})
+
+describe('the tempo found in the song', () => {
+  const tempo = () => useProject.getState().tempo
+  const note = (kind: 'applied' | 'suggested' | 'unclear', over: object = {}) =>
+    useSong.setState({
+      tempoNote: { hash: song.hash, kind, estimate: kind === 'unclear' ? null : { bpm: 128.4, startOffsetSec: 0.5 }, ...over },
+    })
+
+  beforeEach(() => useProject.setState({ song, tempo: { bpm: 128.4, startOffsetSec: 0.5, changes: [] } }))
+
+  it('says an applied tempo is an estimate, with what it found, and to check it', () => {
+    note('applied')
+    render(<TempoSection />)
+    const status = screen.getByRole('status')
+    expect(status).toHaveTextContent('Estimated from the song: 128.4 BPM, with the first beat at 0.5 s')
+    expect(status).toHaveTextContent('check it against the waveform')
+    expect(screen.queryByRole('button', { name: 'Use this tempo' })).toBeNull()
+  })
+
+  it('offers a differing estimate without having applied it, and takes it when asked', async () => {
+    const acceptEstimate = vi.fn()
+    useSong.setState({ acceptEstimate })
+    note('suggested')
+    render(<TempoSection />)
+    expect(screen.getByRole('status')).toHaveTextContent('128.4 BPM')
+    expect(screen.getByRole('status')).toHaveTextContent('differs from your tempo')
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Use this tempo' }))
+    expect(acceptEstimate).toHaveBeenCalledTimes(1)
+  })
+
+  it('says plainly when the beat was too unclear to tell', () => {
+    note('unclear')
+    render(<TempoSection />)
+    expect(screen.getByRole('status')).toHaveTextContent('Could not tell the tempo from this song')
+    expect(screen.getByRole('status')).toHaveTextContent('Set it by hand')
+  })
+
+  it('shows nothing when there is no note, or the note is for a different song', () => {
+    const { rerender } = render(<TempoSection />)
+    expect(screen.queryByRole('status')).toBeNull()
+    note('applied', { hash: 'some-other-song' })
+    rerender(<TempoSection />)
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('shows nothing when the project has no song', () => {
+    useProject.setState({ song: null })
+    note('applied')
+    render(<TempoSection />)
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  describe('Half and Double', () => {
+    it('halve and double the BPM, to a tenth, keeping the start point', async () => {
+      const user = userEvent.setup()
+      useProject.setState({ tempo: { bpm: 127.5, startOffsetSec: 0.5, changes: [] } })
+      render(<TempoSection />)
+      await user.click(screen.getByRole('button', { name: 'Half the BPM' }))
+      expect(tempo()).toEqual({ bpm: 63.8, startOffsetSec: 0.5, changes: [] }) // 63.75 rounds to 63.8
+      await user.click(screen.getByRole('button', { name: 'Double the BPM' }))
+      expect(tempo().bpm).toBe(127.6)
+      expect(tempo().startOffsetSec).toBe(0.5)
+    })
+
+    it('stop at the limits the BPM field allows', () => {
+      useProject.setState({ tempo: { bpm: 30, startOffsetSec: 0, changes: [] } })
+      const { unmount } = render(<TempoSection />)
+      expect(screen.getByRole('button', { name: 'Half the BPM' })).toBeDisabled() // 15 is below 20
+      expect(screen.getByRole('button', { name: 'Double the BPM' })).toBeEnabled()
+      unmount()
+      useProject.setState({ tempo: { bpm: 160, startOffsetSec: 0, changes: [] } })
+      render(<TempoSection />)
+      expect(screen.getByRole('button', { name: 'Double the BPM' })).toBeDisabled() // 320 is above 300
+      expect(screen.getByRole('button', { name: 'Half the BPM' })).toBeEnabled()
+    })
+  })
+
+  describe('Estimate from song', () => {
+    it('is offered when the song file is on this device, and asks the store to work it out', async () => {
+      const estimateFromSong = vi.fn().mockResolvedValue(undefined)
+      useSong.setState({ file: 'present', estimateFromSong })
+      render(<TempoSection />)
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Estimate from song' }))
+      expect(estimateFromSong).toHaveBeenCalledTimes(1)
+    })
+
+    it('is not offered with no song, or when the file is not on this device', () => {
+      useProject.setState({ song: null })
+      const { unmount } = render(<TempoSection />)
+      expect(screen.queryByRole('button', { name: 'Estimate from song' })).toBeNull()
+      unmount()
+      useProject.setState({ song })
+      useSong.setState({ file: 'missing' })
+      render(<TempoSection />)
+      expect(screen.queryByRole('button', { name: 'Estimate from song' })).toBeNull()
+    })
+
+    it('is disabled while the song is being read', () => {
+      useSong.setState({ file: 'present', busy: true })
+      render(<TempoSection />)
+      expect(screen.getByRole('button', { name: 'Estimate from song' })).toBeDisabled()
+    })
   })
 })
 

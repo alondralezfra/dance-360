@@ -106,7 +106,7 @@ test.describe('the song tab', () => {
   })
 
   test('setting the tempo is saved, including a decimal BPM and fine nudges of the start point', async ({ page }) => {
-    const bpm = page.getByLabel('BPM')
+    const bpm = page.getByRole('textbox', { name: 'BPM', exact: true })
     await bpm.fill('127.5')
     await bpm.press('Enter')
     const start = page.getByLabel('Start point (seconds)')
@@ -117,7 +117,7 @@ test.describe('the song tab', () => {
     await waitForSaved(page)
 
     await page.reload()
-    await expect(page.getByLabel('BPM')).toHaveValue('127.5')
+    await expect(page.getByRole('textbox', { name: 'BPM', exact: true })).toHaveValue('127.5')
     await expect(page.getByLabel('Start point (seconds)')).toHaveValue('1.26')
     expect((await savedProject(page)).tempo).toEqual({ bpm: 127.5, startOffsetSec: 1.26, changes: [] })
   })

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DEFAULT_TEMPO,
   countToSeconds,
+  isDefaultTempo,
   formatCount,
   secondsToCount,
   snapToCount,
@@ -28,6 +30,22 @@ describe('tempo map', () => {
   it('shifting the start offset shifts every count (counts are the source of truth)', () => {
     const shifted = { ...tempo, startOffsetSec: 2 }
     expect(countToSeconds(16, shifted) - countToSeconds(16, tempo)).toBeCloseTo(0.5)
+  })
+})
+
+describe('isDefaultTempo', () => {
+  it('is true for a tempo nobody has touched', () => {
+    expect(isDefaultTempo(DEFAULT_TEMPO)).toBe(true)
+    expect(isDefaultTempo({ bpm: 120, startOffsetSec: 0, changes: [] })).toBe(true)
+  })
+
+  it('is false as soon as the BPM or the start point has been set', () => {
+    expect(isDefaultTempo({ bpm: 128, startOffsetSec: 0, changes: [] })).toBe(false)
+    expect(isDefaultTempo({ bpm: 120, startOffsetSec: 1.5, changes: [] })).toBe(false)
+  })
+
+  it('is false if there are tempo changes', () => {
+    expect(isDefaultTempo({ bpm: 120, startOffsetSec: 0, changes: [{ atCount: 64, bpm: 140 }] })).toBe(false)
   })
 })
 

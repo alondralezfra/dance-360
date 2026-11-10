@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { beatTrack, steadyTone, whiteNoise } from '../test/syntheticAudio'
 import { analyzeAudio, UnreadableAudioError, type Decode } from './analyze'
 
 const bytes = () => new ArrayBuffer(8)
@@ -45,6 +46,36 @@ describe('analyzeAudio', () => {
     await expect(analyzeAudio(bytes(), decodeTo([new Float32Array(10)], 0))).rejects.toBeInstanceOf(
       UnreadableAudioError,
     )
+  })
+
+  describe('tempo', () => {
+    it('estimates the tempo and first beat of a song with a clear beat', async () => {
+      const { tempo } = await analyzeAudio(bytes(), decodeTo([beatTrack({ bpm: 128, seconds: 30, firstBeatSec: 0.5 })], 8000))
+      expect(tempo).not.toBeNull()
+      expect(Math.abs(tempo!.bpm - 128)).toBeLessThan(0.3)
+      expect(Math.abs(tempo!.firstBeatSec - 0.5)).toBeLessThan(0.02)
+    })
+
+    it('is null when the beat is too unclear to report: noise, a held tone, or a very short clip', async () => {
+      for (const samples of [whiteNoise(30), steadyTone(30), beatTrack({ bpm: 128, seconds: 4 })]) {
+        expect((await analyzeAudio(bytes(), decodeTo([samples], 8000))).tempo).toBeNull()
+      }
+    })
+
+    it('can be skipped when only the waveform is wanted (re-reading a file already attached)', async () => {
+      const decode = decodeTo([beatTrack({ bpm: 128, seconds: 30 })], 8000)
+      const { tempo, peaks } = await analyzeAudio(bytes(), decode, { estimateTempo: false })
+      expect(tempo).toBeNull()
+      expect(peaks.data.length).toBeGreaterThan(0)
+    })
+
+    it('does not change the length or waveform', async () => {
+      const decode = decodeTo([beatTrack({ bpm: 100, seconds: 20 })], 8000)
+      const withTempo = await analyzeAudio(bytes(), decode)
+      const without = await analyzeAudio(bytes(), decode, { estimateTempo: false })
+      expect(withTempo.durationSec).toBe(without.durationSec)
+      expect(Array.from(withTempo.peaks.data)).toEqual(Array.from(without.peaks.data))
+    })
   })
 
   it('the error names itself, so callers can tell it from other failures', () => {

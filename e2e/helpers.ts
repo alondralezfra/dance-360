@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import { fitStage } from '../src/features/stage/stageLayout'
+import { beatTrack, wavBytes, whiteNoise, type BeatTrackOptions } from '../src/test/syntheticAudio'
 
 /** The prototype's original save format (v0), used to test the one-time import. */
 export const legacyProject = {
@@ -178,4 +179,27 @@ export async function waveformPixels(page: Page): Promise<number> {
     const background = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]
     return width - (counts.get(background) ?? 0)
   })
+}
+
+// Making a minute of audio sample by sample takes a moment, and many tests want the same few files.
+const made = new Map<string, Buffer>()
+const once = (key: string, make: () => Buffer) => made.get(key) ?? (made.set(key, make()), made.get(key)!)
+
+/** A real WAV file of made-up music with a known tempo and first beat, for testing the tempo estimate. */
+export function beatsWav(options: BeatTrackOptions, name = 'Beats.wav') {
+  const buffer = once('beats:' + JSON.stringify(options), () => Buffer.from(wavBytes(beatTrack(options))))
+  return { name, mimeType: 'audio/wav', buffer }
+}
+
+/** A real WAV file of noise: sound, but no beat. */
+export function noiseWav(seconds = 20, name = 'Noise.wav') {
+  return { name, mimeType: 'audio/wav', buffer: once('noise:' + seconds, () => Buffer.from(wavBytes(whiteNoise(seconds)))) }
+}
+
+/** The BPM and start point currently shown in the tempo fields. */
+export async function shownTempo(page: Page) {
+  return {
+    bpm: Number(await page.getByRole('textbox', { name: 'BPM', exact: true }).inputValue()),
+    start: Number(await page.getByLabel('Start point (seconds)').inputValue()),
+  }
 }

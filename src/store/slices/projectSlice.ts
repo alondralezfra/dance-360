@@ -15,5 +15,5 @@ export const createProjectSlice: StateCreator<ProjectStore, [], [], ProjectSlice
   setProjectName: (name) => set({ name }),
   setStage: (stage) => set({ stage }),
   setTempo: (tempo) => set({ tempo }),
-  setSong: (song) => set({ song }),
+  setSong: (song, tempo) => set(tempo ? { song, tempo } : { song }),
 })

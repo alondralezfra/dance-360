@@ -31,8 +31,11 @@ export interface ProjectSlice extends Pick<Project, 'name' | 'stage' | 'tempo' |
   setProjectName: (name: string) => void
   setStage: (stage: StageSettings) => void
   setTempo: (tempo: TempoMap) => void
-  /** Attaches the song, or removes it with `null`. */
-  setSong: (song: Song | null) => void
+  /**
+   * Attaches the song, or removes it with `null`. Pass `tempo` to set the tempo in the same
+   * update, so attaching a song and the tempo estimated from it are one undo step.
+   */
+  setSong: (song: Song | null, tempo?: TempoMap) => void
 }
 
 export interface RosterSlice {

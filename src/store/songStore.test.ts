@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { sha256Hex } from '../lib/hash'
 import { createEmptyProject } from '../model/project'
+import type { Analysis } from '../audio/analyze'
 import type { Song } from '../model/types'
 import type { SyncSource } from '../persistence/repository'
 
@@ -24,8 +25,9 @@ const { analyzeAudio, UnreadableAudioError } = await import('../audio/analyze')
 const { useProject } = await import('./projectStore')
 const { isAudioFile, MAX_SONG_BYTES, useSong } = await import('./songStore')
 const { selectDocument } = await import('./storeTypes')
+const { startHistory } = await import('./history')
 
-const analysis = { durationSec: 12.5, peaks: { perSecond: 100, data: Uint8Array.from([10, 200, 90]) } }
+const analysis: Analysis = { durationSec: 12.5, peaks: { perSecond: 100, data: Uint8Array.from([10, 200, 90]) }, tempo: null }
 const mp3 = (content = 'song-bytes', name = 'Track.mp3') => new File([content], name, { type: 'audio/mpeg' })
 const hashOf = (content: string) => sha256Hex(new TextEncoder().encode(content).buffer as ArrayBuffer)
 const stored = () => audioRepository.list()
@@ -38,7 +40,7 @@ beforeEach(async () => {
   for (const hash of await audioRepository.list()) await audioRepository.remove(hash)
   for (const record of await sync.listSyncRecords()) await sync.purge(record.id)
   openProject('p1')
-  useSong.setState({ file: 'none', peaks: null, peaksHash: null, busy: false, error: null })
+  useSong.setState({ file: 'none', peaks: null, peaksHash: null, tempoNote: null, busy: false, error: null })
 })
 
 describe('isAudioFile', () => {
@@ -326,6 +328,186 @@ describe('giving a song its file again', () => {
     useProject.setState({ song: { name: 'a', durationSec: 1, size: 1, mime: 'audio/mpeg', hash: 'h' } })
     await useSong.getState().reattach(new File(['x'], 'a.txt', { type: 'text/plain' }))
     expect(useSong.getState().error).toMatch(/does not look like an audio file/)
+  })
+})
+
+describe('the tempo estimated from a song', () => {
+  const estimate = { bpm: 128.43, firstBeatSec: 0.5004, confidence: 0.9 }
+  const tempo = () => useProject.getState().tempo
+  const heard = () => vi.mocked(analyzeAudio).mockResolvedValue({ ...analysis, tempo: estimate })
+  const custom = { bpm: 96, startOffsetSec: 2, changes: [] }
+
+  it('is filled in, rounded sensibly, while the tempo is still the default, and noted as an estimate', async () => {
+    heard()
+    await useSong.getState().attach(mp3())
+    expect(tempo()).toEqual({ bpm: 128.4, startOffsetSec: 0.5, changes: [] })
+    expect(useSong.getState().tempoNote).toEqual({
+      hash: song()!.hash,
+      kind: 'applied',
+      estimate: { bpm: 128.4, startOffsetSec: 0.5 },
+    })
+  })
+
+  it('is only suggested, and the tempo left alone, once the person has set their own', async () => {
+    heard()
+    useProject.setState({ tempo: custom })
+    await useSong.getState().attach(mp3())
+    expect(tempo()).toEqual(custom)
+    expect(useSong.getState().tempoNote).toEqual({
+      hash: song()!.hash,
+      kind: 'suggested',
+      estimate: { bpm: 128.4, startOffsetSec: 0.5 },
+    })
+  })
+
+  it('says it could not tell, and changes nothing, when the beat is unclear', async () => {
+    await useSong.getState().attach(mp3())
+    expect(tempo()).toEqual({ bpm: 120, startOffsetSec: 0, changes: [], })
+    expect(useSong.getState().tempoNote).toEqual({ hash: song()!.hash, kind: 'unclear', estimate: null })
+  })
+
+  it('sets the song and the tempo in one update', async () => {
+    heard()
+    const updates: { song: boolean; tempo: boolean }[] = []
+    const stop = useProject.subscribe((s, prev) => {
+      if (s.song !== prev.song || s.tempo !== prev.tempo) updates.push({ song: s.song !== prev.song, tempo: s.tempo !== prev.tempo })
+    })
+    await useSong.getState().attach(mp3())
+    stop()
+    expect(updates).toEqual([{ song: true, tempo: true }])
+  })
+
+  it('is undone together with attaching the song, in a single step', async () => {
+    const stopHistory = startHistory()
+    useProject.setState({ projectId: null, status: 'idle' })
+    openProject('p-undo')
+    heard()
+    await useSong.getState().attach(mp3())
+    expect(tempo().bpm).toBe(128.4)
+
+    useProject.getState().undo()
+    expect(song()).toBeNull()
+    expect(tempo()).toEqual({ bpm: 120, startOffsetSec: 0, changes: [] })
+    useProject.getState().redo()
+    expect(song()).not.toBeNull()
+    expect(tempo().bpm).toBe(128.4)
+    stopHistory()
+  })
+
+  it('is noted for the new song when a song is replaced, and a replaced song keeps the tempo already set', async () => {
+    heard()
+    await useSong.getState().attach(mp3('first', 'one.mp3'))
+    expect(tempo().bpm).toBe(128.4) // no longer the default
+    vi.mocked(analyzeAudio).mockResolvedValue({ ...analysis, tempo: { bpm: 100, firstBeatSec: 1, confidence: 0.9 } })
+    await useSong.getState().attach(mp3('second', 'two.mp3'))
+    expect(tempo().bpm).toBe(128.4) // not overwritten
+    expect(useSong.getState().tempoNote).toMatchObject({ hash: song()!.hash, kind: 'suggested', estimate: { bpm: 100, startOffsetSec: 1 } })
+  })
+
+  it('a suggestion can be accepted: it sets the tempo and becomes the applied estimate', async () => {
+    heard()
+    useProject.setState({ tempo: custom })
+    await useSong.getState().attach(mp3())
+    useSong.getState().acceptEstimate()
+    expect(tempo()).toEqual({ bpm: 128.4, startOffsetSec: 0.5, changes: [] })
+    expect(useSong.getState().tempoNote?.kind).toBe('applied')
+  })
+
+  it('accepting does nothing when there is no estimate to accept', async () => {
+    await useSong.getState().attach(mp3())
+    useSong.getState().acceptEstimate()
+    expect(tempo()).toEqual({ bpm: 120, startOffsetSec: 0, changes: [] })
+    useSong.setState({ tempoNote: null })
+    expect(() => useSong.getState().acceptEstimate()).not.toThrow()
+  })
+
+  describe('asking for it again', () => {
+    it('estimates from the song already on the device and applies it, even over a tempo that was set by hand', async () => {
+      await useSong.getState().attach(mp3()) // no estimate the first time
+      useProject.setState({ tempo: custom })
+      vi.mocked(analyzeAudio).mockClear()
+      heard()
+      await useSong.getState().estimateFromSong()
+      expect(tempo()).toEqual({ bpm: 128.4, startOffsetSec: 0.5, changes: [] })
+      expect(useSong.getState().tempoNote).toMatchObject({ kind: 'applied', estimate: { bpm: 128.4, startOffsetSec: 0.5 } })
+      expect(useSong.getState().busy).toBe(false)
+    })
+
+    it('says it could not tell when the beat is unclear, and leaves the tempo alone', async () => {
+      await useSong.getState().attach(mp3())
+      useProject.setState({ tempo: custom })
+      await useSong.getState().estimateFromSong()
+      expect(tempo()).toEqual(custom)
+      expect(useSong.getState().tempoNote).toMatchObject({ kind: 'unclear', estimate: null })
+    })
+
+    it('is busy while it works', async () => {
+      await useSong.getState().attach(mp3())
+      let finish!: (value: typeof analysis) => void
+      vi.mocked(analyzeAudio).mockReturnValue(new Promise((resolve) => (finish = resolve)))
+      const pending = useSong.getState().estimateFromSong()
+      await vi.waitFor(() => expect(useSong.getState().busy).toBe(true))
+      finish(analysis)
+      await pending
+      expect(useSong.getState().busy).toBe(false)
+    })
+
+    it('explains when the song file is not on this device', async () => {
+      useProject.setState({ song: { name: 'a.mp3', durationSec: 1, size: 1, mime: 'audio/mpeg', hash: 'not-stored' } })
+      await useSong.getState().estimateFromSong()
+      expect(useSong.getState().error).toMatch(/not on this device/)
+    })
+
+    it('does nothing when the project has no song', async () => {
+      await useSong.getState().estimateFromSong()
+      expect(analyzeAudio).not.toHaveBeenCalled()
+      expect(useSong.getState().error).toBeNull()
+    })
+
+    it('reports a file that cannot be read, and leaves the tempo alone', async () => {
+      await useSong.getState().attach(mp3())
+      vi.mocked(analyzeAudio).mockRejectedValue(new UnreadableAudioError())
+      await useSong.getState().estimateFromSong()
+      expect(useSong.getState().error).toMatch(/could not be read as audio/)
+      expect(useSong.getState().busy).toBe(false)
+    })
+
+    it('does not apply a result if another song was attached while it worked', async () => {
+      await useSong.getState().attach(mp3('first', 'one.mp3'))
+      let finish!: (value: typeof analysis) => void
+      vi.mocked(analyzeAudio).mockReturnValue(new Promise((resolve) => (finish = resolve)))
+      const pending = useSong.getState().estimateFromSong()
+      await vi.waitFor(() => expect(useSong.getState().busy).toBe(true))
+      useProject.setState({ song: { name: 'other.mp3', durationSec: 1, size: 1, mime: 'audio/mpeg', hash: 'someone-else' } })
+      finish({ ...analysis, tempo: estimate })
+      await pending
+      expect(tempo()).toEqual({ bpm: 120, startOffsetSec: 0, changes: [] })
+    })
+  })
+
+  it('is forgotten when the song is removed', async () => {
+    heard()
+    await useSong.getState().attach(mp3())
+    await useSong.getState().remove()
+    expect(useSong.getState().tempoNote).toBeNull()
+  })
+
+  it('is not recomputed when only the waveform is rebuilt for a song already attached', async () => {
+    const hash = await hashOf('song-bytes')
+    useProject.setState({ song: { name: 'Track.mp3', durationSec: 12.5, size: 10, mime: 'audio/mpeg', hash } })
+    await audioRepository.put(hash, mp3())
+    await useSong.getState().refresh()
+    expect(vi.mocked(analyzeAudio).mock.calls[0][2]).toEqual({ estimateTempo: false })
+  })
+
+  it('giving a song its file again leaves the tempo and the note alone', async () => {
+    heard()
+    await useSong.getState().attach(mp3())
+    const note = useSong.getState().tempoNote
+    useProject.setState({ tempo: custom })
+    await useSong.getState().reattach(mp3())
+    expect(tempo()).toEqual(custom)
+    expect(useSong.getState().tempoNote).toEqual(note)
   })
 })
 
