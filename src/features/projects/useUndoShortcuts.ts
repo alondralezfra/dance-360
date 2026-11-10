@@ -1,14 +1,6 @@
 import { useEffect } from 'react'
+import { isTextEntry } from '../../lib/typing'
 import { useProject } from '../../store/projectStore'
-
-const TEXT_INPUT_TYPES = new Set(['text', 'search', 'number', 'email', 'url', 'tel', 'password', ''])
-
-/** Typing places, where Ctrl+Z belongs to the browser's own text undo. */
-function isTextEntry(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  if (target.isContentEditable || target instanceof HTMLTextAreaElement) return true
-  return target instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(target.type)
-}
 
 /**
  * Ctrl/Cmd+Z undoes, Ctrl/Cmd+Shift+Z (or Ctrl+Y) redoes the project's last edit.

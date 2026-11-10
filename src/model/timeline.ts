@@ -51,6 +51,17 @@ export function danceLength(formations: Formation[], song: Song | null, tempo: T
   return Math.max(COUNTS_PER_SET, lastFormation + COUNTS_PER_SET, songCounts)
 }
 
+/**
+ * The counts the timeline can show: from where the song begins (before count 0 when the
+ * dance starts part-way in, so the intro is visible) to the end of the dance.
+ */
+export function timelineBounds(formations: Formation[], song: Song | null, tempo: TempoMap): TimelineBounds {
+  return {
+    minCount: Math.min(0, Math.floor(secondsToCount(0, tempo))),
+    maxCount: danceLength(formations, song, tempo),
+  }
+}
+
 /** Keep a view inside its bounds. If everything fits, it is left-aligned. */
 export function clampView(view: TimelineView, widthPx: number, bounds: TimelineBounds): TimelineView {
   const pxPerCount = clampZoom(view.pxPerCount)
@@ -84,6 +95,17 @@ export function zoomAt(
 /** Scroll by `dxPx` pixels: dragging right moves the content right, so earlier counts come into view. */
 export function panBy(view: TimelineView, dxPx: number, widthPx: number, bounds: TimelineBounds): TimelineView {
   return clampView({ ...view, startCount: view.startCount - dxPx / view.pxPerCount }, widthPx, bounds)
+}
+
+/**
+ * Keeps the playhead on screen while the song plays: if it has run off the right edge
+ * (or jumped to before the left one), turn the page so it sits a little in from the left.
+ * Returns the same view, unchanged, while the playhead is comfortably visible.
+ */
+export function followPlayhead(view: TimelineView, count: number, widthPx: number, bounds: TimelineBounds): TimelineView {
+  const visible = widthPx / view.pxPerCount
+  if (count >= view.startCount && count <= view.startCount + visible * 0.95) return view
+  return clampView({ ...view, startCount: count - visible * 0.1 }, widthPx, bounds)
 }
 
 /** The count where a pointer at `x` lands when snapping to whole counts, never before `minCount`. */

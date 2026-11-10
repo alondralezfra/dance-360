@@ -30,7 +30,16 @@ function fakeContext() {
   return { ctx, ops }
 }
 
-const theme = { floor: 'FLOOR', outline: 'OUTLINE', grid: 'GRID', gridCenter: 'SET', label: 'LABEL', wave: 'WAVE', marker: 'MARKER' }
+const theme = {
+  floor: 'FLOOR',
+  outline: 'OUTLINE',
+  grid: 'GRID',
+  gridCenter: 'SET',
+  label: 'LABEL',
+  wave: 'WAVE',
+  marker: 'MARKER',
+  playhead: 'PLAYHEAD',
+}
 const f = (id: string, count: number): Formation => ({ id, name: id, count, transitionCounts: 4, positions: {} })
 const tempo = { bpm: 120, startOffsetSec: 0, changes: [] } // 2 counts per second
 
@@ -42,6 +51,7 @@ const base = (over: Partial<TimelineDrawing> = {}): TimelineDrawing => ({
   tempo,
   formations: [],
   peaks: null,
+  playhead: null,
   theme,
   ...over,
 })
@@ -170,6 +180,47 @@ describe('drawTimeline', () => {
           expect(Math.abs(edge - Math.round(edge))).toBeLessThan(1e-6)
         }
       }
+    })
+  })
+
+  describe('the playhead', () => {
+    const playheadOps = (ops: Op[]) => ops.filter((o) => o.stroke === 'PLAYHEAD' || o.fill === 'PLAYHEAD')
+
+    it('is a line in its own colour at the count the song has reached', () => {
+      const view = { startCount: 0, pxPerCount: 20 }
+      const ops = draw(base({ view, playhead: 5 })) // x = 100
+      const moves = ops.filter((o) => o.type === 'moveTo' && o.stroke === 'PLAYHEAD')
+      expect(moves[0].args[0] as number).toBeCloseTo(100, 0) // the line (the arrow on top starts after it)
+      expect(ops[ops.indexOf(moves[0]) + 1]).toMatchObject({ type: 'lineTo' })
+      expect(ops[ops.indexOf(moves[0]) + 1].args[0]).toBe(moves[0].args[0]) // straight down
+      expect(ops.some((o) => o.type === 'stroke' && o.stroke === 'PLAYHEAD')).toBe(true)
+    })
+
+    it('has a small arrow on top so it can be found at a glance', () => {
+      const ops = draw(base({ playhead: 5 }))
+      expect(ops.some((o) => o.type === 'fill' && o.fill === 'PLAYHEAD')).toBe(true)
+    })
+
+    it('follows fractions of a count, not just whole ones', () => {
+      const view = { startCount: 0, pxPerCount: 20 }
+      const at = (count: number) =>
+        draw(base({ view, playhead: count })).find((o) => o.type === 'moveTo' && o.stroke === 'PLAYHEAD')!.args[0] as number
+      expect(at(5.5) - at(5)).toBeGreaterThan(8)
+      expect(at(5.5) - at(5)).toBeLessThan(12)
+    })
+
+    it('is not drawn when there is none, or when it is off screen', () => {
+      expect(playheadOps(draw(base({ playhead: null })))).toHaveLength(0)
+      expect(playheadOps(draw(base({ view: { startCount: 0, pxPerCount: 20 }, playhead: 500 })))).toHaveLength(0)
+      expect(playheadOps(draw(base({ view: { startCount: 50, pxPerCount: 20 }, playhead: 3 })))).toHaveLength(0)
+    })
+
+    it('is drawn last, over the waveform, grid and markers', () => {
+      const ops = draw(base({ peaks: loudFirstSecond, formations: [f('a', 0)], playhead: 5 }))
+      const lastPlayhead = ops.map((o, i) => (o.stroke === 'PLAYHEAD' || o.fill === 'PLAYHEAD' ? i : -1)).filter((i) => i >= 0).at(-1)!
+      const lastOther = ops.map((o, i) => (o.stroke !== 'PLAYHEAD' && o.fill !== 'PLAYHEAD' && o.type !== 'beginPath' ? i : -1)).filter((i) => i >= 0).at(-1)!
+      expect(lastPlayhead).toBeGreaterThan(lastOther - 3)
+      expect(ops.findIndex((o) => o.stroke === 'PLAYHEAD')).toBeGreaterThan(ops.findIndex((o) => o.stroke === 'MARKER'))
     })
   })
 

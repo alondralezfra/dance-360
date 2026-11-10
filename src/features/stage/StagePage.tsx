@@ -7,6 +7,7 @@ import { cn } from '../../lib/cn'
 import { useLayout } from '../../store/layoutStore'
 import { DancerPanel } from '../cast/DancerPanel'
 import { PartLegend } from '../cast/PartLegend'
+import { TransportBar } from '../transport/TransportBar'
 import { FormationStrip } from './FormationStrip'
 import { StageCanvas } from './StageCanvas'
 
@@ -91,7 +92,12 @@ export function StagePage() {
           formationBarOpen ? 'grid-rows-[1fr] border-t border-border' : 'invisible grid-rows-[0fr]',
         )}
       >
-        <div className="min-h-0 overflow-hidden">
+        {/* Never more than 40% of the window: on a short window (a zoomed-in laptop, a phone held sideways) the stage
+            keeps most of the screen and the bar scrolls inside itself. (Clipping is also what lets it collapse to nothing.) */}
+        <div className="max-h-[40dvh] min-h-0 overflow-y-auto overscroll-contain">
+          <div className="px-2">
+            <TransportBar compact />
+          </div>
           <FormationStrip />
         </div>
       </footer>

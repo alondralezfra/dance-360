@@ -14,6 +14,7 @@ The **Song** tab, next to Stage and Cast & Parts, has three sections.
   - **Estimated from the song.** Attaching a song works out its tempo and where its first beat lands. If the tempo is still the default (120 BPM, start 0) it is filled in and a note says so ("Estimated from the song: 128.4 BPM, with the first beat at 0.5 s. It is an estimate: check it against the waveform..."). If you have already set your own tempo it is never overwritten: the note offers it with *Use this tempo*. If the song has no steady beat the note says "Could not tell the tempo" and nothing changes. Attaching the song and filling in the tempo are one undo step.
   - **Fixing it.** *Half* and *Double* beside BPM (an estimate is often exactly half or double what you count to; both stop at the 20 to 300 limits and keep the start point), and *Estimate from song* to work it out again from the file on this device (replaces the tempo, since you asked). The note is shown once; only the tempo it set is saved.
 - **Timeline.** The song laid out against the counts: waveform, a grid of counts and sets (thinned out as you zoom out so lines never crowd, with "Set N" labels, thinned to every few sets when zoomed out so they never crowd (and always the same sets as you scroll), and count numbers when there is room), and a numbered marker for each formation. If the song starts before count 0 (a start point later than 0), the intro is shown to the left of count 0. **Drag** to scroll, **mouse wheel / trackpad** or **two-finger pinch** to zoom around the pointer, sideways scrolling pans, buttons *Zoom in*, *Zoom out* and *Fit* (the whole dance). Without a song it shows the counts and markers alone. The canvas has a text summary for screen readers ("Timeline of 3 formations over 403 counts, with the waveform of ...").
+- **Playback.** The transport bar above the timeline plays the song ([transport.md](transport.md)). The timeline then shows a red **playhead** that moves with the song; **tap or click** the timeline to move it to the nearest count; while the song plays the timeline **turns the page** to keep the playhead in sight (until you scroll or zoom it yourself; pressing play hands it back to the playhead).
 - Attaching, replacing, removing and tempo edits are undoable like any project edit and are autosaved.
 
 ## How it works
@@ -27,7 +28,7 @@ The **Song** tab, next to Stage and Cast & Parts, has three sections.
 
 ## Not yet built
 
-Tap tempo, tempo changes within a song, and checking an estimate by ear (that arrives with the metronome). Playback (play and pause, a moving playhead, the stage following the song), the metronome, placing and dragging formations on the timeline, tap-to-snap placement, and latency calibration: later slices of build-order step 3 (decision 0013). Tempo changes within a song, auto beat detection, slow-down and section looping are not scheduled.
+Placing and dragging formations on the timeline, tap-to-snap placement, and speaker-delay calibration: the next slice of build-order step 3 (decision 0013). Tap tempo, tempo changes within a song, auto beat detection of every beat, slow-down and section looping are not scheduled.
 
 ## Tests
 

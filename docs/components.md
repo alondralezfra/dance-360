@@ -10,10 +10,11 @@ Every control in the app is built **once** here and reused. A screen never style
 |---|---|---|
 | `Button` | Any text button | `variant`: `primary`, `secondary` (default), `ghost`, `danger`, `danger-ghost`, `chip` (a selectable item: styled by `aria-pressed`). `size`: `md`, `icon`. 40px minimum height. |
 | `IconButton` | A button that is only an icon (remove, previous/next, show/hide, theme) | `icon` + **required** `label` (its accessible name and tooltip). Takes every `Button` variant. |
-| `Icon` | A symbol next to text or inside a button | One inline-SVG set (`close`, `chevronLeft/Right/Up/Down`, `sun`, `moon`, `undo`, `redo`, `plus`, `minus`); inherits text colour; decorative (`aria-hidden`). Add icons in `Icon.tsx`. |
+| `Icon` | A symbol next to text or inside a button | One inline-SVG set (`close`, `chevronLeft/Right/Up/Down`, `sun`, `moon`, `undo`, `redo`, `plus`, `minus`, `play`, `pause`); inherits text colour; decorative (`aria-hidden`). Add icons in `Icon.tsx`. |
 | `Input` | Text entry | `variant`: `default`, `inline` (looks like text until hovered/focused: names edited in place). |
 | `NumberField` | A labelled number field that commits on blur/Enter and reverts bad entries | Built on `Input`. Whole numbers unless `decimals` is set (e.g. a 127.5 BPM). |
 | `Select` | A native dropdown | |
+| `Slider` | A draggable value (a playback position) | `label` (required: its accessible name), `value`, `min`, `max`, `step`, `onChange(number)`, `valueText` for screen readers. 40px tall; arrow keys, Home and End work. |
 | `Checkbox` | A checkbox with its label as one 40px row | `children` is the label. |
 | `FileButton` | A button that opens the device's file picker | The real file input is hidden and driven by the button. `accept` filters; `onFile` gets the chosen file (and the same file can be chosen again). Takes every `Button` variant. |
 | `SectionHeader` | The title of a screen section, with a line of explanation and action buttons | `id` (for `aria-labelledby`), `title`, `children` (the explanation), `actions`. Used by every section on the Cast and Song tabs. |

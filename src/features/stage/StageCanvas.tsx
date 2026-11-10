@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import { Layer, Stage } from 'react-konva'
 import type Konva from 'konva'
 import { readableOn } from '../../lib/color'
@@ -11,8 +11,8 @@ import type { Id } from '../../model/types'
 import { useCanvasTheme } from '../../theme/useCanvasTheme'
 import { useCurrentFormation, useProject } from '../../store/projectStore'
 import { useUi } from '../../store/uiStore'
+import { playheadClock, useTransport } from '../../store/transport'
 import { DancerDot } from './DancerDot'
-import { createPlayheadClock } from './playheadClock'
 import { StageFloor } from './StageFloor'
 import { fitStage } from './stageLayout'
 import { useDotMotion } from './useDotMotion'
@@ -72,17 +72,29 @@ export function StageCanvas() {
   // The count the stage is showing, kept outside React. A glide moves it every
   // frame; the dots follow it directly (useDotMotion). Order matters: the motion
   // hook must run before the one that starts a glide.
-  const [clock] = useState(() => createPlayheadClock(formation.count))
+  const clock = playheadClock // shared with the timeline and driven by the song while it plays (store/transport.ts)
+  const playing = useTransport((s) => s.playing)
+  const selectionSource = useUi((s) => s.selectionSource)
   const registerDot = useDotMotion({ clock, formations, toDotPx, layerRef: dancerLayerRef })
-  const { settle } = usePlayhead(clock, formations, formation)
+  const { settle } = usePlayhead(clock, formations, formation, {
+    frozen: playing,
+    followedPlayhead: selectionSource === 'playhead',
+  })
+  // Grabbing a dot stops the song and settles on the selected formation, so the dot you move is in that formation.
+  const handleDragStart = useCallback(() => {
+    useTransport.getState().pause()
+    settle()
+  }, [settle])
 
   // React only learns which section the playhead is in (that decides the dot
   // colours), so it re-renders when a glide crosses a section boundary, not every frame.
   const sectionIndex = useSyncExternalStore(clock.subscribe, () => sectionIndexAt(sections, clock.get()))
   const sectionStart = sections[sectionIndex]?.startCount ?? 0
 
-  // Where each dot rests: the selected formation. (A glide moves them away and back.)
-  const resting = useMemo(() => positionsAt(formations, formation.count), [formations, formation.count])
+  // Where each dot is when this renders: wherever the playhead is (usually on the selected formation, but
+  // it can be part-way along a transition after the song is paused). While it moves, the dots are moved directly.
+  const playheadCount = clock.get()
+  const resting = useMemo(() => positionsAt(formations, playheadCount), [formations, playheadCount])
 
   // Each dancer's colours in the current section, worked out once per change, not per frame.
   const looks = useMemo(
@@ -166,7 +178,7 @@ export function StageCanvas() {
                   theme={theme}
                   onNode={registerDot}
                   onSelect={selectDancer}
-                  onDragStart={settle}
+                  onDragStart={handleDragStart}
                   onDragMove={handleDragMove}
                   onDragEnd={handleDragEnd}
                 />

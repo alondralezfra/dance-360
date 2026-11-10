@@ -7,6 +7,7 @@ import { cn } from '../../lib/cn'
 import { useProject } from '../../store/projectStore'
 import { useUi } from '../../store/uiStore'
 import type { SaveState } from '../../store/storeTypes'
+import { usePlaybackShortcut } from '../transport/usePlaybackShortcut'
 import { UndoRedoButtons } from './UndoRedoButtons'
 import { useUndoShortcuts } from './useUndoShortcuts'
 
@@ -35,6 +36,7 @@ export function ProjectWorkspace() {
   const setProjectName = useProject((s) => s.setProjectName)
   const saveState = useProject((s) => s.saveState)
   useUndoShortcuts()
+  usePlaybackShortcut()
 
   useEffect(() => {
     if (!projectId) return

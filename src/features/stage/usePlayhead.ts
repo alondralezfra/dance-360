@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useRef } from 'react'
 import { transitionStart } from '../../model/playback'
 import type { Formation } from '../../model/types'
-import type { PlayheadClock } from './playheadClock'
+import type { PlayheadClock } from '../../lib/playheadClock'
 
 /** How long the preview glide takes when you step between formations (ms). */
 const GLIDE_MS = 700
@@ -15,11 +15,24 @@ const prefersReducedMotion = () =>
  * Normally that's just the selected formation's count. When you step to the
  * neighbouring formation, the count is animated across that transition so the
  * dots glide. Positions are NOT computed here: the stage feeds the clock's count
- * to the pure `positionsAt()` function, the same way audio playback will later
- * (audio would be another thing that sets the same clock).
+ * to the pure `positionsAt()` function. The song's transport (store/transport.ts) sets
+ * the same clock while it plays; then this stays out of the way (see the options).
  */
-export function usePlayhead(clock: PlayheadClock, formations: Formation[], current: Formation) {
+export interface PlayheadOptions {
+  /** The song is playing and moving the playhead itself: do nothing. */
+  frozen?: boolean
+  /** The selection only changed because the playhead moved past a formation: do not preview a step. */
+  followedPlayhead?: boolean
+}
+
+export function usePlayhead(
+  clock: PlayheadClock,
+  formations: Formation[],
+  current: Formation,
+  { frozen = false, followedPlayhead = false }: PlayheadOptions = {},
+) {
   const lastId = useRef(current.id)
+  const lastCount = useRef(current.count)
   const frame = useRef<number | null>(null)
   const formationsRef = useRef(formations)
   const currentCountRef = useRef(current.count)
@@ -45,7 +58,14 @@ export function usePlayhead(clock: PlayheadClock, formations: Formation[], curre
     const switched = lastId.current !== current.id
     const fromId = lastId.current
     lastId.current = current.id
+    const countChanged = lastCount.current !== current.count
+    lastCount.current = current.count
     cancel()
+
+    // The song (or a jump in it) moved the playhead: it is already where it should be.
+    if (frozen || followedPlayhead) return
+    // An edit that doesn't change when the formation lands (a rename, a moved dot) leaves the playhead where it is.
+    if (!switched && !countChanged) return
 
     const list = formationsRef.current
     const from = list.find((f) => f.id === fromId)
@@ -83,7 +103,7 @@ export function usePlayhead(clock: PlayheadClock, formations: Formation[], curre
     }
     frame.current = requestAnimationFrame(tick)
     return cancel
-  }, [current, cancel, clock])
+  }, [current, cancel, clock, frozen, followedPlayhead])
 
   return { settle }
 }

@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Formation } from '../../model/types'
-import { createPlayheadClock } from './playheadClock'
+import { createPlayheadClock } from '../../lib/playheadClock'
 import { usePlayhead } from './usePlayhead'
 
 const f = (id: string, count: number, transitionCounts = 4): Formation => ({
@@ -30,14 +30,18 @@ afterEach(() => {
 })
 
 // The hook drives a clock; these tests watch the clock's count.
-const useDrivenClock = (formations: Formation[], current: Formation) => {
+const useDrivenClock = (formations: Formation[], current: Formation, options?: Parameters<typeof usePlayhead>[3]) => {
   const [clock] = useState(() => createPlayheadClock(current.count))
-  const { settle } = usePlayhead(clock, formations, current)
+  const { settle } = usePlayhead(clock, formations, current, options)
   return { count: clock.get, settle, clock }
 }
 
-const setup = (initial: Formation) =>
-  renderHook(({ current }) => useDrivenClock(list, current), { initialProps: { current: initial } })
+type Props = { current: Formation; opts?: Parameters<typeof usePlayhead>[3] }
+
+const setup = (initial: Formation, options?: Parameters<typeof usePlayhead>[3]) =>
+  renderHook(({ current, opts }: Props) => useDrivenClock(list, current, opts), {
+    initialProps: { current: initial, opts: options } as Props,
+  })
 
 const frames = (ms: number) => act(() => void vi.advanceTimersByTime(ms))
 
@@ -111,6 +115,50 @@ describe('usePlayhead', () => {
     const { result, rerender } = setup(list[1])
     rerender({ current: { ...list[1], count: 24 } })
     expect(result.current.count()).toBe(24)
+  })
+
+  describe('when the song is moving the playhead', () => {
+    it('leaves the playhead alone while the song plays, however the selection changes', () => {
+      const { result, rerender } = setup(list[0], { frozen: true })
+      act(() => result.current.clock.set(5)) // the song put the playhead here
+      rerender({ current: list[1], opts: { frozen: true } })
+      frames(1000)
+      expect(result.current.count()).toBe(5)
+    })
+
+    it('leaves the playhead alone when the selection only followed the playhead (no preview glide)', () => {
+      const { result, rerender } = setup(list[0], { followedPlayhead: true })
+      act(() => result.current.clock.set(14))
+      rerender({ current: list[1], opts: { followedPlayhead: true } })
+      frames(1000)
+      expect(result.current.count()).toBe(14)
+    })
+
+    it('still previews a step the person takes next, from the formation the playhead had reached', () => {
+      const { result, rerender } = setup(list[0], { followedPlayhead: true })
+      rerender({ current: list[1], opts: { followedPlayhead: true } }) // the playhead moved on to b
+      act(() => result.current.clock.set(16))
+      rerender({ current: list[0], opts: { followedPlayhead: false } }) // the person steps back to a
+      frames(350)
+      expect(result.current.count()).toBeGreaterThan(0) // gliding back, not jumped
+      expect(result.current.count()).toBeLessThan(16)
+      frames(500)
+      expect(result.current.count()).toBe(0)
+    })
+
+    it('does not jump the playhead when playing stops and nothing was chosen', () => {
+      const { result, rerender } = setup(list[1], { frozen: true })
+      act(() => result.current.clock.set(23.5)) // paused part-way to the next formation
+      rerender({ current: list[1], opts: { frozen: false } })
+      expect(result.current.count()).toBe(23.5)
+    })
+  })
+
+  it('does not move the playhead for an edit that leaves the formation where it lands (a rename)', () => {
+    const { result, rerender } = setup(list[1])
+    act(() => result.current.clock.set(13.25)) // paused between formations
+    rerender({ current: { ...list[1], name: 'Renamed' }, opts: undefined })
+    expect(result.current.count()).toBe(13.25)
   })
 
   it('cleans up a running glide when unmounted', () => {
