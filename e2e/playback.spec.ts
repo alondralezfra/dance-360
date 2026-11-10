@@ -191,7 +191,7 @@ test.describe('the stage follows the song', () => {
     await page.mouse.down()
     await page.mouse.move(to.x, to.y, { steps: 8 })
     await page.mouse.up()
-    await expect.poll(async () => (await savedProject(page)).formations[1].positions[id].x).toBe(20)
+    await expect.poll(async () => (await savedProject(page)).formations[1]?.positions[id]?.x).toBe(20)
 
     await goToSong(page)
     await attachSong(page)

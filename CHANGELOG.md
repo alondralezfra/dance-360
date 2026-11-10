@@ -14,6 +14,7 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 - New: `store/transport.ts` (the shared playhead, player and metronome), `audio/player.ts`, `audio/metronome.ts`, `model/metronome.ts`, `formationIndexAt`, `followPlayhead`, `timelineBounds`, `features/transport/`, `Slider`, `play`/`pause` icons, `lib/typing.ts`, a `--timeline-playhead` colour token, `uiStore.selectionSource`. Decision record 0019, feature doc `docs/features/transport.md`. No saved-data change.
 
 ### Changed (playback)
+- The Stage's bottom bar is capped at 40% of the window height (it scrolls inside itself) and its vertical spacing is tighter, so the stage keeps its room under browser zoom with the new transport bar. (The first version only just met the zoom guard on Windows and missed it by a hair on the Linux CI runner; it now has margin.)
 - The playhead clock moved from the stage to `lib/` and is shared by the whole app. The stage draws dots where the playhead is, not only on the selected formation; `usePlayhead` takes options, no longer resets the playhead when the stage is shown again or for an edit that doesn't change when a formation lands (a rename, a moved dot), and stays out of the way while the song plays.
 - The undo shortcuts' "is this a typing place?" check is now shared (`lib/typing.ts`); the timeline's bounds are one shared function.
 
