@@ -23,7 +23,9 @@ export interface TimelineDrawing {
   formations: Formation[]
   /** The song's waveform, or null to draw the counts alone (no song attached, or its file isn't here). */
   peaks: Peaks | null
-  theme: Pick<CanvasTheme, 'floor' | 'outline' | 'grid' | 'gridCenter' | 'label' | 'wave' | 'marker'>
+  /** Where the song is, as a count, or null to draw no playhead. */
+  playhead: number | null
+  theme: Pick<CanvasTheme, 'floor' | 'outline' | 'grid' | 'gridCenter' | 'label' | 'wave' | 'marker' | 'playhead'>
 }
 
 /**
@@ -124,4 +126,26 @@ export function drawTimeline(ctx: CanvasRenderingContext2D, d: TimelineDrawing):
     ctx.fillText(String(index + 1), badgeX, bodyTop - MARKER_LABEL_RADIUS - 2)
   })
   ctx.textAlign = 'start'
+
+  // The playhead goes on last, over everything: a line through the whole timeline with an arrow on top.
+  if (d.playhead !== null) {
+    const x = countToX(d.playhead, view)
+    if (x >= -2 && x <= width + 2) {
+      const stroke = strokeFor(2, dpr)
+      const px = crispLine(x, stroke, dpr)
+      ctx.strokeStyle = theme.playhead
+      ctx.lineWidth = stroke
+      ctx.beginPath()
+      ctx.moveTo(px, 0)
+      ctx.lineTo(px, height)
+      ctx.stroke()
+      ctx.fillStyle = theme.playhead
+      ctx.beginPath()
+      ctx.moveTo(px - 6, 0)
+      ctx.lineTo(px + 6, 0)
+      ctx.lineTo(px, 9)
+      ctx.closePath()
+      ctx.fill()
+    }
+  }
 }

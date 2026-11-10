@@ -4,6 +4,19 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (playing the song: build-order step 3, slice 3)
+- **Play the song and watch the dance move with it.** A transport bar (Play / Pause, a "Set 3 · Count 5" readout, a position slider, and a "Click on every count" switch) on the Song tab and at the top of the Stage's bottom bar. While it plays the stage dancers move through the formations in time with the music, the selected formation follows the song, and the timeline shows a moving red playhead. Pause leaves everything where it was, even part-way along a transition.
+- **Metronome:** a tick on every count, higher on the first count of each set, to check a tempo or start point by ear.
+- **Space** plays and pauses from anywhere in a project (not in a text box, or on a button, link, checkbox, slider or dropdown that has focus). Playing carries on when you switch tabs.
+- **The timeline:** tap or click to move the playhead to the nearest count; it turns the page to keep the playhead in sight while playing (until you scroll or zoom yourself; pressing play hands it back). The slider also works with no song, to see the stage at any count.
+- Stepping to a formation yourself, or grabbing a dot, stops the song. At the end the song stops and Play starts again from the beginning. A missing song file, or a browser that wants a click first, is explained and can be retried.
+- **Not yet:** the dots follow the audio element, so a Bluetooth speaker (150 to 300 ms late) makes them look early; calibrating speaker delay comes with tap-to-snap. No slow-down or looping.
+- New: `store/transport.ts` (the shared playhead, player and metronome), `audio/player.ts`, `audio/metronome.ts`, `model/metronome.ts`, `formationIndexAt`, `followPlayhead`, `timelineBounds`, `features/transport/`, `Slider`, `play`/`pause` icons, `lib/typing.ts`, a `--timeline-playhead` colour token, `uiStore.selectionSource`. Decision record 0019, feature doc `docs/features/transport.md`. No saved-data change.
+
+### Changed (playback)
+- The playhead clock moved from the stage to `lib/` and is shared by the whole app. The stage draws dots where the playhead is, not only on the selected formation; `usePlayhead` takes options, no longer resets the playhead when the stage is shown again or for an edit that doesn't change when a formation lands (a rename, a moved dot), and stays out of the way while the song plays.
+- The undo shortcuts' "is this a typing place?" check is now shared (`lib/typing.ts`); the timeline's bounds are one shared function.
+
 ### Added (the tempo is estimated from the song)
 - **Attach a song and its tempo is worked out for you.** The BPM and where the first beat lands are estimated from the music. If the tempo is still the default, it is filled in (with a note that it is an estimate to check against the waveform); if you have already set your own tempo it is never overwritten, and the estimate is offered with a *Use this tempo* button. If the song has no steady beat it says "Could not tell the tempo" and changes nothing. Attaching the song and the estimated tempo are one undo step.
 - **Half**, **Double** (an estimate is often exactly half or double what you count to) and **Estimate from song** (work it out again on request) buttons in the Tempo section.

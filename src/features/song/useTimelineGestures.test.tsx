@@ -10,16 +10,17 @@ const WIDTH = 300
 
 function setup(view: TimelineView) {
   const onChange = vi.fn<(v: TimelineView) => void>()
+  const onTap = vi.fn<(x: number) => void>()
   function Surface() {
     const ref = useRef<HTMLDivElement>(null)
-    useTimelineGestures(ref, { view, widthPx: WIDTH, bounds, onChange })
+    useTimelineGestures(ref, { view, widthPx: WIDTH, bounds, onChange, onTap })
     return <div ref={ref} data-testid="surface" />
   }
   const { unmount, container } = render(<Surface />)
   const surface = container.querySelector('[data-testid="surface"]') as HTMLElement
   surface.setPointerCapture = vi.fn()
   vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({ left: 10 } as DOMRect)
-  return { onChange, surface, unmount, last: () => onChange.mock.calls.at(-1)![0] }
+  return { onChange, onTap, surface, unmount, last: () => onChange.mock.calls.at(-1)![0] }
 }
 
 const pointer = (el: Element, type: 'pointerDown' | 'pointerMove' | 'pointerUp' | 'pointerCancel', id: number, x: number) =>
@@ -149,4 +150,71 @@ describe('useTimelineGestures', () => {
     fireEvent.wheel(t.surface, { deltaY: -100 })
     expect(t.onChange).not.toHaveBeenCalled()
   })
+  describe('tapping', () => {
+    it('is a tap when the pointer goes down and up in the same place, and says where (from the left edge)', () => {
+      const t = setup({ startCount: 50, pxPerCount: 10 })
+      pointer(t.surface, 'pointerDown', 1, 110)
+      pointer(t.surface, 'pointerUp', 1, 110)
+      expect(t.onTap).toHaveBeenCalledExactlyOnceWith(100) // the surface starts at x = 10
+      expect(t.onChange).not.toHaveBeenCalled() // and it did not scroll
+    })
+
+    it('allows a little wobble of the finger', () => {
+      const t = setup({ startCount: 50, pxPerCount: 10 })
+      pointer(t.surface, 'pointerDown', 1, 110)
+      pointer(t.surface, 'pointerMove', 1, 113)
+      pointer(t.surface, 'pointerUp', 1, 113)
+      expect(t.onTap).toHaveBeenCalledTimes(1)
+    })
+
+    it('is a drag, not a tap, once the pointer has really moved (even if it comes back)', () => {
+      const t = setup({ startCount: 50, pxPerCount: 10 })
+      pointer(t.surface, 'pointerDown', 1, 110)
+      pointer(t.surface, 'pointerMove', 1, 160)
+      pointer(t.surface, 'pointerMove', 1, 110)
+      pointer(t.surface, 'pointerUp', 1, 110)
+      expect(t.onTap).not.toHaveBeenCalled()
+    })
+
+    it('is not a tap when held for a long time', () => {
+      vi.useFakeTimers({ toFake: ['performance'] })
+      const t = setup({ startCount: 50, pxPerCount: 10 })
+      pointer(t.surface, 'pointerDown', 1, 110)
+      vi.advanceTimersByTime(800)
+      pointer(t.surface, 'pointerUp', 1, 110)
+      expect(t.onTap).not.toHaveBeenCalled()
+      vi.useRealTimers()
+    })
+
+    it('is not a tap when two fingers were involved (a pinch)', () => {
+      const t = setup({ startCount: 50, pxPerCount: 10 })
+      pointer(t.surface, 'pointerDown', 1, 100)
+      pointer(t.surface, 'pointerDown', 2, 200)
+      pointer(t.surface, 'pointerUp', 2, 200)
+      pointer(t.surface, 'pointerUp', 1, 100)
+      expect(t.onTap).not.toHaveBeenCalled()
+    })
+
+    it('is not a tap when the gesture was cancelled', () => {
+      const t = setup({ startCount: 50, pxPerCount: 10 })
+      pointer(t.surface, 'pointerDown', 1, 110)
+      pointer(t.surface, 'pointerCancel', 1, 110)
+      expect(t.onTap).not.toHaveBeenCalled()
+    })
+
+    it('copes with no tap handler being given', () => {
+      const onChange = vi.fn()
+      function Surface() {
+        const ref = useRef<HTMLDivElement>(null)
+        useTimelineGestures(ref, { view: { startCount: 0, pxPerCount: 10 }, widthPx: WIDTH, bounds, onChange })
+        return <div ref={ref} data-testid="plain" />
+      }
+      const { container } = render(<Surface />)
+      const el = container.querySelector('[data-testid="plain"]') as HTMLElement
+      el.setPointerCapture = vi.fn()
+      pointer(el, 'pointerDown', 1, 10)
+      expect(() => pointer(el, 'pointerUp', 1, 10)).not.toThrow()
+    })
+  })
+
 })

@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { startAutosave } from './store/autosave'
 import { startHistory } from './store/history'
+import { startTransport } from './store/transport'
 import { initTheme } from './theme/theme'
 
 // These run before the first render so there's no flash of the wrong theme
@@ -11,6 +12,7 @@ import { initTheme } from './theme/theme'
 initTheme()
 startAutosave()
 startHistory()
+startTransport()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

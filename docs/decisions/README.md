@@ -41,3 +41,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0016](0016-single-repository-modular-monolith.md) | One repository, modular inside; where server-side pieces go, and the triggers for splitting later |
 | [0017](0017-song-tab-and-audio-storage.md) | The Song tab and song storage: IndexedDB by file hash, audio/ analysis at 8 kHz, peaks as derived data, missing-file flow, clearing unused files |
 | [0018](0018-tempo-estimate.md) | Estimating a song's tempo and first beat: banded onset curve, coarse then fine search, confidence, no library; fills in only an untouched tempo |
+| [0019](0019-playback-and-the-shared-playhead.md) | Playing the song: one shared playhead driven by the audio, the stage and timeline follow it, metronome, Space, no latency compensation yet |

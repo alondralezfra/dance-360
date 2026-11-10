@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clampToStage, defaultSpot, moveFormation, normalizeCounts } from './formations'
+import { clampToStage, defaultSpot, formationIndexAt, moveFormation, normalizeCounts } from './formations'
 import type { Formation } from './types'
 
 const f = (id: string, count: number): Formation => ({
@@ -97,5 +97,35 @@ describe('moveFormation', () => {
   it('produces counts that normalizeCounts leaves alone', () => {
     const out = moveFormation(abc(), 'c', 1)
     expect(normalizeCounts(out)).toEqual(out)
+  })
+})
+
+describe('formationIndexAt', () => {
+  const list = [f('a', 0), f('b', 16), f('c', 40)]
+
+  it('is the last formation that has landed by that count', () => {
+    expect(formationIndexAt(list, 0)).toBe(0)
+    expect(formationIndexAt(list, 15.9)).toBe(0)
+    expect(formationIndexAt(list, 16)).toBe(1) // landing exactly counts as landed
+    expect(formationIndexAt(list, 39)).toBe(1)
+    expect(formationIndexAt(list, 40)).toBe(2)
+    expect(formationIndexAt(list, 9999)).toBe(2)
+  })
+
+  it('is the first formation before any has landed (the dancers hold it)', () => {
+    expect(formationIndexAt([f('a', 8), f('b', 16)], 3)).toBe(0)
+    expect(formationIndexAt(list, -12)).toBe(0)
+  })
+
+  it('is -1 when there are no formations', () => {
+    expect(formationIndexAt([], 5)).toBe(-1)
+  })
+
+  it('agrees with where positionsAt says the dancers have come from', () => {
+    for (const count of [0, 10, 16, 20, 40, 100]) {
+      const i = formationIndexAt(list, count)
+      expect(list[i].count <= count || i === 0).toBe(true)
+      if (list[i + 1]) expect(list[i + 1].count > count).toBe(true)
+    }
   })
 })

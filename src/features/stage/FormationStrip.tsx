@@ -33,7 +33,7 @@ export function FormationStrip() {
   }
 
   return (
-    <div className="flex flex-col gap-2 p-2">
+    <div className="flex flex-col gap-1 px-2 py-1">
       <div className="flex flex-wrap items-center gap-2">
         <IconButton
           icon="chevronLeft"

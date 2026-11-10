@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, type RefObject } from 
 import type Konva from 'konva'
 import { positionsAt } from '../../model/playback'
 import type { Formation, Id } from '../../model/types'
-import type { PlayheadClock } from './playheadClock'
+import type { PlayheadClock } from '../../lib/playheadClock'
 
 interface Options {
   clock: PlayheadClock

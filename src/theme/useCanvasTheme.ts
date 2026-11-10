@@ -15,6 +15,8 @@ export interface CanvasTheme {
   wave: string
   /** Formation markers on the timeline. */
   marker: string
+  /** The playhead on the timeline. */
+  playhead: string
   /** Dot fill for a dancer with no part. */
   unassigned: string
   dotOutline: string
@@ -37,6 +39,7 @@ function read(): CanvasTheme {
     label: v('--stage-label'),
     wave: v('--timeline-wave'),
     marker: v('--timeline-marker'),
+    playhead: v('--timeline-playhead'),
     unassigned: v('--dot-unassigned'),
     dotOutline: v('--dot-outline'),
     dotSelected: v('--dot-selected'),

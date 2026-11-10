@@ -17,12 +17,13 @@ src/
     timeline.ts     the timeline panel's maths: count <-> pixel, zoom/pan, grid lines, marker hit-testing, dance length
     tapSnap.ts      tap-to-snap: a tap time -> a whole count, and placing a formation on it
     peaks.ts        waveform peaks from decoded samples (pure), and the loudness over a stretch of time
+    metronome.ts    which metronome clicks fall in a stretch of the song (pure)
     tempoEstimate.ts  estimates a song's tempo and first beat from decoded samples (pure); fft.ts is its spectrum
     formations.ts   stage helpers, count ordering, moveFormation (reorder; counts stay in their slots)
     parts.ts        sections/parts/assignments: which parts apply in a section, which part a dancer is in at a count, ordering, gap detection
     project.ts      new-project factory
     types.ts        the saved Project shape
-  audio/          The browser's audio engine, and nothing else: reads a song file into its length and peaks. No store/UI/storage imports.   (enforced)
+  audio/          The browser's audio engine, and nothing else: reads a song file (analyze), plays it (player), clicks (metronome). No store/UI/storage imports.   (enforced)
   persistence/    Saving projects and song files. Depends on model/ only. (enforced)
     repository.ts              ProjectRepository (what the app uses) and SyncSource (what a future sync engine uses)
     createRepository.ts        the repository, written once over any RecordStore
@@ -40,13 +41,14 @@ src/
     history.ts       records every document change for undo (watches the store, like autosave)
     uiStore.ts       selections (not saved)
     layoutStore.ts   which panels are open (remembered per device, not in the project)
+    transport.ts     playing the song: the shared playhead (a count outside React), the player and metronome, play/pause/seek
     songStore.ts     the Song tab's state: is the song file on this device, its waveform, busy/error (not saved)
     audioCleanup.ts  clears song files no project uses
     autosave.ts      debounced save of the open project
   features/       Screens, one folder per feature, each documented in docs/features/.  (enforced)
-  components/     Shared UI: ui/ (Button, IconButton, Icon, Input, Select, Checkbox, FileButton, NumberField, SectionHeader, Drawer, Popover; see components.md), ThemeToggle
+  components/     Shared UI: ui/ (Button, IconButton, Icon, Input, Select, Checkbox, FileButton, Slider, NumberField, SectionHeader, Drawer, Popover; see components.md), ThemeToggle
   theme/          Theme switching + the canvas colour hook
-  lib/            Small helpers (cn, readableOn, devicePixels, hash, format, useDevicePixelRatio, useElementSize)
+  lib/            Small helpers (cn, readableOn, devicePixels, hash, format, typing, playheadClock, useDevicePixelRatio, useElementSize)
   router.tsx      URL map (project screens are tabs: Stage, Cast & Parts, Song)
 ```
 
@@ -57,7 +59,7 @@ This is one repository on purpose (decisions/0016): the backend is Supabase, the
 ## Rules
 
 1. **Counts are the source of truth.** Formations store an absolute `count` (0 = Set 1, Count 1), never seconds; `tempo.ts` converts. Fixing the tempo map shifts everything correctly. ([plan §3.1](../dance-director-app-plan.md))
-2. **Playback is a pure function.** `positionsAt(formations, count)` returns where everyone is. Anything that can produce a count (editor glide, audio clock, scrubber, phone watch mode, dancer view) renders its result. Never animate positions inside a component, and never invent positions: frame-by-frame motion sets the stage's *playhead clock* (outside React) and `useDotMotion` applies `positionsAt` to the canvas nodes, so a glide or playback does not re-render React every frame. [decisions/0003](decisions/0003-playback-is-a-pure-function.md), [0014](decisions/0014-canvas-performance.md)
+2. **Playback is a pure function.** `positionsAt(formations, count)` returns where everyone is. Anything that can produce a count (editor glide, audio clock, scrubber, phone watch mode, dancer view) renders its result. Never animate positions inside a component, and never invent positions: frame-by-frame motion sets the app's one *playhead* (`playheadClock`, outside React) and `useDotMotion` applies `positionsAt` to the canvas nodes, so a glide or playback does not re-render React every frame. Move the playhead through the transport (`seek`) when the song may be playing, so the audio, selection and metronome stay in step. [decisions/0003](decisions/0003-playback-is-a-pure-function.md), [0014](decisions/0014-canvas-performance.md)
 3. **Layering.** `model/` imports nothing from the app. `persistence/` imports only `model/`. Only `store/` and `features/projects/` import `persistence/`. Features don't import other features (pages may compose). **(enforced)**
 4. **Storage is behind `ProjectRepository` (and `AudioRepository` for song files).** Browser storage (`localStorage`, `indexedDB`) is touched only in `persistence/` and `theme/`. **The browser audio engine** (`AudioContext` and friends) is touched only in `audio/`, which in turn imports no store, storage or UI code. **(enforced)** [decisions/0017](decisions/0017-song-tab-and-audio-storage.md) The app always works from the local repository; the cloud is reached by a sync engine on top of it (local-first), not by swapping it. Project storage can move from localStorage to IndexedDB by writing another `RecordStore`. Every repository must pass the shared contract suite in `src/test/repositoryContract.ts`. **(enforced)** [decisions/0004](decisions/0004-versioned-persistence-behind-a-repository.md)
 5. **Saved data is versioned.** Changing `Project` means: bump `CURRENT_VERSION`, add a migration, add `fixtures/v<N>.json`, add a test. Never edit an old migration. `fixtures.test.ts` fails if you forget.
@@ -78,7 +80,7 @@ This is one repository on purpose (decisions/0016): the backend is Supabase, the
 
 Every box above is also what undo restores: the whole document, one snapshot per edit.
 
-The stage: `projectStore.formations` + `uiStore.currentFormationId` -> `usePlayhead` sets the playhead clock (a count, animated between adjacent formations) -> `positionsAt` -> `useDotMotion` moves the dots on the canvas. React renders only the resting positions and re-renders when something structural changes, not per frame.
+The stage: `projectStore.formations` + the shared playhead (`playheadClock`, a count) -> `positionsAt` -> `useDotMotion` moves the dots on the canvas. Two things set the playhead: `usePlayhead` (a preview glide when the person steps between formations) and the transport (`store/transport.ts`: the song's audio while it plays, and jumps). React renders the dots where the playhead is and re-renders only when something structural changes, not per frame. The transport also moves the selected formation along with the song (`uiStore.selectionSource` says who chose).
 
 ### Undo/redo
 
@@ -108,4 +110,4 @@ Stored as `dance360:project:<id>` = `{ version, updatedAt, project, sync }`. `sy
 
 ## Planned (from the build order)
 
-Audio + timeline (step 3). Slices 1 and 2 are built (the v4 data shape and timeline maths; the Song tab with audio storage, waveform and a static timeline: [features/song.md](features/song.md)); playback, the metronome, marker placement and tap-to-snap are designed, not built: [decisions/0013](decisions/0013-audio-and-timeline-architecture.md) (an `audio/` folder for browser audio APIs, `model/timeline.ts`, an `AudioRepository` over IndexedDB, saved-data v4 with `song` and `tempo.changes`, a `transportStore`, `features/timeline/`). Resources and notes; the Overview problems list; accounts and cloud sync (designed in [decisions/0015](decisions/0015-cloud-storage-and-sync.md): a sync engine over `SyncSource`, a Supabase remote store, conflicts that ask).
+Audio + timeline (step 3). Slices 1 to 3 are built (the v4 data shape and timeline maths; the Song tab with audio storage, waveform and timeline: [features/song.md](features/song.md); playing the song with a metronome: [features/transport.md](features/transport.md)); marker placement, tap-to-snap and speaker-delay calibration are designed, not built: [decisions/0013](decisions/0013-audio-and-timeline-architecture.md) (an `audio/` folder for browser audio APIs, `model/timeline.ts`, an `AudioRepository` over IndexedDB, saved-data v4 with `song` and `tempo.changes`, a `transportStore`, `features/timeline/`). Resources and notes; the Overview problems list; accounts and cloud sync (designed in [decisions/0015](decisions/0015-cloud-storage-and-sync.md): a sync engine over `SyncSource`, a Supabase remote store, conflicts that ask).

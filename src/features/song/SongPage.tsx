@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useProject } from '../../store/projectStore'
 import { useSong } from '../../store/songStore'
+import { TransportBar } from '../transport/TransportBar'
 import { SongSection } from './SongSection'
 import { TempoSection } from './TempoSection'
 import { TimelinePanel } from './TimelinePanel'
@@ -21,7 +22,10 @@ export function SongPage() {
       <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 p-4">
         <SongSection />
         <TempoSection />
-        <TimelinePanel />
+        <section aria-label="Playback" className="grid gap-3">
+          <TransportBar />
+          <TimelinePanel />
+        </section>
       </div>
     </div>
   )

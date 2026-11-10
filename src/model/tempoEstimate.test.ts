@@ -59,7 +59,7 @@ describe('estimateTempo on music with a steady beat', () => {
     const result = estimate(beatTrack({ bpm, seconds: 240 }))!
     const drift = (Math.abs(result.bpm - bpm) / bpm) * 240 // seconds off by the end
     expect(drift).toBeLessThan(0.15)
-  })
+  }, 30_000) // four minutes of audio is real work: slow when the whole suite runs in parallel
 
   it('finds where the first beat lands (a sound at the very first instant cannot be seen starting)', () => {
     for (const first of [0.25, 0.5, 0.777, 1.234]) {

@@ -6,6 +6,7 @@ import { createEmptyProject } from '../../model/project'
 import type { Song } from '../../model/types'
 import { useProject } from '../../store/projectStore'
 import { useSong } from '../../store/songStore'
+import { playheadClock, useTransport } from '../../store/transport'
 import { SongPage } from './SongPage'
 import { SongSection } from './SongSection'
 import { TempoSection } from './TempoSection'
@@ -400,6 +401,120 @@ describe('TimelinePanel', () => {
     useProject.setState({ tempo: { bpm: 120, startOffsetSec: 4, changes: [] } }) // 8 counts of intro
     render(<TimelinePanel />)
     expect(lastView().startCount).toBe(-8)
+  })
+
+  describe('the playhead', () => {
+    const lastDraw = () => vi.mocked(drawTimeline).mock.calls.at(-1)![1]
+    const tapAt = (container: HTMLElement, x: number) => {
+      const box = container.querySelector('canvas')!.parentElement!
+      box.setPointerCapture = vi.fn()
+      fireEvent.pointerDown(box, { pointerId: 1, clientX: x })
+      fireEvent.pointerUp(box, { pointerId: 1, clientX: x })
+    }
+
+    beforeEach(() => {
+      playheadClock.set(0)
+      useTransport.setState({ playing: false, seek: vi.fn() })
+    })
+
+    it('is drawn where the song has got to', () => {
+      playheadClock.set(12.5)
+      render(<TimelinePanel />)
+      expect(lastDraw().playhead).toBe(12.5)
+    })
+
+    it('is redrawn straight away as the song moves, without the page re-rendering', () => {
+      render(<TimelinePanel />)
+      vi.mocked(drawTimeline).mockClear()
+      act(() => playheadClock.set(3))
+      act(() => playheadClock.set(4))
+      expect(vi.mocked(drawTimeline).mock.calls.map((c) => c[1].playhead)).toEqual([3, 4])
+    })
+
+    it('stops being redrawn after the panel is removed', () => {
+      const { unmount } = render(<TimelinePanel />)
+      unmount()
+      vi.mocked(drawTimeline).mockClear()
+      playheadClock.set(9)
+      expect(drawTimeline).not.toHaveBeenCalled()
+    })
+
+    it('moves to where you tap, on the nearest count', () => {
+      const seek = vi.fn()
+      useTransport.setState({ seek })
+      const { container } = render(<TimelinePanel />)
+      tapAt(container, 100) // 600px for 108 counts: 5.56 px per count, so count 18
+      expect(seek).toHaveBeenCalledExactlyOnceWith(18)
+      tapAt(container, 103) // 18.5 counts: rounds to the nearest whole count
+      expect(seek).toHaveBeenLastCalledWith(19)
+    })
+
+    it('cannot be tapped to before the start of the song', () => {
+      useProject.setState({ tempo: { bpm: 120, startOffsetSec: 4, changes: [] } }) // 8 counts of intro
+      const seek = vi.fn()
+      useTransport.setState({ seek })
+      const { container } = render(<TimelinePanel />)
+      tapAt(container, 0)
+      expect(seek).toHaveBeenCalledWith(-8)
+    })
+
+    describe('following the song', () => {
+      const zoomIn = async () => {
+        const user = userEvent.setup()
+        for (let i = 0; i < 4; i++) await user.click(screen.getByRole('button', { name: 'Zoom in' }))
+      }
+      const visibleEnd = () => lastDraw().view.startCount + 600 / lastDraw().view.pxPerCount
+
+      it('turns the page when the playing song runs off the edge', async () => {
+        render(<TimelinePanel />)
+        await zoomIn()
+        const before = lastDraw().view.startCount
+        act(() => useTransport.setState({ playing: true }))
+        expect(lastDraw().view.startCount).toBe(before)
+        act(() => playheadClock.set(visibleEnd() + 10))
+        expect(lastDraw().view.startCount).toBeGreaterThan(before)
+        expect(playheadClock.get()).toBeGreaterThanOrEqual(lastDraw().view.startCount)
+        expect(playheadClock.get()).toBeLessThanOrEqual(visibleEnd())
+      })
+
+      it('does not move the view when the song is not playing', async () => {
+        render(<TimelinePanel />)
+        await zoomIn()
+        const before = lastDraw().view.startCount
+        act(() => playheadClock.set(visibleEnd() + 10))
+        expect(lastDraw().view.startCount).toBe(before)
+      })
+
+      it('leaves the view alone while the playhead is on screen', async () => {
+        render(<TimelinePanel />)
+        await zoomIn()
+        const before = lastDraw().view.startCount
+        act(() => useTransport.setState({ playing: true }))
+        act(() => playheadClock.set(before + 3))
+        act(() => playheadClock.set(before + 6))
+        expect(lastDraw().view.startCount).toBe(before)
+      })
+
+      it('stops following once you scroll or zoom it yourself, and starts again the next time you press play', async () => {
+        const { container } = render(<TimelinePanel />)
+        await zoomIn()
+        act(() => useTransport.setState({ playing: true }))
+        // the person drags the timeline
+        const box = container.querySelector('canvas')!.parentElement!
+        box.setPointerCapture = vi.fn()
+        fireEvent.pointerDown(box, { pointerId: 1, clientX: 300 })
+        fireEvent.pointerMove(box, { pointerId: 1, clientX: 250 })
+        fireEvent.pointerUp(box, { pointerId: 1, clientX: 250 })
+        const scrolled = lastDraw().view.startCount
+        act(() => playheadClock.set(visibleEnd() + 20)) // the song runs off the edge: no snapping back
+        expect(lastDraw().view.startCount).toBe(scrolled)
+
+        act(() => useTransport.setState({ playing: false }))
+        act(() => useTransport.setState({ playing: true })) // play again
+        act(() => playheadClock.set(visibleEnd() + 25))
+        expect(lastDraw().view.startCount).toBeGreaterThan(scrolled)
+      })
+    })
   })
 
   it('draws nothing until it knows how wide it is', () => {

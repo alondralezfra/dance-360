@@ -10,6 +10,8 @@ import { useUi } from '../../store/uiStore'
 // replaced by plain stand-ins that count their renders and record where they are moved.
 const dots = vi.hoisted(() => ({
   renders: 0,
+  xs: new Map<string, number>(),
+  props: new Map<string, { onDragStart: () => void }>(),
   fills: new Map<string, string>(),
   nodes: new Map<string, { position: ReturnType<typeof vi.fn> }>(),
 }))
@@ -36,11 +38,15 @@ vi.mock('./DancerDot', async () => {
   return {
     DancerDot: memo(function DancerDot(props: {
       dancer: { id: string }
+      x: number
+      onDragStart: () => void
       fill: string
       onNode: (id: string, node: unknown) => void
     }) {
       dots.renders++
       dots.fills.set(props.dancer.id, props.fill)
+      dots.xs.set(props.dancer.id, props.x)
+      dots.props.set(props.dancer.id, props)
       const { onNode } = props
       const id = props.dancer.id
       useLayoutEffect(() => {
@@ -55,9 +61,12 @@ vi.mock('./DancerDot', async () => {
 })
 
 const { StageCanvas } = await import('./StageCanvas')
+const { playheadClock, useTransport } = await import('../../store/transport')
 
 beforeEach(() => {
   dots.renders = 0
+  dots.xs.clear()
+  dots.props.clear()
   dots.fills.clear()
   dots.nodes.clear()
   vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })
@@ -106,6 +115,8 @@ function open(n: number) {
   })
   useUi.getState().reset()
   useUi.getState().selectFormation('f1')
+  playheadClock.set(0) // (the playhead is shared by the whole app, so each test starts it afresh)
+  useTransport.setState({ playing: false })
 }
 
 const frames = (ms: number) => act(() => void vi.advanceTimersByTime(ms))
@@ -169,11 +180,60 @@ describe('StageCanvas performance shape', () => {
   it('shows the colours of the section the playhead is in when stepping back', () => {
     open(2)
     useUi.getState().selectFormation('f2')
+    playheadClock.set(16) // the playhead is on the second formation, as it is once you have stepped to it
     render(<StageCanvas />)
     expect(dots.fills.get('d0')).toBe('red-fill')
     act(() => useUi.getState().selectFormation('f1'))
     frames(1000)
     expect(dots.fills.get('d0')).toBe('blue-fill')
+  })
+
+  describe('with the song playing', () => {
+    it('draws the dots wherever the shared playhead is, not only on the selected formation', () => {
+      const xAt = (count: number) => {
+        open(1)
+        playheadClock.set(count)
+        const { unmount } = render(<StageCanvas />)
+        const x = dots.xs.get('d0')!
+        unmount()
+        return x
+      }
+      const start = xAt(0)
+      const middle = xAt(14) // part-way through the travel into the second formation
+      const end = xAt(16)
+      expect(middle).toBeGreaterThan(start)
+      expect(middle).toBeLessThan(end)
+    })
+
+    it('stops the song when a dot is grabbed, and the dot being moved is in the selected formation', () => {
+      open(2)
+      const pause = vi.fn()
+      useTransport.setState({ playing: true, pause })
+      render(<StageCanvas />)
+      playheadClock.set(7) // the playhead is part-way along
+      act(() => dots.props.get('d0')!.onDragStart())
+      expect(pause).toHaveBeenCalledTimes(1)
+      expect(playheadClock.get()).toBe(0) // settled on the selected formation (f1 lands at count 0)
+    })
+
+    it('does not move the playhead when the selection follows it', () => {
+      open(2)
+      useTransport.setState({ playing: true })
+      render(<StageCanvas />)
+      playheadClock.set(5)
+      act(() => useUi.getState().selectFormation('f2', 'playhead'))
+      frames(1000)
+      expect(playheadClock.get()).toBe(5)
+    })
+
+    it('does not glide when the selection only followed the playhead, even after pausing', () => {
+      open(2)
+      render(<StageCanvas />)
+      playheadClock.set(20)
+      act(() => useUi.getState().selectFormation('f2', 'playhead'))
+      frames(1000)
+      expect(playheadClock.get()).toBe(20)
+    })
   })
 
   it('renders nothing but the empty-state message when there are no dancers', () => {

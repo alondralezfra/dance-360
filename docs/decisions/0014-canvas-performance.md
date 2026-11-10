@@ -30,6 +30,8 @@ Playback (build-order step 3) will move every dot 60 times a second, including o
 | 200 | **16.6ms, no drops** | n/a | n/a |
 
 ## Consequences
+*(Update 2026-11-09: the clock now lives in `lib/playheadClock.ts` and the app has one shared instance, driven by playback as planned: see [0019](0019-playback-and-the-shared-playhead.md).)*
+
 - Guarded by deterministic tests rather than timing: `StageCanvas.test.tsx` fails if a glide re-renders the dots per frame (and checks the dots still move, colours change exactly at section boundaries, and stepping back works); `useDotMotion.test.tsx` and `playheadClock.test.ts` cover the pieces. A timing test would be flaky on slow CI machines.
 - "Never animate positions inside a component" still holds in spirit: positions come only from `positionsAt`; the hook only applies them to nodes. Code that moves nodes must not invent positions.
 - Not done (measured as not needed for the 40-dancer target; available if the target grows): switching off drag hit-testing while playing, capping the pixel ratio on high-density phones, drawing labels only for the selected dancer on small screens, cached dot images. Re-measure with the method above once audio playback exists.

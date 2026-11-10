@@ -38,6 +38,21 @@ export function normalizeCounts(formations: Formation[]): Formation[] {
 }
 
 /**
+ * Which formation the playhead is in: the last one that has landed by `count`
+ * (the same one `positionsAt` treats as the dancers' starting point), or the
+ * first if none has yet. -1 when there are no formations. `formations` must be sorted by count.
+ */
+export function formationIndexAt(formations: Formation[], count: number): number {
+  if (formations.length === 0) return -1
+  let index = 0
+  for (let i = 0; i < formations.length; i++) {
+    if (formations[i].count <= count) index = i
+    else break
+  }
+  return index
+}
+
+/**
  * Move one formation to a new place in the running order.
  *
  * The song's landing counts belong to the *slots*, not the formations: the

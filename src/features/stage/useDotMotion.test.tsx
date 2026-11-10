@@ -3,7 +3,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { positionsAt } from '../../model/playback'
 import type { Formation } from '../../model/types'
-import { createPlayheadClock } from './playheadClock'
+import { createPlayheadClock } from '../../lib/playheadClock'
 import { useDotMotion } from './useDotMotion'
 
 const formation = (id: string, count: number, x: number): Formation => ({

@@ -45,6 +45,7 @@
   --stage-label: #94a3b8;
   --timeline-wave: #a5b4fc; /* the song's waveform on the timeline */
   --timeline-marker: #d97706; /* formation markers on the timeline */
+  --timeline-playhead: #e11d48; /* where the song is, on the timeline */
   --dot-unassigned: #94a3b8; /* a dancer with no part in the current section */
   --dot-outline: rgb(15 23 42 / 0.45);
   --dot-selected: #0f172a; /* the ring drawn around the selected dancer */
@@ -96,6 +97,7 @@
   --stage-label: #64748b;
   --timeline-wave: #4f46e5;
   --timeline-marker: #fbbf24;
+  --timeline-playhead: #fb7185;
   --dot-unassigned: #64748b;
   --dot-outline: rgb(248 250 252 / 0.55);
   --dot-selected: #f8fafc;

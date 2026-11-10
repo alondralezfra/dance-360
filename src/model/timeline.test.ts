@@ -4,6 +4,8 @@ import {
   countToX,
   danceLength,
   fitView,
+  followPlayhead,
+  timelineBounds,
   gridLines,
   gridStep,
   MAX_PX_PER_COUNT,
@@ -210,5 +212,57 @@ describe('nearestMarker', () => {
   it('a larger tolerance (a finger) finds what a smaller one (a mouse) misses', () => {
     expect(nearestMarker(list, 70, v, 6)).toBeNull()
     expect(nearestMarker(list, 70, v, 14)).toBe('a')
+  })
+})
+
+describe('followPlayhead', () => {
+  const zoomed: TimelineView = { startCount: 40, pxPerCount: 10 } // 300px shows counts 40 to 70
+
+  it('leaves the view alone while the playhead is comfortably on screen', () => {
+    for (const count of [40, 55, 66]) expect(followPlayhead(zoomed, count, 300, bounds)).toBe(zoomed)
+  })
+
+  it('turns the page when the playhead runs off the right edge, putting it near the left', () => {
+    const next = followPlayhead(zoomed, 72, 300, bounds)
+    expect(next.pxPerCount).toBe(10)
+    expect(next.startCount).toBeCloseTo(72 - 3) // 10% of the 30 visible counts in from the left
+  })
+
+  it('turns the page back when the playhead is left of the view (a jump backwards)', () => {
+    const next = followPlayhead(zoomed, 12, 300, bounds)
+    expect(next.startCount).toBeCloseTo(9)
+  })
+
+  it('turns the page a little before the very edge, so the playhead is never hidden under it', () => {
+    expect(followPlayhead(zoomed, 69.9, 300, bounds)).not.toBe(zoomed)
+  })
+
+  it('never scrolls past the ends of the dance', () => {
+    expect(followPlayhead({ startCount: 100, pxPerCount: 10 }, 2, 300, bounds).startCount).toBe(0)
+    expect(followPlayhead(zoomed, 199, 300, bounds).startCount).toBe(170) // 200 - 30 visible
+  })
+
+  it('does nothing when everything is already on screen', () => {
+    const all = fitView(300, bounds)
+    expect(followPlayhead(all, 120, 300, bounds)).toBe(all)
+  })
+})
+
+describe('timelineBounds', () => {
+  it('runs from count 0 to the end of the dance when the song starts at its beginning', () => {
+    expect(timelineBounds([f('a', 0), f('b', 40)], null, tempo)).toEqual({ minCount: 0, maxCount: 48 })
+  })
+
+  it('starts earlier than count 0 by the intro, when the dance starts part-way into the song', () => {
+    const later = { bpm: 120, startOffsetSec: 4, changes: [] } // 8 counts of song before count 0
+    expect(timelineBounds([f('a', 0)], song(60), later).minCount).toBe(-8)
+  })
+
+  it('ends with the song when that is longer than the formations', () => {
+    expect(timelineBounds([f('a', 0), f('b', 8)], song(60), tempo).maxCount).toBe(120)
+  })
+
+  it('never starts later than count 0', () => {
+    expect(timelineBounds([f('a', 0)], null, { bpm: 120, startOffsetSec: 0, changes: [] }).minCount).toBe(0)
   })
 })
