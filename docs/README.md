@@ -9,6 +9,7 @@ Living documentation for Dance 360. It is updated in the **same change** as the 
 | [architecture.md](architecture.md) | **How is the code organised, and what rules keep it that way?** |
 | [features/](features/) | **What does each feature do today?** One file per folder in `src/features/`. |
 | [decisions/](decisions/) | **Why did we choose X?** Short decision records (ADRs); never edited after the fact, only superseded. |
+| [operations-and-quality.md](operations-and-quality.md) | **What does it take to run this well (delivery, security, privacy, reliability, accessibility), and when does each item apply?** A checklist with triggers and stages. |
 | [testing.md](testing.md) | **How do we prove a change works and didn't break anything?** |
 | [../CHANGELOG.md](../CHANGELOG.md) | **What changed, and when?** |
 | [../CLAUDE.md](../CLAUDE.md) | **The workflow Claude follows on every change.** |

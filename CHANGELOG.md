@@ -4,6 +4,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (docs: operations and quality checklist)
+- `docs/operations-and-quality.md`: the standing checklist for delivery, security, privacy, reliability, accessibility, accounts and AI features, each item with a status and the stage or trigger at which it applies, plus a per-change review and a suggested order of the first slices. Linked from the docs index, the plan and the workflow in CLAUDE.md. No code change.
+
 ### Added (playing the song: build-order step 3, slice 3)
 - **Play the song and watch the dance move with it.** A transport bar (Play / Pause, a "Set 3 · Count 5" readout, a position slider, and a "Click on every count" switch) on the Song tab and at the top of the Stage's bottom bar. While it plays the stage dancers move through the formations in time with the music, the selected formation follows the song, and the timeline shows a moving red playhead. Pause leaves everything where it was, even part-way along a transition.
 - **Metronome:** a tick on every count, higher on the first count of each set, to check a tempo or start point by ear.
