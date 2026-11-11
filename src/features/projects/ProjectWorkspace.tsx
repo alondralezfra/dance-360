@@ -52,7 +52,7 @@ export function ProjectWorkspace() {
     <div className="flex h-dvh flex-col bg-background text-foreground">
       <header className="flex flex-wrap items-center gap-x-3 border-b border-border bg-surface px-4">
         <nav aria-label="Breadcrumb" className="order-1 flex min-w-0 flex-1 items-center gap-2 py-2 md:order-none md:flex-none">
-          <Link to="/" className="text-lg font-semibold whitespace-nowrap hover:text-primary">
+          <Link to="/" className="text-lg font-semibold whitespace-nowrap hover:text-link">
             Dance 360
           </Link>
           <Icon name="chevronRight" className="text-subtle-foreground" />
@@ -112,7 +112,7 @@ export function ProjectWorkspace() {
       {status === 'error' && (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
           <p className="text-danger">{error}</p>
-          <Link to="/" className="text-primary underline">
+          <Link to="/" className="text-link underline">
             Back to your projects
           </Link>
         </div>

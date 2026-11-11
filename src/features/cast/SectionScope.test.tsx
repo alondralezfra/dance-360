@@ -37,7 +37,7 @@ function setup() {
   return { chorus1, verse, chorus2 }
 }
 
-const scopeButton = (partNumber: number) => screen.getByRole('button', { name: `Sections of part ${partNumber}` })
+const scopeButton = (partNumber: number) => screen.getByRole('button', { name: new RegExp(`^Sections of part ${partNumber}: `) })
 
 async function openScope(user: ReturnType<typeof userEvent.setup>, partNumber: number) {
   await user.click(scopeButton(partNumber))

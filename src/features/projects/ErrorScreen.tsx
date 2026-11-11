@@ -47,7 +47,7 @@ export function ErrorScreen({ reload = () => window.location.reload() }: { reloa
         {projectId && <Button onClick={() => void download()}>Download this project</Button>}
         <Link
           to="/"
-          className="inline-flex min-h-10 items-center rounded-md px-3 text-sm font-medium text-primary underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="inline-flex min-h-10 items-center rounded-md px-3 text-sm font-medium text-link underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           Back to your projects
         </Link>

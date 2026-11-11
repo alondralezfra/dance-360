@@ -24,7 +24,8 @@ export function SectionScopeSelect({ label, sections, value, onChange }: Props) 
   return (
     <Popover>
       <PopoverTrigger
-        aria-label={label}
+        // The name starts with what the button is for and ends with the text it shows, so a voice-control user can say what they see.
+        aria-label={`${label}: ${summary}`}
         className={cn(
           fieldClass,
           'inline-flex w-44 items-center justify-between gap-2 px-2 py-2 text-left',

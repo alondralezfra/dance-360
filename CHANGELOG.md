@@ -4,6 +4,15 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (the safety net: accessibility checks)
+- **An automated accessibility scan** (axe, `e2e/accessibility.spec.ts`) of the projects home, stage, dancer drawer, Cast & Parts (and its sections picker), Song tab (with no song, with a song, and with speaker-delay calibration open), the error screen and the not-found screen, in the light and dark themes at desktop and phone width, against WCAG 2.1 A and AA. Any violation fails the test. `@axe-core/playwright` is a development-only dependency.
+- **A contrast test for the theme** (`src/theme/contrast.test.ts`) that checks every text-on-background colour pair in both themes (4.5 : 1 for text, 3 : 1 for icons).
+- Decision record 0023: colour roles are now a rule (`text-foreground`, `text-muted-foreground`, `text-link` for text; `text-subtle-foreground` for icons only; `--primary` is a fill).
+
+### Changed (colours, found by the scan)
+- Slightly stronger colours so text meets the standard: secondary grey text and the light-theme "subtle" grey are a touch darker, the dark-theme indigo button is a touch deeper and now gets *darker* (not lighter) on hover so its white text stays readable, danger red in light is slightly deeper, and indigo link text in dark is lighter (a new `--link` token; `text-primary` is no longer used for text). The formation numbers in the formation bar are no longer faint.
+- The sections dropdown on Cast & Parts is now named "Sections of part 2: All sections" (what it is for, then the text it shows), so voice control can say what is on screen. (Its test and e2e queries still find it by the start of the name.)
+
 ### Added (the safety net: dependency and secret checks)
 - **A Security workflow** (`.github/workflows/security.yml`), on every pull request, on `main` and every Monday: `npm audit` blocks on a high or critical advisory in a library that ships in the app (build and test tools only warn), and `gitleaks` scans the full history for committed keys and tokens. Read-only access to the repository.
 - **Dependabot** (`.github/dependabot.yml`): weekly update pull requests for npm and GitHub Actions; small updates grouped, major ones one at a time. CI runs on them like on any pull request.

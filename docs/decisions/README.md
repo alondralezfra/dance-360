@@ -45,3 +45,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0020](0020-tap-to-snap-markers-and-speaker-delay.md) | Placing formations on the song: Mark taps re-time the next formation (one undo step per take), draggable timeline markers, a per-device speaker delay with tap-along calibration |
 | [0021](0021-project-backup-files-and-the-error-screen.md) | Backing a project up as a file (no audio; import is always a new copy) and the error screen with a download button |
 | [0022](0022-dependency-audit-updates-and-secret-scanning.md) | Dependency audit (blocks on app libraries, warns on tools), weekly Dependabot, gitleaks in CI plus GitHub push protection |
+| [0023](0023-accessibility-checks-and-readable-colours.md) | An axe accessibility scan in the e2e suite (WCAG 2.1 A/AA, every screen, both themes, desktop and phone, any violation fails) and colour roles with a contrast test |
