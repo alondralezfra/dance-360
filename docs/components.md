@@ -29,6 +29,7 @@ Feature-specific pieces that more than one screen could want (like `PartSwatch`)
 
 1. **Reuse first.** Before writing markup with classes, look at the catalog. Need something slightly different? Add a **variant or prop** to the existing component, not a new component or a one-off class string.
 2. **Add a component only when a pattern appears a second time**, or when a primitive has accessibility rules worth solving once (like a labelled icon button). One-off layout stays in the screen. Keep the number of components small.
+3. **Text colours have roles** ([decisions/0023](decisions/0023-accessibility-checks-and-readable-colours.md)): `text-foreground`, `text-muted-foreground`, `text-link` for text; `text-subtle-foreground` only for icons and decoration; never `text-primary`. Label controls so the accessible name contains the visible text.
 3. **A new component** goes in `components/ui/`, takes `className` (merged with `cn`) and standard element props (`ComponentProps<'button'>`), uses only theme tokens, has a test (role/name, states, disabled) and a row in the table above.
 4. **Accessibility is part of the component**, not each caller: required labels for icon-only controls, `aria-pressed`/`aria-expanded` for toggles, 40px touch targets, visible focus.
 5. **Style state with attributes** where one exists (`aria-pressed:`, `disabled:`), so the look can't disagree with what assistive technology hears.

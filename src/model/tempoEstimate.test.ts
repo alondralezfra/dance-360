@@ -1,6 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { beatTrack, steadyTone, whiteNoise } from '../test/syntheticAudio'
 import { estimateTempo, estimateTempoFromSamples, MIN_CONFIDENCE, onsetStrength } from './tempoEstimate'
+
+// Analysing minutes of audio is real work, and slows right down when the whole suite runs in parallel on a busy
+// machine. The default 5 s would cut a test off before its own (more generous) budget below could ever decide it.
+// (The assertions are unchanged: this only stops the runner giving up first.)
+vi.setConfig({ testTimeout: 30_000 })
 
 const SR = 8000
 const estimate = (samples: Float32Array) => estimateTempoFromSamples([samples], SR)
@@ -59,7 +64,7 @@ describe('estimateTempo on music with a steady beat', () => {
     const result = estimate(beatTrack({ bpm, seconds: 240 }))!
     const drift = (Math.abs(result.bpm - bpm) / bpm) * 240 // seconds off by the end
     expect(drift).toBeLessThan(0.15)
-  }, 30_000) // four minutes of audio is real work: slow when the whole suite runs in parallel
+  })
 
   it('finds where the first beat lands (a sound at the very first instant cannot be seen starting)', () => {
     for (const first of [0.25, 0.5, 0.777, 1.234]) {

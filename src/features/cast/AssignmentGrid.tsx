@@ -28,7 +28,7 @@ export function AssignmentGrid() {
       {dancers.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border-strong p-4 text-sm text-muted-foreground">
           No dancers yet.{' '}
-          <Link to="../stage" className="text-primary underline">
+          <Link to="../stage" className="text-link underline">
             Add dancers on the Stage tab
           </Link>{' '}
           to assign them to parts.

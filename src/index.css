@@ -17,8 +17,8 @@
   --surface: #ffffff;
   --surface-hover: #f1f5f9;
   --foreground: #0f172a;
-  --muted-foreground: #64748b;
-  --subtle-foreground: #94a3b8;
+  --muted-foreground: #5a6a80;
+  --subtle-foreground: #7a8aa0;
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
 
@@ -27,11 +27,12 @@
   --primary-foreground: #ffffff;
   --primary-soft: #eef2ff;
   --primary-soft-foreground: #3730a3;
+  --link: #4f46e5; /* indigo as TEXT (links); --primary is for fills */
 
   --selected: #f59e0b;
   --selected-soft: #fef3c7;
 
-  --danger: #dc2626;
+  --danger: #c81e1e;
   --danger-soft: #fef2f2;
 
   --overlay: rgb(0 0 0 / 0.3);
@@ -71,15 +72,16 @@
   --surface-hover: #1e293b;
   --foreground: #e2e8f0;
   --muted-foreground: #94a3b8;
-  --subtle-foreground: #64748b;
+  --subtle-foreground: #75849c;
   --border: #263247;
   --border-strong: #334155;
 
-  --primary: #6366f1;
-  --primary-hover: #818cf8;
+  --primary: #5f62ef;
+  --primary-hover: #4f52de; /* darker, not lighter: white text on a lighter indigo is unreadable */
   --primary-foreground: #ffffff;
   --primary-soft: #1e1b4b;
   --primary-soft-foreground: #c7d2fe;
+  --link: #a5b4fc;
 
   --selected: #f59e0b;
   --selected-soft: #422006;
@@ -129,6 +131,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
   --color-primary-soft-foreground: var(--primary-soft-foreground);
+  --color-link: var(--link);
   --color-selected: var(--selected);
   --color-selected-soft: var(--selected-soft);
   --color-danger: var(--danger);

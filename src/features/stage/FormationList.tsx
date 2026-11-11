@@ -56,7 +56,7 @@ function FormationChip({ formation, index, count, selected, onSelect, onMove }: 
         isDragging && 'relative z-10 cursor-grabbing shadow-lg',
       )}
     >
-      <span className="text-subtle-foreground">{index + 1}.</span>
+      <span className="text-muted-foreground">{index + 1}.</span>
       {formation.name || 'Untitled'}
     </Button>
   )
