@@ -312,7 +312,8 @@ test.describe('the stage follows the song', () => {
     await playButton(page).click()
     const heard = () => page.evaluate(() => (window as unknown as { __clicks: number[] }).__clicks)
     await expect.poll(heard, { timeout: 15_000 }).toContain(1600) // waits for count 8, however long the machine takes to start
-    expect(await heard()).toContain(1000)
+    // (on a slow start the ticks before count 8 are already late and skipped, so the ordinary tick may only come with count 9)
+    await expect.poll(heard, { timeout: 15_000 }).toContain(1000)
   })
 })
 

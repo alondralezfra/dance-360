@@ -218,7 +218,8 @@ test.describe('speaker delay', () => {
     await page.reload()
     await expect(page.getByLabel('Delay (ms)')).toHaveValue('220')
     // it belongs to the device, not the project: nothing about it is in the saved project
-    expect(JSON.stringify(await savedProject(page))).not.toContain('220')
+    // (checked by name: the project's random ids can contain any run of digits)
+    expect(JSON.stringify(await savedProject(page)).toLowerCase()).not.toContain('speaker')
   })
 
   test('calibrating plays the clicks, counts the taps, and can be cancelled', async ({ page }) => {
