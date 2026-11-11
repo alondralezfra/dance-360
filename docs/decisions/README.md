@@ -43,3 +43,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0018](0018-tempo-estimate.md) | Estimating a song's tempo and first beat: banded onset curve, coarse then fine search, confidence, no library; fills in only an untouched tempo |
 | [0019](0019-playback-and-the-shared-playhead.md) | Playing the song: one shared playhead driven by the audio, the stage and timeline follow it, metronome, Space, no latency compensation yet |
 | [0020](0020-tap-to-snap-markers-and-speaker-delay.md) | Placing formations on the song: Mark taps re-time the next formation (one undo step per take), draggable timeline markers, a per-device speaker delay with tap-along calibration |
+| [0021](0021-project-backup-files-and-the-error-screen.md) | Backing a project up as a file (no audio; import is always a new copy) and the error screen with a download button |

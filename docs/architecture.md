@@ -35,6 +35,8 @@ src/
     audioRepository.ts         AudioRepository: song files and their cached peaks, found by file hash
     indexedDbAudioRepository.ts, memoryAudioRepository.ts   its two implementations (browser, tests)
     devicePreferences.ts       per-device prefs (which panels are open, the speaker delay); not project data
+    projectFile.ts             a project as a backup file: export, strict parsing + migration of an imported file (decisions/0021)
+    persistentStorage.ts       asks the browser not to clear this site's data
     migrations.ts              versioned upgrades of saved data
     fixtures/                  frozen example of every saved-data version
   store/          Zustand stores, composed from slices.
@@ -50,7 +52,7 @@ src/
   features/       Screens, one folder per feature, each documented in docs/features/.  (enforced)
   components/     Shared UI: ui/ (Button, IconButton, Icon, Input, Select, Checkbox, FileButton, Slider, NumberField, SectionHeader, Drawer, Popover; see components.md), ThemeToggle
   theme/          Theme switching + the canvas colour hook
-  lib/            Small helpers (cn, readableOn, devicePixels, hash, format, typing, playheadClock, useDevicePixelRatio, useElementSize)
+  lib/            Small helpers (cn, readableOn, devicePixels, hash, format, typing, playheadClock, download, useDevicePixelRatio, useElementSize)
   router.tsx      URL map (project screens are tabs: Stage, Cast & Parts, Song)
 ```
 

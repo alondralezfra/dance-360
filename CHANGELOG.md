@@ -4,6 +4,15 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (the safety net: backups and an error screen)
+- **Export and import a project.** Every project on the home screen has an **Export** button that saves a `.dance360.json` file (the whole project; the song's name, length and fingerprint but never the audio), and **Import project** adds one back as a **new project** ("... (imported)") and opens it. Importing never replaces or changes an existing project. A file from an older version is upgraded; one from a newer version, a file that is not a backup, one that is damaged or over 5 MB is refused with a plain message and adds nothing.
+- **An error screen** instead of a blank page when a screen crashes: it says your work is saved automatically, and offers Reload, Back to your projects and, if a project was open, **Download this project** (the same backup file).
+- The browser is asked to keep this site's data (persistent storage) once a project is created or imported, so it is less likely to be cleared.
+- New: `persistence/projectFile.ts`, `persistence/persistentStorage.ts`, `lib/download.ts`, `features/projects/backup.ts` and `ErrorScreen.tsx`, the `download` icon. Decision record 0021. No saved-data change.
+
+### Fixed (projects home)
+- A long project name no longer stretches the projects list past the width of a phone.
+
 ### Added (placing formations on the song: build-order step 3, slice 4)
 - **Mark (tap-to-snap).** A **Mark** button next to Play on the Song tab and the Stage (and the **M** key), available while the song plays. Tap it when the next formation should begin and that formation lands on the nearest whole count. The first tap places the formation after the one the song is in (or the first one, before the dance starts), each tap after places the next, and the dancers' positions are not touched. The bar says what each tap did, and says so when there is nothing left to place. **A whole take of taps is one undo step.**
 - **Drag formation markers on the timeline** to move a formation: snaps to whole counts, shows "Set N · Count M" while dragging, saves when let go (one undo step), cannot pass the formation before it, pushes later ones on instead of passing them, and a drag that is interrupted puts the marker back. Fingers get a bigger target than a mouse; a press away from a marker still scrolls, and a press on a marker that does not move still moves the playhead.

@@ -11,3 +11,13 @@ export const audioRepository: AudioRepository = createIndexedDbAudioRepository()
 
 export type { AudioRepository } from './audioRepository'
 export type { ProjectRepository, ProjectSummary } from './repository'
+export { requestPersistentStorage } from './persistentStorage'
+export {
+  ProjectFileError,
+  exportProjectFile,
+  importedCopy,
+  parseProjectFile,
+  projectFileName,
+  MAX_PROJECT_FILE_BYTES,
+  PROJECT_FILE_KIND,
+} from './projectFile'

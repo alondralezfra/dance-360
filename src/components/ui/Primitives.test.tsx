@@ -19,7 +19,7 @@ describe('Icon', () => {
   })
 
   it('draws every icon, and takes size and colour from the caller', () => {
-    for (const name of ['close', 'chevronLeft', 'chevronRight', 'chevronUp', 'chevronDown', 'sun', 'moon', 'undo', 'redo', 'plus', 'minus', 'play', 'pause', 'flag'] as const) {
+    for (const name of ['close', 'chevronLeft', 'chevronRight', 'chevronUp', 'chevronDown', 'sun', 'moon', 'undo', 'redo', 'plus', 'minus', 'play', 'pause', 'flag', 'download'] as const) {
       const { container, unmount } = render(<Icon name={name} className="size-6 text-danger" />)
       expect(container.querySelectorAll('path').length).toBeGreaterThan(0)
       expect(container.querySelector('svg')).toHaveClass('size-6', 'text-danger')
