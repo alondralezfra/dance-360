@@ -10,6 +10,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 - **Speaker delay.** A new section on the Song tab: type how late this device's speaker sounds (0 to 1000 ms), or **Calibrate by tapping** along to a short click track and let the app measure it. While playing, the dots now show where the music is *heard*, so they line up with the sound on a Bluetooth speaker, and taps are placed using the same offset. Kept on this device, not in the project.
 - New: `model/calibration.ts`, `model/wav.ts`, `firstToPlace` in `model/tapSnap.ts`, `audio/calibration.ts`, `store/speakerStore.ts`, `store/calibrationStore.ts`, `placeFormation` and `undoGroup` in the project store, `record(..., windowMs)` in `model/history.ts`, marker callbacks in `useTimelineGestures`, a `callout` in `drawTimeline`, the `flag` icon. Decision record 0020. No saved-data change (the speaker delay is a device preference).
 
+### Fixed (timeline taps)
+- A tap on the timeline is now judged by when the finger came down and up, not by when the page got round to handling the events. On a busy or slow device (or right after a song is attached, while it is being analysed) a quick tap used to be counted as a long press and ignored, so the playhead did not move.
+
 ### Fixed (tooling)
 - `npm run verify` no longer fails every unit test when it is started from a working directory spelled `c:\...` (lower-case drive letter), which is how Claude Code's Stop hook starts it: Vitest loaded itself twice and reported "Vitest failed to find the current suite". `scripts/verify.mjs` now switches to the canonical spelling first.
 

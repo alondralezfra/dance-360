@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render } from '@testing-library/react'
+import { createEvent, fireEvent, render } from '@testing-library/react'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { xToCount, type TimelineBounds, type TimelineView } from '../../model/timeline'
@@ -177,12 +177,30 @@ describe('useTimelineGestures', () => {
     })
 
     it('is not a tap when held for a long time', () => {
+      const t = setup({ startCount: 50, pxPerCount: 10 })
+      const press = (type: 'pointerDown' | 'pointerUp', stamp: number) => {
+        const event = createEvent[type](t.surface, { pointerId: 1, clientX: 110 })
+        Object.defineProperty(event, 'timeStamp', { value: stamp })
+        fireEvent(t.surface, event)
+      }
+      press('pointerDown', 1000)
+      press('pointerUp', 1800)
+      expect(t.onTap).not.toHaveBeenCalled()
+    })
+
+    it('is judged by when the finger came down and up, not by when a busy page got round to noticing', () => {
+      // The press and release happened 100 ms apart, but the page was too busy to run either handler until 800 ms apart.
       vi.useFakeTimers({ toFake: ['performance'] })
       const t = setup({ startCount: 50, pxPerCount: 10 })
-      pointer(t.surface, 'pointerDown', 1, 110)
+      const press = (type: 'pointerDown' | 'pointerUp', stamp: number) => {
+        const event = createEvent[type](t.surface, { pointerId: 1, clientX: 110 })
+        Object.defineProperty(event, 'timeStamp', { value: stamp })
+        fireEvent(t.surface, event)
+      }
+      press('pointerDown', 1000)
       vi.advanceTimersByTime(800)
-      pointer(t.surface, 'pointerUp', 1, 110)
-      expect(t.onTap).not.toHaveBeenCalled()
+      press('pointerUp', 1100)
+      expect(t.onTap).toHaveBeenCalledTimes(1)
       vi.useRealTimers()
     })
 

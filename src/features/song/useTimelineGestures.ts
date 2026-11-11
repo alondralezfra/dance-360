@@ -78,7 +78,9 @@ export function useTimelineGestures(ref: RefObject<HTMLElement | null>, options:
       el.setPointerCapture?.(e.pointerId)
       pointers.set(e.pointerId, e.clientX)
       const marker = pointers.size === 1 ? (latest.current.markerAt?.(e.clientX - left(), e.pointerType === 'touch') ?? null) : null
-      presses.set(e.pointerId, { x: e.clientX, at: performance.now(), moved: false, marker, dragging: false })
+      // Timed by the event's own timestamp (when the finger came down), not by when this handler runs: a page
+      // that is busy for a moment would otherwise turn a quick tap into a long press and ignore it.
+      presses.set(e.pointerId, { x: e.clientX, at: e.timeStamp, moved: false, marker, dragging: false })
       if (pointers.size === 2) {
         cancelMarkerDrags()
         pinch.spread = spread()
@@ -125,7 +127,7 @@ export function useTimelineGestures(ref: RefObject<HTMLElement | null>, options:
         else latest.current.onMarkerCancel?.(press.marker)
         return
       }
-      if (e.type === 'pointerup' && press && !press.moved && performance.now() - press.at <= TAP_MAX_MS) {
+      if (e.type === 'pointerup' && press && !press.moved && e.timeStamp - press.at <= TAP_MAX_MS) {
         latest.current.onTap?.(e.clientX - left())
       }
     }
