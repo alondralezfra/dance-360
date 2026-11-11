@@ -21,6 +21,7 @@ There was no way to hear the song or watch the formations move against it, which
 - New shared pieces (decision 0011): `Slider`, `play`/`pause` icons, `lib/typing.ts` (shared by the undo and play shortcuts), `timelineBounds` (shared by the timeline and the slider).
 
 ## Not done, on purpose
+*(Update 2026-11-10: speaker-delay compensation, tap-to-snap and marker placement are now built: see [0020](0020-tap-to-snap-markers-and-speaker-delay.md).)*
 - **No output-latency compensation yet.** The dots follow the audio *element's* position; the sound you hear is later by the speaker's delay (tens of milliseconds wired, 150 to 300 ms over Bluetooth). Calibrating it, as a per-device setting, is planned with tap-to-snap (0013, slice 4). Until then Bluetooth speakers make the dots look early.
 - **No slow-down or looping** (not requested for the first version), and **no playback without a song** (counts alone, metronome only).
 - Marker dragging and tap-to-snap placement on the timeline remain the next slice.

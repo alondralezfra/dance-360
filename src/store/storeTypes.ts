@@ -54,6 +54,11 @@ export interface FormationSlice {
   /** Moves a formation to a new place (0-based) in the running order; the landing counts stay in their slots. */
   reorderFormation: (id: Id, toIndex: number) => void
   setFormationCount: (id: Id, count: number) => void
+  /**
+   * Puts a formation on a count the way a tap or a dragged marker does: it keeps its place in the
+   * running order (it cannot land on or before the formation before it) and later ones are pushed on just enough.
+   */
+  placeFormation: (id: Id, count: number) => void
   setFormationTransition: (id: Id, counts: number) => void
   moveDancer: (formationId: Id, dancerId: Id, p: Point) => void
 }
@@ -82,6 +87,12 @@ export interface PartsSlice {
 }
 
 export interface HistorySlice {
+  /**
+   * While a take of taps is open, edits to the formations are one undo step however far apart they are.
+   * Screen state: never saved. `null` when no take is open.
+   */
+  undoGroup: string | null
+  setUndoGroup: (group: string | null) => void
   /** Undo/redo steps for the open project. Session only: never saved, cleared when a project opens or closes. */
   history: History<Project>
   /** Steps back to the project as it was before the latest edit. Does nothing if there is none. */

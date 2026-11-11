@@ -15,7 +15,8 @@ src/
     tempo.ts        counts <-> seconds, "Set 3 · Count 5" labels
     history.ts      undo/redo as a pure snapshot stack (record/undo/redo, typing merge)
     timeline.ts     the timeline panel's maths: count <-> pixel, zoom/pan, grid lines, marker hit-testing, dance length
-    tapSnap.ts      tap-to-snap: a tap time -> a whole count, and placing a formation on it
+    tapSnap.ts      tap-to-snap: a tap time -> a whole count, which formation a take of taps starts with, and placing a formation on a count
+    calibration.ts  speaker-delay measurement: the click track and the delay from the taps (pure); wav.ts packs samples into a WAV file
     peaks.ts        waveform peaks from decoded samples (pure), and the loudness over a stretch of time
     metronome.ts    which metronome clicks fall in a stretch of the song (pure)
     tempoEstimate.ts  estimates a song's tempo and first beat from decoded samples (pure); fft.ts is its spectrum
@@ -23,7 +24,7 @@ src/
     parts.ts        sections/parts/assignments: which parts apply in a section, which part a dancer is in at a count, ordering, gap detection
     project.ts      new-project factory
     types.ts        the saved Project shape
-  audio/          The browser's audio engine, and nothing else: reads a song file (analyze), plays it (player), clicks (metronome). No store/UI/storage imports.   (enforced)
+  audio/          The browser's audio engine, and nothing else: reads a song file (analyze), plays it (player), clicks (metronome), the speaker-delay click track (calibration). No store/UI/storage imports.   (enforced)
   persistence/    Saving projects and song files. Depends on model/ only. (enforced)
     repository.ts              ProjectRepository (what the app uses) and SyncSource (what a future sync engine uses)
     createRepository.ts        the repository, written once over any RecordStore
@@ -33,7 +34,7 @@ src/
     localStorageRepository.ts  the app's repository: localStorage + one-time import of the old prototype save
     audioRepository.ts         AudioRepository: song files and their cached peaks, found by file hash
     indexedDbAudioRepository.ts, memoryAudioRepository.ts   its two implementations (browser, tests)
-    devicePreferences.ts       per-device screen prefs (which panels are open); not project data
+    devicePreferences.ts       per-device prefs (which panels are open, the speaker delay); not project data
     migrations.ts              versioned upgrades of saved data
     fixtures/                  frozen example of every saved-data version
   store/          Zustand stores, composed from slices.
@@ -41,7 +42,8 @@ src/
     history.ts       records every document change for undo (watches the store, like autosave)
     uiStore.ts       selections (not saved)
     layoutStore.ts   which panels are open (remembered per device, not in the project)
-    transport.ts     playing the song: the shared playhead (a count outside React), the player and metronome, play/pause/seek
+    speakerStore.ts  how late this device's speaker is (remembered per device); calibrationStore.ts is the tap-along measurement
+    transport.ts     playing the song: the shared playhead (a count outside React), the player and metronome, play/pause/seek, Mark (tap-to-snap takes), speaker delay
     songStore.ts     the Song tab's state: is the song file on this device, its waveform, busy/error (not saved)
     audioCleanup.ts  clears song files no project uses
     autosave.ts      debounced save of the open project
@@ -84,7 +86,7 @@ The stage: `projectStore.formations` + the shared playhead (`playheadClock`, a c
 
 ### Undo/redo
 
-Undo is a stack of earlier `Project` snapshots in `projectStore.history` (session only, 100 steps, never saved). `store/history.ts` watches the document fields and records the previous document on every change, so new actions are undoable without knowing about undo. `undo()`/`redo()` put a snapshot back and change `history` in the same update (that is how the recorder skips them); autosave then saves the result. Opening or closing a project clears it. [decisions/0012](decisions/0012-undo-redo-as-snapshots.md)
+Undo is a stack of earlier `Project` snapshots in `projectStore.history` (session only, 100 steps, never saved). A take of Mark taps is one step: while `projectStore.undoGroup` is set, formation-only changes merge into the step that opened it. `store/history.ts` watches the document fields and records the previous document on every change, so new actions are undoable without knowing about undo. `undo()`/`redo()` put a snapshot back and change `history` in the same update (that is how the recorder skips them); autosave then saves the result. Opening or closing a project clears it. [decisions/0012](decisions/0012-undo-redo-as-snapshots.md)
 
 ## Saved data
 
@@ -110,4 +112,4 @@ Stored as `dance360:project:<id>` = `{ version, updatedAt, project, sync }`. `sy
 
 ## Planned (from the build order)
 
-Audio + timeline (step 3). Slices 1 to 3 are built (the v4 data shape and timeline maths; the Song tab with audio storage, waveform and timeline: [features/song.md](features/song.md); playing the song with a metronome: [features/transport.md](features/transport.md)); marker placement, tap-to-snap and speaker-delay calibration are designed, not built: [decisions/0013](decisions/0013-audio-and-timeline-architecture.md) (an `audio/` folder for browser audio APIs, `model/timeline.ts`, an `AudioRepository` over IndexedDB, saved-data v4 with `song` and `tempo.changes`, a `transportStore`, `features/timeline/`). Resources and notes; the Overview problems list; accounts and cloud sync (designed in [decisions/0015](decisions/0015-cloud-storage-and-sync.md): a sync engine over `SyncSource`, a Supabase remote store, conflicts that ask).
+Audio + timeline (step 3). Slices 1 to 4 are built (the v4 data shape and timeline maths; the Song tab with audio storage, waveform and timeline: [features/song.md](features/song.md); playing the song with a metronome: [features/transport.md](features/transport.md); tap-to-snap, draggable markers and speaker delay: [decisions/0020](decisions/0020-tap-to-snap-markers-and-speaker-delay.md)); a missing song file is handled on the Song tab: [decisions/0013](decisions/0013-audio-and-timeline-architecture.md) (an `audio/` folder for browser audio APIs, `model/timeline.ts`, an `AudioRepository` over IndexedDB, saved-data v4 with `song` and `tempo.changes`, a `transportStore`, `features/timeline/`). Resources and notes; the Overview problems list; accounts and cloud sync (designed in [decisions/0015](decisions/0015-cloud-storage-and-sync.md): a sync engine over `SyncSource`, a Supabase remote store, conflicts that ask).

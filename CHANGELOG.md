@@ -4,6 +4,22 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (placing formations on the song: build-order step 3, slice 4)
+- **Mark (tap-to-snap).** A **Mark** button next to Play on the Song tab and the Stage (and the **M** key), available while the song plays. Tap it when the next formation should begin and that formation lands on the nearest whole count. The first tap places the formation after the one the song is in (or the first one, before the dance starts), each tap after places the next, and the dancers' positions are not touched. The bar says what each tap did, and says so when there is nothing left to place. **A whole take of taps is one undo step.**
+- **Drag formation markers on the timeline** to move a formation: snaps to whole counts, shows "Set N · Count M" while dragging, saves when let go (one undo step), cannot pass the formation before it, pushes later ones on instead of passing them, and a drag that is interrupted puts the marker back. Fingers get a bigger target than a mouse; a press away from a marker still scrolls, and a press on a marker that does not move still moves the playhead.
+- **Speaker delay.** A new section on the Song tab: type how late this device's speaker sounds (0 to 1000 ms), or **Calibrate by tapping** along to a short click track and let the app measure it. While playing, the dots now show where the music is *heard*, so they line up with the sound on a Bluetooth speaker, and taps are placed using the same offset. Kept on this device, not in the project.
+- New: `model/calibration.ts`, `model/wav.ts`, `firstToPlace` in `model/tapSnap.ts`, `audio/calibration.ts`, `store/speakerStore.ts`, `store/calibrationStore.ts`, `placeFormation` and `undoGroup` in the project store, `record(..., windowMs)` in `model/history.ts`, marker callbacks in `useTimelineGestures`, a `callout` in `drawTimeline`, the `flag` icon. Decision record 0020. No saved-data change (the speaker delay is a device preference).
+
+### Fixed (timeline taps)
+- A tap on the timeline is now judged by when the finger came down and up, not by when the page got round to handling the events. On a busy or slow device (or right after a song is attached, while it is being analysed) a quick tap used to be counted as a long press and ignored, so the playhead did not move.
+
+### Fixed (tooling)
+- `npm run verify` no longer fails every unit test when it is started from a working directory spelled `c:\...` (lower-case drive letter), which is how Claude Code's Stop hook starts it: Vitest loaded itself twice and reported "Vitest failed to find the current suite". `scripts/verify.mjs` now switches to the canonical spelling first.
+
+### Fixed (placing formations)
+- `placeFormationAt` (not reachable from the app before this change) swapped a formation with the next one when placed past it; it now pushes the later one on and keeps the running order.
+- `saveDevicePreferences` now keeps the preferences it was not given instead of replacing them all.
+
 ### Added (docs: operations and quality checklist)
 - `docs/operations-and-quality.md`: the standing checklist for delivery, security, privacy, reliability, accessibility, accounts and AI features, each item with a status and the stage or trigger at which it applies, plus a per-change review and a suggested order of the first slices. Linked from the docs index, the plan and the workflow in CLAUDE.md. No code change.
 

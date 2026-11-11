@@ -9,6 +9,18 @@ interface Options {
   onChange: (view: TimelineView) => void
   /** A tap or click (not a drag): where it was, in pixels from the left edge. */
   onTap?: (x: number) => void
+  /**
+   * Which formation marker (by id) a press at `x` (pixels from the left edge) has grabbed, if any. A press that
+   * lands on a marker and then moves drags that marker instead of scrolling; one that does not move is an ordinary tap.
+   * `touch` is true for a finger (which needs a bigger target than a mouse).
+   */
+  markerAt?: (x: number, touch: boolean) => string | null
+  /** A grabbed marker is being dragged: where the pointer is now, in pixels from the left edge. */
+  onMarkerDrag?: (id: string, x: number) => void
+  /** The dragged marker was let go here. */
+  onMarkerDrop?: (id: string, x: number) => void
+  /** The drag was interrupted (a second finger, or the browser took the pointer): put the marker back. */
+  onMarkerCancel?: (id: string) => void
 }
 
 /** How strongly the mouse wheel zooms: one typical notch (about 100) is a bit over 15%. */
@@ -22,7 +34,8 @@ const LINE_PX = 16
 /**
  * Makes an element scroll and zoom the timeline: drag to scroll, wheel or trackpad
  * to zoom around the pointer (sideways scrolling pans), two fingers to pinch-zoom
- * around the point between them, and a tap or click reports where it was. The maths lives in model/timeline.ts; this only
+ * around the point between them, a tap or click reports where it was, and a press on a
+ * formation marker drags that marker. The maths lives in model/timeline.ts; this only
  * turns pointer events into calls to it. The element needs `touch-action: none`
  * so touch gestures reach it instead of scrolling the page.
  */
@@ -39,7 +52,8 @@ export function useTimelineGestures(ref: RefObject<HTMLElement | null>, options:
 
     const pointers = new Map<number, number>() // pointer id -> x
     // Where and when each press began, and whether it has become a drag or a pinch (so it is not a tap).
-    const presses = new Map<number, { x: number; at: number; moved: boolean }>()
+    // `marker` is the formation a press grabbed; `dragging` once it has moved far enough to be a drag.
+    const presses = new Map<number, { x: number; at: number; moved: boolean; marker: string | null; dragging: boolean }>()
     const pinch = { spread: 0 } // how far apart two fingers were at the last event
 
     const left = () => el.getBoundingClientRect().left
@@ -52,11 +66,23 @@ export function useTimelineGestures(ref: RefObject<HTMLElement | null>, options:
       latest.current.onChange(next)
     }
 
+    // A marker drag that a second finger or the browser interrupts is undone, not dropped.
+    const cancelMarkerDrags = () =>
+      presses.forEach((press) => {
+        if (press.dragging && press.marker) latest.current.onMarkerCancel?.(press.marker)
+        press.dragging = false
+        press.marker = null
+      })
+
     const onDown = (e: PointerEvent) => {
       el.setPointerCapture?.(e.pointerId)
       pointers.set(e.pointerId, e.clientX)
-      presses.set(e.pointerId, { x: e.clientX, at: performance.now(), moved: false })
+      const marker = pointers.size === 1 ? (latest.current.markerAt?.(e.clientX - left(), e.pointerType === 'touch') ?? null) : null
+      // Timed by the event's own timestamp (when the finger came down), not by when this handler runs: a page
+      // that is busy for a moment would otherwise turn a quick tap into a long press and ignore it.
+      presses.set(e.pointerId, { x: e.clientX, at: e.timeStamp, moved: false, marker, dragging: false })
       if (pointers.size === 2) {
+        cancelMarkerDrags()
         pinch.spread = spread()
         presses.forEach((press) => (press.moved = true)) // two fingers: a pinch, never a tap
       }
@@ -64,10 +90,20 @@ export function useTimelineGestures(ref: RefObject<HTMLElement | null>, options:
 
     const onMove = (e: PointerEvent) => {
       const before = pointers.get(e.pointerId)
-      if (before === undefined) return
+      if (before === undefined) {
+        // Nothing pressed: just show whether a press here would grab a marker.
+        const over = pointers.size === 0 && latest.current.markerAt?.(e.clientX - left(), e.pointerType === 'touch')
+        el.style.cursor = over ? 'ew-resize' : ''
+        return
+      }
       pointers.set(e.pointerId, e.clientX)
       const press = presses.get(e.pointerId)
       if (press && Math.abs(e.clientX - press.x) > TAP_SLOP_PX) press.moved = true
+      if (press?.marker && (press.dragging || press.moved)) {
+        press.dragging = true
+        latest.current.onMarkerDrag?.(press.marker, e.clientX - left())
+        return // the marker moves; the timeline does not scroll
+      }
       const { view, widthPx, bounds } = latest.current
       if (pointers.size === 1) {
         apply(panBy(view, e.clientX - before, widthPx, bounds))
@@ -86,7 +122,12 @@ export function useTimelineGestures(ref: RefObject<HTMLElement | null>, options:
       presses.delete(e.pointerId)
       pointers.delete(e.pointerId)
       pinch.spread = pointers.size === 2 ? spread() : 0
-      if (e.type === 'pointerup' && press && !press.moved && performance.now() - press.at <= TAP_MAX_MS) {
+      if (press?.dragging && press.marker) {
+        if (e.type === 'pointerup') latest.current.onMarkerDrop?.(press.marker, e.clientX - left())
+        else latest.current.onMarkerCancel?.(press.marker)
+        return
+      }
+      if (e.type === 'pointerup' && press && !press.moved && e.timeStamp - press.at <= TAP_MAX_MS) {
         latest.current.onTap?.(e.clientX - left())
       }
     }

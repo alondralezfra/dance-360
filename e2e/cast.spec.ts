@@ -268,7 +268,8 @@ test.describe('part colours on the stage', () => {
     await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
     await goToStage(page)
 
-    await page.getByRole('listitem').click() // select in the dancer list
+    // Select in the dancer list. (A bare listitem would also match the Cast page's lists while the route is still changing.)
+    await page.getByRole('listitem').filter({ has: page.getByRole('button', { name: 'Remove Maya' }) }).click()
     expectColor(await dotColor(page, FIRST_SPOT), rgb('#0072b2')) // fill unchanged
   })
 })

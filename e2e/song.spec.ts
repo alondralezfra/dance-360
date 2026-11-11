@@ -132,6 +132,7 @@ test.describe('the song tab', () => {
     await page.getByRole('button', { name: 'Fit' }).click()
     await expect.poll(() => timelineImage(page)).toBe(fitted)
 
+    await page.locator('canvas[role="img"]').scrollIntoViewIfNeeded() // a mouse at coordinates below the visible window reaches nothing
     const box = (await page.locator('canvas[role="img"]').boundingBox())!
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
     await page.mouse.wheel(0, -400)

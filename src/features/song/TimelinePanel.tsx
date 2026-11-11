@@ -5,7 +5,18 @@ import { SectionHeader } from '../../components/ui/SectionHeader'
 import { formatDuration } from '../../lib/format'
 import { useDevicePixelRatio } from '../../lib/useDevicePixelRatio'
 import { useElementSize } from '../../lib/useElementSize'
-import { clampView, fitView, followPlayhead, snapCountAt, timelineBounds, zoomAt, type TimelineView } from '../../model/timeline'
+import { placeFormationAt } from '../../model/tapSnap'
+import { formatCount } from '../../model/tempo'
+import {
+  clampView,
+  fitView,
+  followPlayhead,
+  nearestMarker,
+  snapCountAt,
+  timelineBounds,
+  zoomAt,
+  type TimelineView,
+} from '../../model/timeline'
 import { useProject } from '../../store/projectStore'
 import { useSong } from '../../store/songStore'
 import { playheadClock, useTransport } from '../../store/transport'
@@ -16,11 +27,14 @@ import { useTimelineGestures } from './useTimelineGestures'
 const HEIGHT = 190
 /** How much one press of a zoom button changes the zoom. */
 const ZOOM_STEP = 1.5
+/** How close (in pixels) a press has to be to a formation marker to grab it: a finger needs more than a mouse. */
+const GRAB_MOUSE_PX = 12
+const GRAB_TOUCH_PX = 22
 
 /**
  * The song laid out against the counts: waveform, set and count grid, and a marker
- * for each formation. Drag to scroll, wheel or pinch to zoom. (Placing formations on
- * it comes in a later slice; today it shows where they are.)
+ * for each formation. Drag to scroll, wheel or pinch to zoom, tap to move the playhead, and drag a
+ * numbered marker to move that formation to another count (it snaps to whole counts, and one drag is one undo step).
  */
 export function TimelinePanel() {
   const tempo = useProject((s) => s.tempo)
@@ -29,6 +43,7 @@ export function TimelinePanel() {
   const peaks = useSong((s) => s.peaks)
   const playing = useTransport((s) => s.playing)
   const seek = useTransport((s) => s.seek)
+  const placeFormation = useProject((s) => s.placeFormation)
   const theme = useCanvasTheme()
   const dpr = useDevicePixelRatio()
   const [boxRef, size] = useElementSize<HTMLDivElement>()
@@ -55,13 +70,29 @@ export function TimelinePanel() {
     [chosen, width, bounds],
   )
 
-  // A tap or click puts the playhead there (on the nearest count).
+  // A marker being dragged: which, and the count it would land on. Nothing is saved until it is let go.
+  const [drag, setDrag] = useState<{ id: string; count: number } | null>(null)
+  const dragCount = (x: number) => Math.min(snapCountAt(x, view, 0), bounds.maxCount)
+  const shown = useMemo(() => (drag ? placeFormationAt(formations, drag.id, drag.count) : formations), [formations, drag])
+  const callout = useMemo(() => {
+    const landed = drag && shown.find((f) => f.id === drag.id)
+    return landed ? { count: landed.count, text: formatCount(landed.count) } : null
+  }, [drag, shown])
+
   useTimelineGestures(boxRef, {
     view,
     widthPx: width,
     bounds,
     onChange: choose,
+    // A tap or click puts the playhead there (on the nearest count).
     onTap: (x) => seek(snapCountAt(x, view, bounds.minCount)),
+    markerAt: (x, touch) => nearestMarker(formations, x, view, touch ? GRAB_TOUCH_PX : GRAB_MOUSE_PX),
+    onMarkerDrag: (id, x) => setDrag({ id, count: dragCount(x) }),
+    onMarkerDrop: (id, x) => {
+      placeFormation(id, dragCount(x))
+      setDrag(null)
+    },
+    onMarkerCancel: () => setDrag(null),
   })
 
   // The latest view, for the playhead follower below (which runs every frame and must not be re-attached each time).
@@ -82,11 +113,22 @@ export function TimelinePanel() {
     // The playhead moves every frame: redraw the canvas directly instead of re-rendering React.
     const paint = () => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      drawTimeline(ctx, { width, height: HEIGHT, dpr, view, tempo, formations, peaks, playhead: playheadClock.get(), theme })
+      drawTimeline(ctx, {
+        width,
+        height: HEIGHT,
+        dpr,
+        view,
+        tempo,
+        formations: shown,
+        peaks,
+        playhead: playheadClock.get(),
+        callout,
+        theme,
+      })
     }
     paint()
     return playheadClock.subscribe(paint)
-  }, [width, dpr, view, tempo, formations, peaks, theme])
+  }, [width, dpr, view, tempo, shown, callout, peaks, theme])
 
   // Turn the page when the playing song runs off the edge. (Only the rare page turn is a React update.)
   useEffect(
@@ -117,7 +159,7 @@ export function TimelinePanel() {
           </div>
         }
       >
-        Tap to move the playhead. Drag to scroll. Use the mouse wheel, a trackpad or two fingers to zoom. Numbered markers are your formations.
+        Tap to move the playhead. Drag to scroll. Use the mouse wheel, a trackpad or two fingers to zoom. Numbered markers are your formations: drag one to move it.
       </SectionHeader>
 
       <div

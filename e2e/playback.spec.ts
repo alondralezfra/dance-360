@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect as baseExpect, test, type Page } from '@playwright/test'
 import {
   addDancer,
   beatsWav,
@@ -15,6 +15,10 @@ import {
   waitForSaved,
   wavFile,
 } from './helpers'
+
+// Starting audio can take several seconds on a busy machine (a CI runner, or this suite running in parallel):
+// give the page longer than the default 5 s to show that it has.
+const expect = baseExpect.configure({ timeout: 15_000 })
 
 // Real audio, played by the real browser. The song is made-up music at 120 BPM (two counts a second) whose
 // first beat is at 0.5 s, so the tempo estimate fills in 120 BPM and a start point of about 0.5 s, and
@@ -53,7 +57,7 @@ test.describe('playing the song', () => {
 
     await playButton(page).click()
     await expect(pauseButton(page)).toBeVisible()
-    await expect.poll(() => position(page), { timeout: 8000 }).toBeGreaterThanOrEqual(4)
+    await expect.poll(() => position(page), { timeout: 20_000 }).toBeGreaterThanOrEqual(4)
 
     await pauseButton(page).click()
     await expect(playButton(page)).toBeVisible()
@@ -80,7 +84,7 @@ test.describe('playing the song', () => {
     await attachSong(page)
     const still = await timelineImage(page)
     await playButton(page).click()
-    await expect.poll(() => timelineImage(page), { timeout: 8000 }).not.toBe(still)
+    await expect.poll(() => timelineImage(page), { timeout: 20_000 }).not.toBe(still)
     await pauseButton(page).click()
     const paused = await timelineImage(page)
     await page.waitForTimeout(700)
@@ -109,12 +113,17 @@ test.describe('playing the song', () => {
     await goToStage(page)
     await expect(pauseButton(page)).toBeVisible()
     const before = await position(page)
-    await expect.poll(() => position(page), { timeout: 8000 }).toBeGreaterThan(before)
+    await expect.poll(() => position(page), { timeout: 20_000 }).toBeGreaterThan(before)
   })
 
   test('tapping the timeline moves the playhead to that count', async ({ page }) => {
     await attachSong(page)
-    const box = (await page.locator('canvas[role="img"]').boundingBox())!
+    const canvas = page.locator('canvas[role="img"]')
+    // (a tap before the timeline has measured itself and attached its listeners is ignored)
+    await expect.poll(() => canvas.evaluate((c: HTMLCanvasElement) => c.width)).toBeGreaterThan(0)
+    // (a click at coordinates below the visible window goes nowhere, and the timeline is near the bottom of the page)
+    await canvas.scrollIntoViewIfNeeded()
+    const box = (await canvas.boundingBox())!
     await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.6)
     await expect.poll(() => position(page)).toBeGreaterThan(10) // about halfway through a 30 s, 60 count song
     const after = await position(page)
@@ -122,7 +131,7 @@ test.describe('playing the song', () => {
 
     // playing starts from there
     await playButton(page).click()
-    await expect.poll(() => position(page), { timeout: 8000 }).toBeGreaterThan(after + 1)
+    await expect.poll(() => position(page)).toBeGreaterThan(after + 1)
   })
 
   test('dragging the slider while playing jumps the song there', async ({ page }) => {
@@ -130,7 +139,7 @@ test.describe('playing the song', () => {
     await playButton(page).click()
     await expect(pauseButton(page)).toBeVisible()
     await slider(page).fill('40')
-    await expect.poll(() => position(page), { timeout: 8000 }).toBeGreaterThanOrEqual(40)
+    await expect.poll(() => position(page), { timeout: 20_000 }).toBeGreaterThanOrEqual(40)
     await expect(pauseButton(page)).toBeVisible() // still playing
   })
 
@@ -272,13 +281,12 @@ test.describe('the stage follows the song', () => {
 
     await slider(page).fill('0')
     await playButton(page).click() // metronome is off
-    await page.waitForTimeout(1500)
+    await expect.poll(() => position(page), { timeout: 15_000 }).toBeGreaterThanOrEqual(2) // really playing (however slow the machine)
     expect(await clicks()).toEqual([])
 
     await page.getByRole('checkbox', { name: 'Click on every count' }).check()
-    await page.waitForTimeout(2600) // about five counts
+    await expect.poll(async () => (await clicks()).length, { timeout: 15_000 }).toBeGreaterThanOrEqual(3)
     const heard = await clicks()
-    expect(heard.length).toBeGreaterThanOrEqual(3)
     expect(heard.length).toBeLessThanOrEqual(8)
     expect(heard).toContain(1000) // the ordinary tick
 
@@ -302,10 +310,10 @@ test.describe('the stage follows the song', () => {
     await page.getByRole('checkbox', { name: 'Click on every count' }).check()
     await slider(page).fill('6') // so count 8, the start of the second set, comes up in about a second
     await playButton(page).click()
-    await page.waitForTimeout(2200)
-    const heard = await page.evaluate(() => (window as unknown as { __clicks: number[] }).__clicks)
-    expect(heard).toContain(1600)
-    expect(heard).toContain(1000)
+    const heard = () => page.evaluate(() => (window as unknown as { __clicks: number[] }).__clicks)
+    await expect.poll(heard, { timeout: 15_000 }).toContain(1600) // waits for count 8, however long the machine takes to start
+    // (on a slow start the ticks before count 8 are already late and skipped, so the ordinary tick may only come with count 9)
+    await expect.poll(heard, { timeout: 15_000 }).toContain(1000)
   })
 })
 
@@ -328,6 +336,10 @@ test.describe('playback on a phone', () => {
       const range = (await slider(page).boundingBox())!
       expect(range.height).toBeGreaterThanOrEqual(40)
       expect(range.x + range.width).toBeLessThanOrEqual(390)
+      await expect(page.getByRole('button', { name: 'Mark', exact: true })).toBeVisible()
+      const mark = (await page.getByRole('button', { name: 'Mark', exact: true }).boundingBox())!
+      expect(mark.height).toBeGreaterThanOrEqual(40)
+      expect(mark.x + mark.width).toBeLessThanOrEqual(390)
       await expect(page.getByRole('checkbox', { name: 'Click on every count' })).toBeVisible()
       const box = (await page.getByRole('checkbox', { name: 'Click on every count' }).boundingBox())!
       expect(box.x + box.width).toBeLessThanOrEqual(390)
@@ -358,7 +370,7 @@ test.describe('playback on a phone', () => {
     await goToSong(page)
     await attachSong(page)
     await playButton(page).tap()
-    await expect.poll(() => position(page), { timeout: 8000 }).toBeGreaterThanOrEqual(3)
+    await expect.poll(() => position(page), { timeout: 20_000 }).toBeGreaterThanOrEqual(3)
     await pauseButton(page).tap()
     await expect(playButton(page)).toBeVisible()
   })

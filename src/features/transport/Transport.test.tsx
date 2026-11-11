@@ -12,6 +12,7 @@ import { usePlaybackShortcut } from './usePlaybackShortcut'
 const song: Song = { name: 'a.mp3', durationSec: 60, size: 1, mime: 'audio/mpeg', hash: 'h' }
 const actions = () => ({
   toggle: vi.fn().mockResolvedValue(undefined),
+  mark: vi.fn(),
   seek: vi.fn(),
   setMetronome: vi.fn(),
   dismissError: vi.fn(),
@@ -19,7 +20,7 @@ const actions = () => ({
 
 beforeEach(() => {
   useProject.setState({ ...createEmptyProject(), projectId: 'p', status: 'ready', song })
-  useTransport.setState({ playing: false, loading: false, metronome: false, error: null, ...actions() })
+  useTransport.setState({ playing: false, loading: false, metronome: false, error: null, markMessage: null, ...actions() })
   playheadClock.set(0)
 })
 
@@ -67,6 +68,40 @@ describe('TransportBar', () => {
       expect(toggle).toHaveBeenCalled()
       expect(screen.getByRole('slider', { name: 'Playback position' })).toBeInTheDocument()
       expect(screen.getByRole('checkbox', { name: 'Click on every count' })).toBeInTheDocument()
+    })
+  })
+
+  describe('the Mark button (tap-to-snap)', () => {
+    it('is switched off until the song is playing, and says how it works', () => {
+      render(<TransportBar />)
+      const mark = screen.getByRole('button', { name: 'Mark' })
+      expect(mark).toBeDisabled()
+      expect(mark).toHaveAttribute('title', expect.stringContaining('Press Play, then tap this (or press M)'))
+      expect(screen.getByText(/play the song and tap Mark/)).toBeInTheDocument()
+    })
+
+    it('marks the next formation when pressed while playing', async () => {
+      const user = userEvent.setup()
+      const { mark } = actions()
+      useTransport.setState({ mark, playing: true })
+      render(<TransportBar />)
+      await user.click(screen.getByRole('button', { name: 'Mark' }))
+      expect(mark).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows what the last tap did, in the line below and to screen readers', () => {
+      render(<TransportBar />)
+      act(() => useTransport.setState({ markMessage: 'Two placed at Set 2 · Count 3' }))
+      expect(screen.getAllByText('Two placed at Set 2 · Count 3')).toHaveLength(2) // the visible line and the live region
+      expect(screen.getByRole('status')).toHaveTextContent('Two placed at Set 2 · Count 3')
+      expect(screen.queryByText(/play the song and tap Mark/)).toBeNull()
+    })
+
+    it('is on the compact bar too, with the message for screen readers only', () => {
+      render(<TransportBar compact />)
+      expect(screen.getByRole('button', { name: 'Mark' })).toBeInTheDocument()
+      act(() => useTransport.setState({ markMessage: 'Two placed at Set 2 · Count 3' }))
+      expect(screen.getAllByText('Two placed at Set 2 · Count 3')).toHaveLength(1) // no visible line (height is precious)
     })
   })
 
@@ -207,6 +242,50 @@ describe('usePlaybackShortcut', () => {
       expect(space(target)).toBe(true) // not prevented
     }
     expect(toggle).not.toHaveBeenCalled()
+  })
+
+  describe('M marks the next formation', () => {
+    const m = (target: Element | Window = window, init: KeyboardEventInit = {}) => fireEvent.keyDown(target, { key: 'm', ...init })
+
+    it('while the song is playing, and keeps the key for the page', () => {
+      const { mark } = actions()
+      useTransport.setState({ mark, playing: true })
+      render(<Page />)
+      expect(m()).toBe(false) // default prevented
+      expect(mark).toHaveBeenCalledTimes(1)
+    })
+
+    it('does nothing when the song is not playing (and leaves the key alone)', () => {
+      const { mark } = actions()
+      useTransport.setState({ mark, playing: false })
+      render(<Page />)
+      expect(m()).toBe(true)
+      expect(mark).not.toHaveBeenCalled()
+    })
+
+    it('works as a capital letter (caps lock) too', () => {
+      const { mark } = actions()
+      useTransport.setState({ mark, playing: true })
+      render(<Page />)
+      fireEvent.keyDown(window, { key: 'M' })
+      expect(mark).toHaveBeenCalledTimes(1)
+    })
+
+    it('stays out of the way of typing and controls, modifiers, key repeat and a project with no song', () => {
+      const { mark } = actions()
+      useTransport.setState({ mark, playing: true })
+      render(<Page />)
+      m(screen.getByLabelText('A text box'))
+      m(screen.getByRole('button', { name: 'A button' }))
+      m(window, { ctrlKey: true })
+      m(window, { metaKey: true })
+      m(window, { altKey: true })
+      m(window, { shiftKey: true })
+      m(window, { repeat: true })
+      useProject.setState({ song: null })
+      m()
+      expect(mark).not.toHaveBeenCalled()
+    })
   })
 
   it('ignores Space with a modifier, and key repeat (a held key must not flip it back and forth)', () => {

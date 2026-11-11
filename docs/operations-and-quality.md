@@ -30,7 +30,7 @@ Work is grouped by what must be true before the next audience can use the app. E
 |---|---|---|
 | CI on every pull request and push to `main` | **Done** | `.github/workflows/ci.yml` runs `npm run verify` on Ubuntu with Playwright's Chromium. Protect `main` and require **CI / verify** (a setting on GitHub, owned by the project owner). |
 | Unit, component, architecture, e2e, regression tests | **Done** | See [testing.md](testing.md). Bug fixes start with a failing test. |
-| Make new tests CI-proof before pushing | **Now** | Stress changed e2e specs with `CI=1 ... --repeat-each=5`, wait before measuring, leave margin on numeric layout limits (three CI failures on the playback branch came from skipping this). Should become a documented step in testing.md. |
+| Make new tests CI-proof before pushing | **Done** (a habit, documented) | Stress changed e2e specs with `CI=1 ... --repeat-each=3 --workers=6`, wait before measuring, leave margin on numeric layout limits (three CI failures on the playback branch came from skipping this). Now a step in testing.md. |
 | Dependency audit and automatic update PRs | **Now** | Add `npm audit --omit=dev` (fail on high/critical) to CI and Dependabot (npm + GitHub Actions). Today there is neither. |
 | Secret scanning and keeping secrets out of the repo | **Now** (cheap) / **Stage 2** (real) | No secrets exist today. Add secret scanning (GitHub push protection, or gitleaks in CI) now so the habit is in place; `.env*` stays ignored, and only the Supabase *anon* key ever reaches the browser. |
 | Continuous deployment to a preview URL on each PR, and to staging on merge | **Stage 1** | Static hosting is enough (the app is a static build). Production only deploys from `main` after CI is green. |

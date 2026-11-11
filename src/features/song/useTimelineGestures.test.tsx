@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render } from '@testing-library/react'
+import { createEvent, fireEvent, render } from '@testing-library/react'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { xToCount, type TimelineBounds, type TimelineView } from '../../model/timeline'
@@ -177,12 +177,30 @@ describe('useTimelineGestures', () => {
     })
 
     it('is not a tap when held for a long time', () => {
+      const t = setup({ startCount: 50, pxPerCount: 10 })
+      const press = (type: 'pointerDown' | 'pointerUp', stamp: number) => {
+        const event = createEvent[type](t.surface, { pointerId: 1, clientX: 110 })
+        Object.defineProperty(event, 'timeStamp', { value: stamp })
+        fireEvent(t.surface, event)
+      }
+      press('pointerDown', 1000)
+      press('pointerUp', 1800)
+      expect(t.onTap).not.toHaveBeenCalled()
+    })
+
+    it('is judged by when the finger came down and up, not by when a busy page got round to noticing', () => {
+      // The press and release happened 100 ms apart, but the page was too busy to run either handler until 800 ms apart.
       vi.useFakeTimers({ toFake: ['performance'] })
       const t = setup({ startCount: 50, pxPerCount: 10 })
-      pointer(t.surface, 'pointerDown', 1, 110)
+      const press = (type: 'pointerDown' | 'pointerUp', stamp: number) => {
+        const event = createEvent[type](t.surface, { pointerId: 1, clientX: 110 })
+        Object.defineProperty(event, 'timeStamp', { value: stamp })
+        fireEvent(t.surface, event)
+      }
+      press('pointerDown', 1000)
       vi.advanceTimersByTime(800)
-      pointer(t.surface, 'pointerUp', 1, 110)
-      expect(t.onTap).not.toHaveBeenCalled()
+      press('pointerUp', 1100)
+      expect(t.onTap).toHaveBeenCalledTimes(1)
       vi.useRealTimers()
     })
 
@@ -217,4 +235,106 @@ describe('useTimelineGestures', () => {
     })
   })
 
+})
+
+describe('dragging a formation marker', () => {
+  /** A timeline whose only marker is at x = 60 (pixels from the left edge; the surface starts at clientX 10, so clientX 70). */
+  function setupMarker() {
+    const onChange = vi.fn<(v: TimelineView) => void>()
+    const onTap = vi.fn<(x: number) => void>()
+    const onMarkerDrag = vi.fn<(id: string, x: number) => void>()
+    const onMarkerDrop = vi.fn<(id: string, x: number) => void>()
+    const onMarkerCancel = vi.fn<(id: string) => void>()
+    const markerAt = vi.fn((x: number, touch: boolean) => (Math.abs(x - 60) <= (touch ? 22 : 12) ? 'f1' : null))
+    const view: TimelineView = { startCount: 0, pxPerCount: 10 }
+    function Surface() {
+      const ref = useRef<HTMLDivElement>(null)
+      useTimelineGestures(ref, { view, widthPx: WIDTH, bounds, onChange, onTap, markerAt, onMarkerDrag, onMarkerDrop, onMarkerCancel })
+      return <div ref={ref} data-testid="surface" />
+    }
+    const { container } = render(<Surface />)
+    const surface = container.querySelector('[data-testid="surface"]') as HTMLElement
+    surface.setPointerCapture = vi.fn()
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({ left: 10 } as DOMRect)
+    return { surface, onChange, onTap, onMarkerDrag, onMarkerDrop, onMarkerCancel, markerAt }
+  }
+  const touch = (el: Element, type: 'pointerDown' | 'pointerMove' | 'pointerUp', id: number, x: number) =>
+    fireEvent[type](el, { pointerId: id, clientX: x, pointerType: 'touch' })
+
+  it('drags the marker instead of scrolling, and drops it where the pointer is let go', () => {
+    const t = setupMarker()
+    pointer(t.surface, 'pointerDown', 1, 70) // on the marker
+    pointer(t.surface, 'pointerMove', 1, 100)
+    pointer(t.surface, 'pointerMove', 1, 130)
+    expect(t.onMarkerDrag).toHaveBeenNthCalledWith(1, 'f1', 90)
+    expect(t.onMarkerDrag).toHaveBeenNthCalledWith(2, 'f1', 120)
+    expect(t.onChange).not.toHaveBeenCalled() // the timeline did not scroll
+    pointer(t.surface, 'pointerUp', 1, 130)
+    expect(t.onMarkerDrop).toHaveBeenCalledExactlyOnceWith('f1', 120)
+    expect(t.onTap).not.toHaveBeenCalled()
+  })
+
+  it('treats a press on a marker that barely moves as an ordinary tap', () => {
+    const t = setupMarker()
+    pointer(t.surface, 'pointerDown', 1, 70)
+    pointer(t.surface, 'pointerMove', 1, 72)
+    pointer(t.surface, 'pointerUp', 1, 72)
+    expect(t.onTap).toHaveBeenCalledWith(62)
+    expect(t.onMarkerDrag).not.toHaveBeenCalled()
+    expect(t.onMarkerDrop).not.toHaveBeenCalled()
+  })
+
+  it('scrolls as usual when the press is not on a marker', () => {
+    const t = setupMarker()
+    pointer(t.surface, 'pointerDown', 1, 200)
+    pointer(t.surface, 'pointerMove', 1, 230)
+    expect(t.onChange).toHaveBeenCalled()
+    expect(t.onMarkerDrag).not.toHaveBeenCalled()
+  })
+
+  it('uses a bigger target for a finger than for a mouse', () => {
+    const t = setupMarker()
+    pointer(t.surface, 'pointerDown', 1, 90) // 20px from the marker: out of reach of a mouse
+    pointer(t.surface, 'pointerMove', 1, 130)
+    expect(t.onMarkerDrag).not.toHaveBeenCalled()
+    pointer(t.surface, 'pointerUp', 1, 130)
+
+    touch(t.surface, 'pointerDown', 2, 90) // ...but a finger gets it
+    touch(t.surface, 'pointerMove', 2, 130)
+    expect(t.onMarkerDrag).toHaveBeenCalledWith('f1', 120)
+    expect(t.markerAt).toHaveBeenLastCalledWith(80, true)
+  })
+
+  it('puts the marker back when a second finger lands (that is a pinch now)', () => {
+    const t = setupMarker()
+    touch(t.surface, 'pointerDown', 1, 70)
+    touch(t.surface, 'pointerMove', 1, 110)
+    touch(t.surface, 'pointerDown', 2, 200)
+    expect(t.onMarkerCancel).toHaveBeenCalledExactlyOnceWith('f1')
+    touch(t.surface, 'pointerUp', 1, 110)
+    expect(t.onMarkerDrop).not.toHaveBeenCalled()
+  })
+
+  it('puts the marker back when the browser cancels the pointer', () => {
+    const t = setupMarker()
+    pointer(t.surface, 'pointerDown', 1, 70)
+    pointer(t.surface, 'pointerMove', 1, 110)
+    pointer(t.surface, 'pointerCancel', 1, 110)
+    expect(t.onMarkerCancel).toHaveBeenCalledExactlyOnceWith('f1')
+    expect(t.onMarkerDrop).not.toHaveBeenCalled()
+  })
+
+  it('shows a resize cursor over a marker, and takes it away elsewhere', () => {
+    const t = setupMarker()
+    pointer(t.surface, 'pointerMove', 1, 70)
+    expect(t.surface.style.cursor).toBe('ew-resize')
+    pointer(t.surface, 'pointerMove', 1, 250)
+    expect(t.surface.style.cursor).toBe('')
+  })
+
+  it('does not change anything for a timeline with no markers to grab', () => {
+    const t = setup({ startCount: 50, pxPerCount: 10 })
+    pointer(t.surface, 'pointerMove', 1, 70)
+    expect(t.surface.style.cursor).toBe('')
+  })
 })

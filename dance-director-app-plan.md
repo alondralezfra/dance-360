@@ -49,7 +49,7 @@ Formations are stored as **"Set X, Count Y"**, never as raw timestamps. The temp
 5. *(Optional)* **No-audio mode:** build with counts and a metronome, attach the final audio later.
 6. *(Optional)* **Song section labels:** markers like "verse / chorus / drop" for fast navigation.
 
-Manual BPM and start-offset adjustment must always be available. *Play and pause, a moving playhead on the timeline and stage, scrubbing, and a metronome click are built (docs/decisions/0019); tap-to-snap placement is next.*
+Manual BPM and start-offset adjustment must always be available. *Play and pause, a moving playhead on the timeline and stage, scrubbing, and a metronome click are built (docs/decisions/0019); tap-to-snap (Mark), draggable timeline markers and a per-device speaker delay with tap-along calibration are built too (docs/decisions/0020).*
 
 ### 3.3 Transitions
 

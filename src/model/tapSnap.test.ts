@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { placeFormationAt, tapToCount } from './tapSnap'
+import { firstToPlace, placeFormationAt, tapToCount } from './tapSnap'
 import type { Formation } from './types'
 
 const f = (id: string, count: number): Formation => ({ id, name: id, count, transitionCounts: 4, positions: {} })
@@ -48,6 +48,13 @@ describe('placeFormationAt', () => {
     expect(out.map((x) => [x.id, x.count])).toEqual([['a', 0], ['b', 16], ['c', 17]])
   })
 
+  it('placed past the next formation, it pushes that one on instead of swapping places with it', () => {
+    const out = placeFormationAt(list(), 'b', 20)
+    expect(out.map((x) => [x.id, x.count])).toEqual([['a', 0], ['b', 20], ['c', 21]])
+    const far = placeFormationAt([f('a', 0), f('b', 8), f('c', 9), f('d', 40)], 'b', 12)
+    expect(far.map((x) => x.count)).toEqual([0, 12, 13, 40]) // d is far enough away to stay put
+  })
+
   it('cannot land on or before the formation before it', () => {
     expect(placeFormationAt(list(), 'b', 0).map((x) => x.count)).toEqual([0, 1, 16])
     expect(placeFormationAt(list(), 'c', 3).map((x) => x.count)).toEqual([0, 8, 9])
@@ -81,5 +88,33 @@ describe('placeFormationAt', () => {
       formations = placeFormationAt(formations, id, tapToCount(tapSec, tempo))
     }
     expect(formations.map((x) => x.count)).toEqual([0, 8, 16])
+  })
+})
+
+describe('firstToPlace', () => {
+  const list = [f('a', 0), f('b', 8), f('c', 16)]
+
+  it('is the formation after the one the song is in', () => {
+    expect(firstToPlace(list, 3)).toBe(1)
+    expect(firstToPlace(list, 8)).toBe(2) // b has landed at 8
+    expect(firstToPlace(list, 12)).toBe(2)
+  })
+
+  it('is the first formation while the song is before it (the tap says where the dance starts)', () => {
+    const late = [f('a', 8), f('b', 16)]
+    expect(firstToPlace(late, -3)).toBe(0)
+    expect(firstToPlace(late, 4)).toBe(0)
+    expect(firstToPlace(late, 8)).toBe(1)
+  })
+
+  it('is -1 when the song is in the last formation (nothing left to place), or there are none', () => {
+    expect(firstToPlace(list, 16)).toBe(-1)
+    expect(firstToPlace(list, 99)).toBe(-1)
+    expect(firstToPlace([], 5)).toBe(-1)
+  })
+
+  it('treats a lone formation as the one to place until it has landed', () => {
+    expect(firstToPlace([f('a', 0)], -1)).toBe(0)
+    expect(firstToPlace([f('a', 0)], 0)).toBe(-1)
   })
 })

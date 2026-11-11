@@ -30,11 +30,18 @@ export const canRedo = (h: History<unknown>) => h.future.length > 0
 /**
  * Remember `before` (the document as it was) because it just changed. Any redo
  * history is dropped, as in every editor. If `group` matches the previous step's
- * group and it was moments ago, nothing is added: the earlier snapshot is already
- * the state before the whole burst.
+ * group and it was moments ago (within `windowMs`), nothing is added: the earlier
+ * snapshot is already the state before the whole burst. A group the person opened on
+ * purpose (a take of taps) passes `Infinity` so it lasts as long as it is open.
  */
-export function record<D>(h: History<D>, before: D, group: string | null, now: number): History<D> {
-  const merge = group !== null && h.lastGroup?.key === group && now - h.lastGroup.at < COALESCE_MS
+export function record<D>(
+  h: History<D>,
+  before: D,
+  group: string | null,
+  now: number,
+  windowMs: number = COALESCE_MS,
+): History<D> {
+  const merge = group !== null && h.lastGroup?.key === group && now - h.lastGroup.at < windowMs
   if (merge) return { past: h.past, future: [], lastGroup: { key: group, at: now } }
   return {
     past: [...h.past, before].slice(-MAX_HISTORY),

@@ -32,7 +32,7 @@ A change isn't done until `npm run verify` passes. See [docs/testing.md](docs/te
 - [x] 0. Foundation: versioned persistence, playback engine, themed UI kit, routing, tests
 - [x] 1. Static formation editor (stage + dots + multiple formations, with timing in counts)
 - [x] 2. Roster + parts + assignment grid, linked to dot colors
-- [ ] 3. Audio + tempo map + timeline + playback *(in progress: data model, the Song tab with audio storage, waveform, a static timeline and tempo/first-beat estimation and playback with a metronome are done; tap-to-snap placement and speaker-delay calibration to come)*
+- [x] 3. Audio + tempo map + timeline + playback *(data model, the Song tab with audio storage, waveform and timeline, tempo/first-beat estimation, playback with a metronome, tap-to-snap, draggable markers and speaker-delay calibration)*
 - [ ] 4. Resources + notes
 - [ ] 5. Overview problem checks
 - [ ] 6. Responsive/mobile refinements

@@ -17,7 +17,8 @@ export const useLayout = create<LayoutState>()((set, get) => {
     saveDevicePreferences({ sidebarOpen, formationBarOpen })
   }
   return {
-    ...loadDevicePreferences(),
+    sidebarOpen: loadDevicePreferences().sidebarOpen,
+    formationBarOpen: loadDevicePreferences().formationBarOpen,
     setSidebarOpen: (open) => {
       set({ sidebarOpen: open })
       remember()

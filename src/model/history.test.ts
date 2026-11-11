@@ -84,6 +84,16 @@ describe('history', () => {
       expect(h.past).toEqual(['a', 'ab'])
     })
 
+    it('merges for as long as an explicit window allows, however far apart the edits are (a take of taps)', () => {
+      let h = record(emptyHistory<string>(), 'a', 'take:1', 0, Infinity)
+      h = record(h, 'b', 'take:1', 60_000, Infinity)
+      h = record(h, 'c', 'take:1', 600_000, Infinity)
+      expect(h.past).toEqual(['a'])
+      // ...but a different take is a different step
+      h = record(h, 'd', 'take:2', 600_100, Infinity)
+      expect(h.past).toEqual(['a', 'd'])
+    })
+
     it('does not merge different groups, or ungrouped edits', () => {
       let h = record(emptyHistory<string>(), 'a', 'name:x', 0)
       h = record(h, 'b', 'name:y', 10)

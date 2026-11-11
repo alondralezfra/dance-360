@@ -8,7 +8,7 @@
 - **Sharp at any zoom.** The stage is drawn at the screen's real pixel ratio: it re-renders when browser zoom or display scaling changes it (`useDevicePixelRatio`), and the floor edges, grid lines, dots and text are snapped to whole device pixels so they don't smear across two.
 - Dancers appear as dots with initials and a name label. **Drag** a dot to move it; it snaps to a 0.5 ft grid on release and can't leave the stage (while dragging it stops at the edge; positions are clamped when saved). The selected dancer gets a ring.
 - **The bottom bar** (play bar, then the formation controls and list) takes at most 40% of the window height and scrolls inside itself on a short window; its spacing is deliberately tight so the stage keeps most of the screen (a test guards the share under browser zoom).
-- **Playback.** The bottom bar has the song's play bar ([transport.md](transport.md)). While the song plays the dancers move through the formations in time with it, the selected formation changes as the song reaches each one, and the formation bar follows. Paused, the dancers stay wherever the playhead stopped (even part-way along a transition) and a scrub of the slider shows any count. Stepping to a formation yourself, or grabbing a dot, stops the song.
+- **Playback.** The bottom bar has the song's play bar ([transport.md](transport.md)). While the song plays the dancers move through the formations in time with it, the selected formation changes as the song reaches each one, and the formation bar follows. Paused, the dancers stay wherever the playhead stopped (even part-way along a transition) and a scrub of the slider shows any count. Stepping to a formation yourself, or grabbing a dot, stops the song. **Mark** on the play bar (or the **M** key) sets when the next formation starts while the song plays ([transport.md](transport.md)); the Set and Count boxes below do the same by typing.
 - **Part colours**: a dot is filled with the dancer's part colour for the section the stage is currently in (unassigned dancers are neutral gray), so colours change as you move to a formation in another section. A legend at the top right shows the current section and the parts that apply in it ("Everyone", in gray, where none do). Parts, sections and assignments are edited on the Cast & Parts tab ([cast.md](cast.md)).
 - **Formations** are a sequence of positions for everyone. The bottom strip lets you:
   - step to the previous/next formation, or jump to one from the list;
@@ -32,7 +32,7 @@
 
 ## Not yet built
 
-A "show only Part X" filter, tap-to-snap placement on the timeline, multi-select, formation tools (align, mirror, presets). See the plan, build-order steps 2–3.
+A "show only Part X" filter, multi-select, formation tools (align, mirror, presets). See the plan, build-order steps 2–3.
 
 ## Tests
 

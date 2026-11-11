@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmptyProject } from '../../model/project'
+import { countToX } from '../../model/timeline'
 import type { Song } from '../../model/types'
 import { useProject } from '../../store/projectStore'
 import { useSong } from '../../store/songStore'
@@ -401,6 +402,109 @@ describe('TimelinePanel', () => {
     useProject.setState({ tempo: { bpm: 120, startOffsetSec: 4, changes: [] } }) // 8 counts of intro
     render(<TimelinePanel />)
     expect(lastView().startCount).toBe(-8)
+  })
+
+  describe('dragging a formation marker', () => {
+    const lastDraw = () => vi.mocked(drawTimeline).mock.calls.at(-1)![1]
+    const xOf = (count: number) => countToX(count, lastView())
+    const counts = () => useProject.getState().formations.map((f) => f.count)
+    const grab = (container: HTMLElement) => {
+      const box = container.querySelector('canvas')!.parentElement!
+      box.setPointerCapture = vi.fn()
+      const at = (type: 'pointerDown' | 'pointerMove' | 'pointerUp' | 'pointerCancel', count: number) =>
+        act(() => void fireEvent[type](box, { pointerId: 1, clientX: xOf(count), pointerType: 'mouse' }))
+      return { at, box }
+    }
+
+    it('shows where the marker would land while dragging, and saves only when it is let go', () => {
+      const { container } = render(<TimelinePanel />)
+      const { at } = grab(container)
+      at('pointerDown', 100)
+      at('pointerMove', 60)
+      expect(lastDraw().formations.map((f) => f.count)).toEqual([0, 60])
+      expect(lastDraw().callout).toEqual({ count: 60, text: 'Set 8 · Count 5' })
+      expect(counts()).toEqual([0, 100]) // nothing saved yet
+      at('pointerUp', 60)
+      expect(counts()).toEqual([0, 60])
+      expect(lastDraw().callout).toBeNull()
+    })
+
+    it('snaps to whole counts', () => {
+      const { container } = render(<TimelinePanel />)
+      const { at } = grab(container)
+      at('pointerDown', 100)
+      at('pointerMove', 60.4)
+      at('pointerUp', 60.4)
+      expect(counts()).toEqual([0, 60])
+    })
+
+    it('cannot be dragged on or before the formation before it', () => {
+      const { container } = render(<TimelinePanel />)
+      const { at } = grab(container)
+      at('pointerDown', 100)
+      at('pointerMove', -20)
+      at('pointerUp', -20)
+      expect(counts()).toEqual([0, 1])
+    })
+
+    it('cannot be dragged past the end of the song or dance', () => {
+      const { container } = render(<TimelinePanel />)
+      const { at } = grab(container)
+      at('pointerDown', 100)
+      at('pointerMove', 300)
+      at('pointerUp', 300)
+      expect(counts()).toEqual([0, 108])
+    })
+
+    it('pushes a later formation on instead of passing it', () => {
+      useProject.setState({ formations: [...useProject.getState().formations, { ...useProject.getState().formations[0], id: 'f3', count: 104 }] })
+      const { container } = render(<TimelinePanel />)
+      const { at } = grab(container)
+      at('pointerDown', 100)
+      at('pointerMove', 106)
+      at('pointerUp', 106)
+      expect(counts()).toEqual([0, 106, 107])
+    })
+
+    it('puts the marker back when the drag is interrupted', () => {
+      const { container } = render(<TimelinePanel />)
+      const { at } = grab(container)
+      at('pointerDown', 100)
+      at('pointerMove', 60)
+      at('pointerCancel', 60)
+      expect(counts()).toEqual([0, 100])
+      expect(lastDraw().formations.map((f) => f.count)).toEqual([0, 100])
+      expect(lastDraw().callout).toBeNull()
+    })
+
+    it('does not scroll the timeline while a marker is dragged', () => {
+      const { container } = render(<TimelinePanel />)
+      const before = lastView()
+      const { at } = grab(container)
+      at('pointerDown', 100)
+      at('pointerMove', 60)
+      expect(lastView()).toEqual(before)
+    })
+
+    it('a press on a marker that does not move just moves the playhead there', () => {
+      const seek = vi.fn()
+      useTransport.setState({ seek })
+      const { container } = render(<TimelinePanel />)
+      const { at } = grab(container)
+      at('pointerDown', 100)
+      at('pointerUp', 100)
+      expect(seek).toHaveBeenCalledWith(100)
+      expect(counts()).toEqual([0, 100])
+    })
+
+    it('leaves a drag that starts away from every marker to scroll', () => {
+      const { container } = render(<TimelinePanel />)
+      const { at } = grab(container)
+      at('pointerDown', 50)
+      at('pointerMove', 30)
+      expect(counts()).toEqual([0, 100])
+      expect(lastDraw().callout).toBeNull()
+    })
   })
 
   describe('the playhead', () => {
