@@ -26,6 +26,7 @@ const paths = {
   moon: ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
   play: ['M6 4.5v15l13-7.5z'],
   pause: ['M8 5v14', 'M16 5v14'],
+  download: ['M12 3v12', 'm7 10 5 5 5-5', 'M4 21h16'],
   flag: ['M4 22V4', 'M4 4h13l-3 4.5 3 4.5H4'],
   plus: ['M12 5v14', 'M5 12h14'],
   minus: ['M5 12h14'],

@@ -290,6 +290,7 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 - **Formation tools:** helpers like align, distribute evenly, mirror, line/circle presets, path preview (nice-to-have). Smart assignment of dancers to a hand-placed shape is a bigger idea of its own: see §10.
 - **Version history** (saved snapshots you can return to later) for formations. *Undo/redo itself is decided and built: session-only, last 100 steps, every project edit, snapshot-based (docs/decisions/0012). Revisit if live co-editing becomes a goal.*
 - **Repository structure:** *Decided (docs/decisions/0016): one repository, modular inside (the backend is Supabase; server code goes in a `supabase/` folder). Splitting into workspaces and then separate repositories is reconsidered only when a stated trigger fires.*
+- **Backing up a project:** *Decided (docs/decisions/0021): export a project to a file (no audio), import always adds a new copy; an error screen offers a download if a screen crashes.* Cloud backup comes with accounts (0015).
 - **Quality and operations (CI/CD, security, privacy, monitoring, accessibility, backups, AI safeguards):** *Tracked as a checklist with stages and triggers in docs/operations-and-quality.md.*
 - **Next step after this doc:** research tools/frameworks/platforms (languages, frontend framework, canvas library, audio handling, backend/database, hosting) with the risks above in mind.
 

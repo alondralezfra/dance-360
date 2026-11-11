@@ -2,14 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Button } from '../../components/ui/Button'
+import { FileButton } from '../../components/ui/FileButton'
 import { IconButton } from '../../components/ui/IconButton'
 import { createEmptyProject } from '../../model/project'
-import { repository, type ProjectSummary } from '../../persistence'
+import { ProjectFileError, repository, requestPersistentStorage, type ProjectSummary } from '../../persistence'
 import { pruneUnusedAudio } from '../../store/audioCleanup'
+import { exportProject, importProjectFile } from './backup'
 
 export function ProjectsHome() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null)
+  // Something to tell the person about a backup or import that did not work.
+  const [problem, setProblem] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -23,7 +27,32 @@ export function ProjectsHome() {
 
   const create = async () => {
     const id = await repository.create(createEmptyProject('Untitled dance'))
+    void requestPersistentStorage() // a project worth keeping now exists: ask the browser not to clear it
     navigate(`/projects/${id}/stage`)
+  }
+
+  const backUp = async (p: ProjectSummary) => {
+    setProblem(null)
+    try {
+      await exportProject(p.id)
+    } catch (error) {
+      console.error('Exporting a project failed', error)
+      setProblem(`"${p.name}" could not be exported.`)
+    }
+  }
+
+  const bringBack = async (file: File) => {
+    setProblem(null)
+    try {
+      const id = await importProjectFile(file)
+      navigate(`/projects/${id}/stage`)
+    } catch (error) {
+      if (error instanceof ProjectFileError) setProblem(error.message)
+      else {
+        console.error('Importing a project failed', error)
+        setProblem('This file could not be imported. There may not be enough space on this device.')
+      }
+    }
   }
 
   const remove = async (p: ProjectSummary) => {
@@ -45,10 +74,24 @@ export function ProjectsHome() {
       <main className="mx-auto max-w-3xl p-4">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your projects</h2>
-          <Button variant="primary" onClick={create}>
-            + New project
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <FileButton accept=".json,application/json" onFile={(f) => void bringBack(f)}>
+              Import project
+            </FileButton>
+            <Button variant="primary" onClick={create}>
+              + New project
+            </Button>
+          </div>
         </div>
+
+        {problem && (
+          <div role="alert" className="mb-4 flex flex-wrap items-center gap-2 rounded-md bg-danger-soft p-2 text-sm text-danger">
+            <p className="min-w-0 flex-1 basis-56">{problem}</p>
+            <Button variant="ghost" onClick={() => setProblem(null)}>
+              Dismiss
+            </Button>
+          </div>
+        )}
 
         {projects === null && <p className="text-muted-foreground">Loading…</p>}
         {projects?.length === 0 && (
@@ -57,7 +100,8 @@ export function ProjectsHome() {
           </p>
         )}
 
-        <ul className="grid gap-3 sm:grid-cols-2">
+        {/* grid-cols-1 (minmax(0, 1fr)) stops a long project name from stretching the column past the screen */}
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {projects?.map((p) => (
             <li
               key={p.id}
@@ -69,6 +113,13 @@ export function ProjectsHome() {
                   Edited {new Date(p.updatedAt).toLocaleDateString()}
                 </div>
               </Link>
+              <IconButton
+                variant="ghost"
+                icon="download"
+                label={`Export ${p.name}`}
+                title="Save a backup file of this project"
+                onClick={() => void backUp(p)}
+              />
               <IconButton
                 variant="danger-ghost"
                 icon="close"
