@@ -1,0 +1,56 @@
+name: Security
+
+# Two checks that need no setup and no secrets (decision record 0022):
+#   audit    known vulnerabilities in the libraries we depend on
+#   secrets  keys, tokens or passwords committed by mistake
+# They run on every pull request and on main, and every Monday on their own, because a new advisory can
+# appear (and a leaked key can be found in old history) without anyone opening a pull request.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '23 6 * * 1' # Mondays, 06:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # Libraries that ship in the app: a high or critical advisory blocks the pull request.
+      - name: Audit the libraries that ship in the app
+        run: npm audit --omit=dev --audit-level=high
+
+      # Build and test tools never reach users and often have advisories with no fix yet: show them, do not block.
+      - name: Audit the build and test tools (warns only)
+        run: |
+          if ! npm audit --audit-level=high; then
+            echo "::warning::npm audit found high or critical advisories in build or test tools. Run 'npm audit' to see them."
+          fi
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the whole history, so a key committed and later deleted is still found
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

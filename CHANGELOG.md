@@ -4,6 +4,12 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (the safety net: dependency and secret checks)
+- **A Security workflow** (`.github/workflows/security.yml`), on every pull request, on `main` and every Monday: `npm audit` blocks on a high or critical advisory in a library that ships in the app (build and test tools only warn), and `gitleaks` scans the full history for committed keys and tokens. Read-only access to the repository.
+- **Dependabot** (`.github/dependabot.yml`): weekly update pull requests for npm and GitHub Actions; small updates grouped, major ones one at a time. CI runs on them like on any pull request.
+- `npm run check:deps` runs the blocking audit locally. `src/repoConfig.test.ts` guards the automation files. Decision record 0022. No app change.
+- To do on GitHub (repository owner): turn on **Secret scanning** and **Push protection** (Settings → Code security), and add **Security / audit** and **Security / secrets** to the required checks on `main`.
+
 ### Added (the safety net: backups and an error screen)
 - **Export and import a project.** Every project on the home screen has an **Export** button that saves a `.dance360.json` file (the whole project; the song's name, length and fingerprint but never the audio), and **Import project** adds one back as a **new project** ("... (imported)") and opens it. Importing never replaces or changes an existing project. A file from an older version is upgraded; one from a newer version, a file that is not a backup, one that is damaged or over 5 MB is refused with a plain message and adds nothing.
 - **An error screen** instead of a blank page when a screen crashes: it says your work is saved automatically, and offers Reload, Back to your projects and, if a project was open, **Download this project** (the same backup file).

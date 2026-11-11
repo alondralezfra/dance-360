@@ -31,8 +31,8 @@ Work is grouped by what must be true before the next audience can use the app. E
 | CI on every pull request and push to `main` | **Done** | `.github/workflows/ci.yml` runs `npm run verify` on Ubuntu with Playwright's Chromium. Protect `main` and require **CI / verify** (a setting on GitHub, owned by the project owner). |
 | Unit, component, architecture, e2e, regression tests | **Done** | See [testing.md](testing.md). Bug fixes start with a failing test. |
 | Make new tests CI-proof before pushing | **Done** (a habit, documented) | Stress changed e2e specs with `CI=1 ... --repeat-each=3 --workers=6`, wait before measuring, leave margin on numeric layout limits (three CI failures on the playback branch came from skipping this). Now a step in testing.md. |
-| Dependency audit and automatic update PRs | **Now** | Add `npm audit --omit=dev` (fail on high/critical) to CI and Dependabot (npm + GitHub Actions). Today there is neither. |
-| Secret scanning and keeping secrets out of the repo | **Now** (cheap) / **Stage 2** (real) | No secrets exist today. Add secret scanning (GitHub push protection, or gitleaks in CI) now so the habit is in place; `.env*` stays ignored, and only the Supabase *anon* key ever reaches the browser. |
+| Dependency audit and automatic update PRs | **Done** (decision 0022) | `.github/workflows/security.yml` runs `npm audit --omit=dev --audit-level=high` (blocks a PR) and the same for build/test tools (warns only), on every PR, on `main` and every Monday; `npm run check:deps` runs the blocking check locally. `.github/dependabot.yml` opens weekly PRs for npm and GitHub Actions (small updates grouped, majors one at a time). |
+| Secret scanning and keeping secrets out of the repo | **Done** in CI (decision 0022); **needs two GitHub settings** (owner); **Stage 2** (real secrets) | gitleaks scans every PR and, weekly, the whole history. Still to switch on by the repository owner: **Settings → Code security → Secret scanning** and **Push protection**, which stop a key before it is pushed. No secrets exist today; `.env*` stays ignored, and only the Supabase *anon* key ever reaches the browser. |
 | Continuous deployment to a preview URL on each PR, and to staging on merge | **Stage 1** | Static hosting is enough (the app is a static build). Production only deploys from `main` after CI is green. |
 | Staging environment | **Stage 1** (a preview URL) / **Stage 2** (a separate staging Supabase project) | Never test against production data. |
 | Smoke test of the deployed site | **Stage 1** | A tiny Playwright run against the real URL after each deploy: loads, creates a project, reloads, still there, no console errors. Fails the deploy. |
@@ -48,7 +48,7 @@ Work is grouped by what must be true before the next audience can use the app. E
 | Auth on every endpoint, row-level security | **Stage 2** | Supabase row-level security is the enforcement point, not the UI. Tests that prove user A cannot read or write user B's project (see 0015's membership roles). |
 | Rate limiting | **Stage 2** | Sign-in, password reset, email-sending and any function endpoint. Supabase provides auth limits; add limits on anything we write ourselves. |
 | Rotating leaked keys | **Stage 2** | A short runbook: where each key lives, how to revoke it, how to redeploy. Rehearse it once. |
-| Dependency and supply-chain hygiene | **Now** | Pin via the lockfile; review Dependabot PRs; no install scripts we did not choose. |
+| Dependency and supply-chain hygiene | **Done** (decision 0022) | Lockfile + `npm ci`, weekly Dependabot PRs reviewed like any other (CI runs on them), actions used by version tag only (a test checks). Not yet: pinning actions to commit hashes. |
 
 ### Reliability and recovery
 | Item | Status | Notes |

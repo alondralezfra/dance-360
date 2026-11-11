@@ -1,0 +1,29 @@
+# Keeps dependencies current without anyone remembering to. Each week Dependabot opens pull requests,
+# and CI runs on them like on any other: a green one is safe to merge, a red one says what broke.
+# (Decision record 0022. Major versions come one at a time, since they can need real changes.)
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # Small updates arrive together as one pull request; majors are left to open on their own.
+      minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: deps
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci
