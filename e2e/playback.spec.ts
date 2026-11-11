@@ -121,6 +121,8 @@ test.describe('playing the song', () => {
     const canvas = page.locator('canvas[role="img"]')
     // (a tap before the timeline has measured itself and attached its listeners is ignored)
     await expect.poll(() => canvas.evaluate((c: HTMLCanvasElement) => c.width)).toBeGreaterThan(0)
+    // (a click at coordinates below the visible window goes nowhere, and the timeline is near the bottom of the page)
+    await canvas.scrollIntoViewIfNeeded()
     const box = (await canvas.boundingBox())!
     await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.6)
     await expect.poll(() => position(page)).toBeGreaterThan(10) // about halfway through a 30 s, 60 count song

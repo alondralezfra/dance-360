@@ -144,6 +144,7 @@ test.describe('dragging formation markers on the timeline', () => {
   async function timelinePoint(page: Page, count: number) {
     const project = await savedProject(page)
     const canvas = page.getByRole('img', { name: /^Timeline of/ })
+    await canvas.scrollIntoViewIfNeeded() // a click below the visible window goes nowhere
     const box = (await canvas.boundingBox())!
     const width = Math.floor(box.width)
     const view = fitView(width, timelineBounds(project.formations, project.song, project.tempo))
