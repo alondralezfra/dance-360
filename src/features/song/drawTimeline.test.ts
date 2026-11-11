@@ -183,6 +183,32 @@ describe('drawTimeline', () => {
     })
   })
 
+  describe('the label on a marker being dragged', () => {
+    it('writes the text near the count, in the marker colour', () => {
+      const ops = draw(base({ callout: { count: 5, text: 'Set 1 · Count 6' } })) // x = 100
+      expect(texts(ops)).toContain('Set 1 · Count 6')
+      const pill = ops.find((o) => o.type === 'fillRect' && o.fill === 'MARKER')!
+      const [left, , width] = pill.args as number[]
+      expect(left + width / 2).toBeCloseTo(100, 0)
+      expect(pill.args[1]).toBeGreaterThanOrEqual(RULER_HEIGHT)
+    })
+
+    it('stays fully on screen at either edge', () => {
+      for (const count of [-5, 0, 19, 40]) {
+        const pill = draw(base({ callout: { count, text: 'Set 1 · Count 1' } })).find((o) => o.type === 'fillRect' && o.fill === 'MARKER')!
+        const [left, , width] = pill.args as number[]
+        expect(left).toBeGreaterThanOrEqual(2)
+        expect(left + width).toBeLessThanOrEqual(400 - 2)
+      }
+    })
+
+    it('draws nothing extra without one', () => {
+      const without = draw(base({ formations: [] })).length
+      expect(draw(base({ callout: null })).length).toBe(without)
+      expect(draw(base({ callout: { count: 3, text: 'x' } })).length).toBeGreaterThan(without)
+    })
+  })
+
   describe('the playhead', () => {
     const playheadOps = (ops: Op[]) => ops.filter((o) => o.stroke === 'PLAYHEAD' || o.fill === 'PLAYHEAD')
 

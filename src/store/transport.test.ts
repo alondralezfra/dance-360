@@ -66,6 +66,7 @@ const { audioRepository } = await import('../persistence')
 const { createPlayerFromBlob } = await import('../audio/player')
 const { useProject } = await import('./projectStore')
 const { useUi } = await import('./uiStore')
+const { useSpeaker } = await import('./speakerStore')
 const { playheadClock, startTransport, useTransport } = await import('./transport')
 
 const song: Song = { name: 'a.mp3', durationSec: 60, size: 3, mime: 'audio/mpeg', hash: 'h1' }
@@ -101,7 +102,9 @@ beforeEach(async () => {
   await audioRepository.put('h1', new Blob(['song']))
   useProject.setState({ projectId: null, status: 'idle', song: null })
   stop = startTransport()
-  useTransport.setState({ playing: false, metronome: false, loading: false, error: null })
+  useTransport.setState({ playing: false, metronome: false, loading: false, error: null, markMessage: null })
+  useSpeaker.setState({ delayMs: 0 })
+  useProject.setState({ undoGroup: null })
   openProject()
   useUi.getState().reset()
   playheadClock.set(0)
@@ -440,5 +443,154 @@ describe('keeping in step with the project', () => {
     expect(state().playing).toBe(false)
     expect(metronomes()[0].dispose).toHaveBeenCalled()
     stop = startTransport() // (so the shared teardown still has something to stop)
+  })
+})
+
+describe('tap-to-snap (mark)', () => {
+  const counts = () => useProject.getState().formations.map((f) => f.count)
+  /** Plays, and puts the song `sec` seconds in (count = 2 x sec at 120 BPM). */
+  async function playAt(sec: number) {
+    await state().play()
+    players()[0].position = sec
+    frames()
+  }
+
+  it('does nothing while the song is not playing', () => {
+    state().mark()
+    expect(counts()).toEqual([0, 16, 40])
+    expect(state().markMessage).toBeNull()
+  })
+
+  it('puts the formation after the one the song is in on the count being heard, and says so', async () => {
+    await playAt(5.1) // count 10.2; formation One (0) has landed
+    state().mark()
+    expect(counts()).toEqual([0, 10, 40])
+    expect(state().markMessage).toBe('Two placed at Set 2 · Count 3')
+  })
+
+  it('each tap after the first places the next formation, however the earlier ones moved', async () => {
+    await playAt(5.1)
+    state().mark() // Two -> 10
+    players()[0].position = 9.2 // count 18.4
+    state().mark() // Three -> 18
+    expect(counts()).toEqual([0, 10, 18])
+  })
+
+  it('snaps to the nearest count, so an imprecise tap lands on it', async () => {
+    await playAt(5.2) // 10.4 -> 10
+    state().mark()
+    expect(counts()[1]).toBe(10)
+    players()[0].position = 9.3 // 18.6 -> 19
+    state().mark()
+    expect(counts()[2]).toBe(19)
+  })
+
+  it('says there is nothing left to place instead of changing anything', async () => {
+    await playAt(5.1)
+    state().mark()
+    state().mark()
+    const before = counts()
+    state().mark() // a third tap, but only two formations after the first
+    expect(counts()).toEqual(before)
+    expect(state().markMessage).toMatch(/Every formation .* has been placed/)
+  })
+
+  it('places the first formation when the song is still before the dance starts', async () => {
+    useProject.setState({
+      formations: useProject.getState().formations.map((f, i) => ({ ...f, count: [8, 16, 40][i] })),
+    })
+    await playAt(1.4) // count 2.8
+    state().mark()
+    expect(counts()).toEqual([3, 16, 40])
+  })
+
+  it('never lets a formation land on or before the one before it', async () => {
+    await playAt(5.1)
+    state().mark() // Two -> 10
+    players()[0].position = 5.4 // count 10.8 -> 11: fine; but an early tap...
+    state().mark()
+    expect(counts()).toEqual([0, 10, 11])
+    expect(useProject.getState().formations.map((f) => f.id)).toEqual(['f1', 'f2', 'f3'])
+  })
+
+  it('keeps the dancers where they are: only the timing changes', async () => {
+    const before = useProject.getState().formations.map((f) => f.positions)
+    await playAt(5.1)
+    state().mark()
+    expect(useProject.getState().formations.map((f) => f.positions)).toEqual(before)
+  })
+
+  describe('a take is one undo step', () => {
+    it('opens on the first tap, keeps the same group, and closes on pause', async () => {
+      expect(useProject.getState().undoGroup).toBeNull()
+      await playAt(5.1)
+      state().mark()
+      const group = useProject.getState().undoGroup
+      expect(group).toMatch(/^take:/)
+      players()[0].position = 9.2
+      state().mark()
+      expect(useProject.getState().undoGroup).toBe(group)
+      state().pause()
+      expect(useProject.getState().undoGroup).toBeNull()
+      expect(state().markMessage).toBeNull()
+    })
+
+    it('ends when the playhead jumps, and the next tap starts a new take from there', async () => {
+      await playAt(5.1)
+      state().mark() // Two -> 10
+      const first = useProject.getState().undoGroup
+      state().seek(0) // back to the start of the song
+      expect(useProject.getState().undoGroup).toBeNull()
+      players()[0].position = 3.1 // count 6.2
+      state().mark() // a new take, counted from where the song is now: the formation after One
+      expect(useProject.getState().undoGroup).not.toBe(first)
+      expect(counts()).toEqual([0, 6, 40])
+    })
+
+    it('ends when the song is replaced or the project closes', async () => {
+      await playAt(5.1)
+      state().mark()
+      useProject.setState({ song: { ...song, hash: 'other' } })
+      expect(useProject.getState().undoGroup).toBeNull()
+    })
+  })
+})
+
+describe('speaker delay', () => {
+  beforeEach(() => useSpeaker.setState({ delayMs: 250 }))
+
+  it('starts the sound the delay ahead of the playhead, so what is heard matches it', async () => {
+    playheadClock.set(10) // 5 s
+    await state().play()
+    expect(players()[0].seek).toHaveBeenCalledWith(5.25)
+  })
+
+  it('shows where the music is being heard: the position of the player less the delay', async () => {
+    await state().play()
+    players()[0].position = 5.25
+    frames()
+    expect(playheadClock.get()).toBeCloseTo(10)
+  })
+
+  it('leaves the playhead where the music was heard when paused', async () => {
+    await state().play()
+    players()[0].position = 5.25
+    frames()
+    state().pause()
+    expect(playheadClock.get()).toBeCloseTo(10)
+  })
+
+  it('jumps the sound the delay ahead of the place seeked to', async () => {
+    await state().play()
+    state().seek(20) // 10 s
+    expect(players()[0].seek).toHaveBeenLastCalledWith(10.25)
+  })
+
+  it('takes it off a tap: the person taps when they hear the beat, which is later than the player says', async () => {
+    await state().play()
+    players()[0].position = 5.25 // heard: 5.0 s = count 10
+    frames()
+    state().mark()
+    expect(useProject.getState().formations[1].count).toBe(10)
   })
 })

@@ -2,6 +2,7 @@ import type { StateCreator } from 'zustand'
 import { clampToStage, moveFormation, normalizeCounts } from '../../model/formations'
 import { newId } from '../../model/project'
 import { COUNTS_PER_SET } from '../../model/tempo'
+import { placeFormationAt } from '../../model/tapSnap'
 import type { Formation } from '../../model/types'
 import type { FormationSlice, ProjectStore } from '../storeTypes'
 
@@ -51,6 +52,8 @@ export const createFormationSlice: StateCreator<ProjectStore, [], [], FormationS
         s.formations.map((f) => (f.id === id ? { ...f, count } : f)),
       ),
     })),
+
+  placeFormation: (id, count) => set((s) => ({ formations: placeFormationAt(s.formations, id, count) })),
 
   setFormationTransition: (id, counts) =>
     set((s) => ({

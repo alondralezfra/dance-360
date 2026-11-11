@@ -5,6 +5,8 @@ import { selectDocument, type HistorySlice, type ProjectStore } from '../storeTy
 
 export const createHistorySlice: StateCreator<ProjectStore, [], [], HistorySlice> = (set, get) => ({
   history: emptyHistory<Project>(),
+  undoGroup: null,
+  setUndoGroup: (undoGroup) => set({ undoGroup }),
 
   // Putting a snapshot back replaces the document fields and the history in one
   // update; the recorder (store/history.ts) sees the history changed and does not

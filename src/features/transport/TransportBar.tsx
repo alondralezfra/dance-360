@@ -10,6 +10,8 @@ import { useProject } from '../../store/projectStore'
 import { playheadClock, useTransport } from '../../store/transport'
 
 const NO_SONG_HINT = 'Attach a song on the Song tab to play it. You can still drag the slider to see the stage at any count.'
+const MARK_HINT = 'To set when each formation starts: play the song and tap Mark (or press M) as each one should begin.'
+const MARK_TITLE = 'Press Play, then tap this (or press M) when the next formation should start. It snaps to the nearest count.'
 
 /** "Set 3 · Count 5", or a note for the part of the song before the dance starts. */
 const readout = (count: number) => (count < 0 ? 'Before Set 1' : formatCount(count))
@@ -27,6 +29,8 @@ export function TransportBar({ compact = false }: { compact?: boolean }) {
   const loading = useTransport((s) => s.loading)
   const metronome = useTransport((s) => s.metronome)
   const error = useTransport((s) => s.error)
+  const markMessage = useTransport((s) => s.markMessage)
+  const mark = useTransport((s) => s.mark)
   const toggle = useTransport((s) => s.toggle)
   const seek = useTransport((s) => s.seek)
   const setMetronome = useTransport((s) => s.setMetronome)
@@ -50,6 +54,10 @@ export function TransportBar({ compact = false }: { compact?: boolean }) {
           <Icon name={playing ? 'pause' : 'play'} />
           {playing ? 'Pause' : 'Play'}
         </Button>
+        <Button onClick={mark} disabled={!playing} title={MARK_TITLE}>
+          <Icon name="flag" />
+          Mark
+        </Button>
         {/* Spoken through the slider's value text, so hidden from screen readers here to avoid saying it twice. */}
         <span aria-hidden className="w-28 text-sm tabular-nums">
           {readout(count)}
@@ -69,7 +77,13 @@ export function TransportBar({ compact = false }: { compact?: boolean }) {
         </Checkbox>
       </div>
 
-      {!song && !compact && <p className="px-1 text-xs text-muted-foreground">{NO_SONG_HINT}</p>}
+      {/* What each tap did is announced to screen readers; sighted people see the formation move on the stage and timeline. */}
+      <p role="status" className="sr-only">
+        {markMessage}
+      </p>
+      {!compact && (
+        <p className="min-h-4 px-1 pt-1 text-xs text-muted-foreground">{markMessage ?? (song ? MARK_HINT : NO_SONG_HINT)}</p>
+      )}
 
       {error && (
         <div role="alert" className="mt-2 flex flex-wrap items-center gap-2 rounded-md bg-danger-soft p-2 text-sm text-danger">

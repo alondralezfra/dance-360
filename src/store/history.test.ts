@@ -106,6 +106,73 @@ describe('undo and redo', () => {
   })
 })
 
+describe('a take of taps', () => {
+  const threeFormations = () => {
+    const a = state().formations[0].id
+    const b = state().addFormation(a)
+    const c = state().addFormation(b)
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    return [a, b, c]
+  }
+
+  it('is one undo step however long it lasts', () => {
+    const [, b, c] = threeFormations()
+    const before = state().formations.map((f) => f.count)
+    state().setUndoGroup('take:1')
+    state().placeFormation(b, 5)
+    vi.advanceTimersByTime(10_000)
+    state().placeFormation(c, 13)
+    vi.advanceTimersByTime(10_000)
+    expect(state().formations.map((f) => f.count)).toEqual([0, 5, 13])
+    state().setUndoGroup(null)
+
+    state().undo()
+    expect(state().formations.map((f) => f.count)).toEqual(before)
+  })
+
+  it('without a take open, each placement is its own step', () => {
+    const [, b, c] = threeFormations()
+    state().placeFormation(b, 5)
+    vi.advanceTimersByTime(10_000)
+    state().placeFormation(c, 13)
+    state().undo()
+    expect(state().formations.map((f) => f.count)).toEqual([0, 5, 16])
+  })
+
+  it('a different take is a different step', () => {
+    const [, b, c] = threeFormations()
+    state().setUndoGroup('take:1')
+    state().placeFormation(b, 5)
+    state().setUndoGroup('take:2')
+    state().placeFormation(c, 13)
+    state().setUndoGroup(null)
+    state().undo()
+    expect(state().formations.map((f) => f.count)).toEqual([0, 5, 16])
+  })
+
+  it('does not swallow other edits made while it is open', () => {
+    const [, b] = threeFormations()
+    state().setUndoGroup('take:1')
+    state().placeFormation(b, 5)
+    state().addDancer('Maya') // not a formation-only change
+    state().setUndoGroup(null)
+    state().undo()
+    expect(state().dancers).toHaveLength(0)
+    expect(state().formations[1].count).toBe(5) // the taps are still there: that edit was its own step
+  })
+
+  it('stays out of the way of a closed take', () => {
+    const [, b] = threeFormations()
+    state().setUndoGroup('take:1')
+    state().placeFormation(b, 5)
+    state().setUndoGroup(null)
+    state().renameFormation(b, 'Hello')
+    state().undo()
+    expect(state().formations[1].name).toBe('Formation 2')
+    expect(state().formations[1].count).toBe(5)
+  })
+})
+
 describe('typing in a name box', () => {
   it('is one undo step however many keystrokes', () => {
     state().addDancer('Maya')

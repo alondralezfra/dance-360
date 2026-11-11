@@ -6,6 +6,17 @@
 // Steps run in order, cheapest first, and stop at the first failure.
 
 import { spawnSync } from 'node:child_process'
+import { realpathSync } from 'node:fs'
+
+// On Windows a working directory spelled with a lower-case drive letter (c:\...) makes Vitest load itself
+// twice (Node and Vite disagree about the path), and every test file then fails with "Vitest failed to
+// find the current suite". Claude Code's Stop hook starts here that way, though a normal terminal does not.
+// Use the canonical spelling for this process and every step it starts. (A no-op elsewhere.)
+try {
+  process.chdir(realpathSync.native(process.cwd()))
+} catch {
+  // keep the directory we were started in
+}
 
 const args = new Set(process.argv.slice(2))
 const quick = args.has('--quick')

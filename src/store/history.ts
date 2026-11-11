@@ -1,7 +1,10 @@
 import { editGroup, emptyHistory, record } from '../model/history'
 import type { Project } from '../model/types'
 import { useProject } from './projectStore'
-import { DOCUMENT_KEYS, selectDocument } from './storeTypes'
+import { DOCUMENT_KEYS, selectDocument, type ProjectStore } from './storeTypes'
+
+const onlyFormationsChanged = (state: ProjectStore, prev: ProjectStore) =>
+  DOCUMENT_KEYS.every((k) => k === 'formations' || state[k] === prev[k])
 
 /**
  * Remembers every edit to the open project so it can be undone. Like autosave it
@@ -27,8 +30,17 @@ export function startHistory() {
 
     const before = selectDocument(prev)
     const after = selectDocument(state)
+    // A take of taps (store/transport.ts) is one undo step however long it lasts, but only for what it
+    // changes: the formations. Anything else edited meanwhile is its own step.
+    const take = state.undoGroup !== null && onlyFormationsChanged(state, prev)
     useProject.setState({
-      history: record(state.history, before, editGroup(before, after), Date.now()),
+      history: record(
+        state.history,
+        before,
+        take ? state.undoGroup : editGroup(before, after),
+        Date.now(),
+        take ? Infinity : undefined,
+      ),
     })
   })
 }

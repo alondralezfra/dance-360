@@ -25,6 +25,46 @@ describe('edge cases', () => {
     expect(state().formations.find((f) => f.id === id)!.count).toBe(first.count + 8)
   })
 
+  describe('placeFormation (a tap or a dragged marker)', () => {
+    const three = () => {
+      const a = state().formations[0].id
+      const b = state().addFormation(a)
+      const c = state().addFormation(b)
+      return [a, b, c]
+    }
+    const counts = () => state().formations.map((f) => f.count)
+
+    it('puts a formation on the count', () => {
+      const [, b] = three()
+      state().placeFormation(b, 5)
+      expect(counts()).toEqual([0, 5, 16])
+    })
+
+    it('cannot land on or before the formation before it, so the running order never changes', () => {
+      const [a, b, c] = three()
+      state().placeFormation(c, 2) // before b (count 8)
+      expect(counts()).toEqual([0, 8, 9])
+      state().placeFormation(b, 0)
+      expect(counts()).toEqual([0, 1, 9])
+      expect(state().formations.map((f) => f.id)).toEqual([a, b, c])
+    })
+
+    it('pushes later formations on just enough', () => {
+      const [a, b, c] = three()
+      state().placeFormation(b, 20)
+      expect(counts()).toEqual([0, 20, 21])
+      expect(state().formations.map((f) => f.id)).toEqual([a, b, c])
+    })
+
+    it('leaves an unknown id, and a formation already there, alone', () => {
+      const [, b] = three()
+      const before = state().formations
+      state().placeFormation('nope', 3)
+      state().placeFormation(b, 8)
+      expect(state().formations).toBe(before)
+    })
+  })
+
   it('can add a formation to a project that has none', () => {
     useProject.setState({ formations: [] })
     const id = state().addFormation('anything')

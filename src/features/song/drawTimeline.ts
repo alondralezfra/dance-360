@@ -12,6 +12,9 @@ const SET_LABEL_ROOM = 52
 /** Count numbers need about this much room per count. */
 const COUNT_LABEL_ROOM = 24
 const MARKER_LABEL_RADIUS = 9
+/** A rough width per character and the height of the drag label (it is drawn small, so no measuring is needed). */
+const CALLOUT_CHAR_PX = 6.5
+const CALLOUT_HEIGHT = 20
 
 export interface TimelineDrawing {
   /** Size of the drawing area in CSS pixels. */
@@ -25,6 +28,8 @@ export interface TimelineDrawing {
   peaks: Peaks | null
   /** Where the song is, as a count, or null to draw no playhead. */
   playhead: number | null
+  /** A small label pinned to a count, e.g. where a dragged marker would land. Omit or null for none. */
+  callout?: { count: number; text: string } | null
   theme: Pick<CanvasTheme, 'floor' | 'outline' | 'grid' | 'gridCenter' | 'label' | 'wave' | 'marker' | 'playhead'>
 }
 
@@ -126,6 +131,18 @@ export function drawTimeline(ctx: CanvasRenderingContext2D, d: TimelineDrawing):
     ctx.fillText(String(index + 1), badgeX, bodyTop - MARKER_LABEL_RADIUS - 2)
   })
   ctx.textAlign = 'start'
+
+  // The label for a marker being dragged: a small pill just under the ruler, kept fully on screen.
+  if (d.callout) {
+    const w = d.callout.text.length * CALLOUT_CHAR_PX + 14
+    const left = Math.min(Math.max(countToX(d.callout.count, view) - w / 2, 2), Math.max(2, width - w - 2))
+    ctx.fillStyle = theme.marker
+    ctx.fillRect(left, bodyTop + 6, w, CALLOUT_HEIGHT)
+    ctx.fillStyle = theme.floor
+    ctx.textAlign = 'center'
+    ctx.fillText(d.callout.text, left + w / 2, bodyTop + 6 + CALLOUT_HEIGHT - 6)
+    ctx.textAlign = 'start'
+  }
 
   // The playhead goes on last, over everything: a line through the whole timeline with an arrow on top.
   if (d.playhead !== null) {
