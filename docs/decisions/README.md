@@ -46,3 +46,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0021](0021-project-backup-files-and-the-error-screen.md) | Backing a project up as a file (no audio; import is always a new copy) and the error screen with a download button |
 | [0022](0022-dependency-audit-updates-and-secret-scanning.md) | Dependency audit (blocks on app libraries, warns on tools), weekly Dependabot, gitleaks in CI plus GitHub push protection |
 | [0023](0023-accessibility-checks-and-readable-colours.md) | An axe accessibility scan in the e2e suite (WCAG 2.1 A/AA, every screen, both themes, desktop and phone, any violation fails) and colour roles with a contrast test |
+| [0024](0024-repo-health-checks.md) | Repo health checks: file size limits (400 / 900 lines), unused code (`knip`), duplicated code and docs (`jscpd`), docs that name real files; all hard-fail in `verify` |

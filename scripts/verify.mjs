@@ -3,6 +3,7 @@
 //   npm run verify           everything (required before a change counts as implemented)
 //   npm run verify:quick     skips the browser (e2e) tests; for iterating, NOT for sign-off
 //
+// (File size and docs-name-real-files are checked by src/repoHealth.test.ts, in the unit-test step.)
 // Steps run in order, cheapest first, and stop at the first failure.
 
 import { spawnSync } from 'node:child_process'
@@ -25,6 +26,7 @@ const staged = args.has('--staged')
 const steps = [
   { name: 'Change discipline (tests + docs + changelog)', cmd: ['node', 'scripts/check-changes.mjs', ...(staged ? ['--staged'] : [])] },
   { name: 'Lint', cmd: ['npm', 'run', '--silent', 'lint'] },
+  { name: 'Repo health (unused code, duplicate code and docs)', cmd: ['npm', 'run', '--silent', 'check:health'] },
   { name: 'Unit + integration tests (with coverage thresholds)', cmd: ['npm', 'run', '--silent', 'test:coverage'] },
   { name: 'Type-check + production build', cmd: ['npm', 'run', '--silent', 'build'] },
   ...(quick ? [] : [{ name: 'End-to-end tests (real browser)', cmd: ['npm', 'run', '--silent', 'test:e2e'] }]),

@@ -11,7 +11,7 @@ export const CLICK_COUNT = 12
 /** Quiet lead-in before the first click, so the person is listening when it starts. */
 export const CLICK_LEAD_SEC = 1
 /** Taps matched to fewer clicks than this are not enough to trust. */
-export const MIN_MATCHED_TAPS = 5
+const MIN_MATCHED_TAPS = 5
 /** The most delay the app will use (a long Bluetooth chain is well under this). */
 export const MAX_SPEAKER_DELAY_MS = 1000
 

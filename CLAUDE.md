@@ -43,7 +43,7 @@ A change is **not implemented** until step 7 passes. The Stop hook and the pre-c
 - Each folder in `src/features/` needs a doc in `docs/features/` (a test checks).
 - Touch first: 40px targets, no hover-only or right-click-only interactions, layouts that work from phone to desktop.
 - **Component-based UI** (catalog and rules: `docs/components.md`). Reuse what is in `src/components/ui/` before writing markup or class strings. Need something different? Add a *variant or prop* to the existing component. Add a *new* component only when a pattern shows up a second time or has accessibility rules worth solving once, and keep the number of components small. Screens never use raw `<button>`/`<input>`/`<select>`/`<svg>` or text symbols (✕ ◀ ▾) as icons: use `Button`, `IconButton`, `Input`, `Checkbox`, `Icon` (a test enforces this). New shared components live in `components/ui/`, know nothing about the app, use theme tokens, have a test, and get a row in the catalog.
-- **Good habits**: one source of truth for any rule or value (don't copy it); pure logic in `model/` with tests, thin components; derive state instead of storing it twice; no premature abstraction (extract on the second use); no leftover dead code.
+- **Good habits**: one source of truth for any rule or value (don't copy it); pure logic in `model/` with tests, thin components; derive state instead of storing it twice; no premature abstraction (extract on the second use); no leftover dead code (`npm run check:health` finds unused and copy-pasted code; files stay under 400 lines, tests under 900: architecture rule 11).
 
 ## Self-review checklist (step 9)
 

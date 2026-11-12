@@ -28,8 +28,8 @@ export interface TempoEstimate {
 }
 
 /** The tempos considered. Slower or faster music is reported at half or double. */
-export const MIN_BPM = 60
-export const MAX_BPM = 200
+const MIN_BPM = 60
+const MAX_BPM = 200
 /** Below this confidence the beat is too unclear to report. (Clear beats score 0.9 and up; noise and held tones stay under 0.3.) */
 export const MIN_CONFIDENCE = 0.45
 /** Shorter audio doesn't repeat often enough to tell. */
