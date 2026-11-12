@@ -1,5 +1,4 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "entry": ["scripts/stop-gate.mjs"],
-  "ignoreDependencies": ["jscpd"]
+  "entry": ["scripts/stop-gate.mjs"]
 }

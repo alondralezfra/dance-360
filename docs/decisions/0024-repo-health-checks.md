@@ -9,7 +9,7 @@ Most of the project's rules are checked by tests, but a few things that make a c
 
 ## Decision (made with the project owner)
 - **File size.** Application files may have at most 400 lines; tests (`*.test.*`, `e2e/`, `src/test/`) at most 900, because a test file is a flat list of cases and splitting it adds little. An allowlist (with a mandatory reason, and checked for stale entries) is the escape hatch; it starts empty.
-- **Unused code: `knip`.** Unused files, exports, types and dependencies fail the check. `scripts/stop-gate.mjs` (run by a Claude Code hook) is declared an entry point, and `jscpd` is declared as a command-line tool.
+- **Unused code: `knip`.** Unused files, exports, types and dependencies fail the check. `scripts/stop-gate.mjs` (run by a Claude Code hook) is declared an entry point.
 - **Duplicates: `jscpd`**, over source, tests, scripts **and the markdown docs** (10 lines / 100 tokens, zero allowed). The docs are included so a rule is written in one place and linked from the rest. Fixtures and the changelog are ignored.
 - **Docs name real things.** A test reads every current document (not the changelog or past decision records, which are history) and fails when a markdown link or a backticked path points at a file or folder that is not there. Code blocks, patterns (`*`, `<N>`) and URLs are skipped.
 - **Hard fail**, in `npm run verify` (a "Repo health" step after lint, and the tests in the unit-test step), so CI and the pre-commit hook enforce it too.
