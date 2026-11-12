@@ -4,6 +4,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Fixed (test only)
+- The part-colour check in `DancerPanel.test.tsx` reads the dot's inline style directly instead of its computed style, so it passes on both jsdom 29 and 31 (jsdom 31 no longer resolves `var()` in computed styles, which failed the pending jsdom update). No app change.
+
 ### Added (the safety net: accessibility checks)
 - **An automated accessibility scan** (axe, `e2e/accessibility.spec.ts`) of the projects home, stage, dancer drawer, Cast & Parts (and its sections picker), Song tab (with no song, with a song, and with speaker-delay calibration open), the error screen and the not-found screen, in the light and dark themes at desktop and phone width, against WCAG 2.1 A and AA. Any violation fails the test. `@axe-core/playwright` is a development-only dependency.
 - **A contrast test for the theme** (`src/theme/contrast.test.ts`) that checks every text-on-background colour pair in both themes (4.5 : 1 for text, 3 : 1 for icons).

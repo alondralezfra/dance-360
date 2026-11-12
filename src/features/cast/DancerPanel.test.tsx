@@ -86,7 +86,8 @@ describe('DancerPanel', () => {
     render(<DancerPanel />)
     const dots = screen.getAllByRole('img')
     expect(dots[0]).toHaveAccessibleName('Everyone')
-    expect(dots[0]).toHaveStyle({ backgroundColor: 'var(--part-blue)' })
+    // The inline style itself, not the computed one: jsdom 31 no longer resolves var() in computed styles.
+    expect((dots[0] as HTMLElement).style.backgroundColor).toBe('var(--part-blue)')
     expect(dots[1]).toHaveAccessibleName('No part')
   })
 
