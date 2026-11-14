@@ -68,12 +68,14 @@ export function ProjectWorkspace() {
           </Link>
           <Icon name="chevronRight" className="text-subtle-foreground" />
           {ready ? (
+            // A fixed width, modest until there is room (it also shrinks on a phone): the one-row header is only just wide
+            // enough at 150% browser zoom, and a name box sized by its default width tipped it onto two rows in a wide font.
             <Input
               value={name}
               onChange={(e) => setProjectName(e.target.value)}
               aria-label="Project name"
               variant="inline"
-              className="min-w-0 max-w-56"
+              className="w-36 min-w-0 lg:w-56"
             />
           ) : (
             <span className="text-muted-foreground">Project</span>

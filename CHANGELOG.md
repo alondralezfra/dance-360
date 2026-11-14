@@ -12,6 +12,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 - `Icon` gains `externalLink`; `buttonVariants` (in `components/ui/buttonVariants.ts`) lets a link look like a `Button`. The Resources screen is in the accessibility scan and the screenshot tool.
 - Decision record 0027; the plan's "Notes: separate tab?" question is answered (one Resources tab for Links and Notes; notes are the next slice).
 
+### Fixed (the header at 150% browser zoom, found on CI)
+- With the fourth tab, the one-row header at 150% zoom (911px wide) was only just wide enough, and in CI's wider Linux font (DejaVu Sans) the save status wrapped onto a second row, taking a quarter of the stage's room (a stage-size check measured 0.299 where it needs 0.3). The project name box is now a fixed, smaller width until there is room (`w-36`, `lg:w-56`), which leaves about 36px to spare in that font. A new e2e check forces a wide font (DejaVu Sans, or Verdana on Windows) and fails if the header goes onto two rows, so it no longer depends on the machine's own font. No threshold was loosened.
+
 ### Changed (project tabs on a phone)
 - With four tabs, the project tabs **scroll sideways on a phone** (no scrollbar drawn) and the open tab is kept fully in view, also when its address is opened directly. Two e2e checks that assumed the tabs always fit ("no stray scrollbar at 390px wide" and "all three project tabs fit on one row") were rewritten to check what still matters: no drawn scrollbar, every tab reachable, the open tab fully in view. (Behaviour deliberately changed; decision 0027.)
 

@@ -134,6 +134,26 @@ test.describe('stage size when the browser zooms', () => {
   })
 })
 
+test.describe('the header with a wide font', () => {
+  // CI's Linux browser draws text in DejaVu Sans, which is much wider than Segoe UI or Roboto; Verdana is as wide
+  // and is on Windows. At 150% zoom (911px) the header is one row of breadcrumb, four tabs, Undo/Redo and the save
+  // status, and a wide font must not push the last of them onto a second row (that cost the stage a quarter of its
+  // room on CI). A test that only passes with this machine's narrow font proves nothing about CI.
+  test('stays on one row at 150% zoom and at a normal desktop width', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 768 })
+    await createProject(page)
+    await page.addStyleTag({ content: 'body, input, button, select { font-family: "DejaVu Sans", Verdana, sans-serif !important }' })
+    const header = page.locator('header')
+    for (const [w, h] of [
+      [1366, 768],
+      [911, 512], // 150%
+    ]) {
+      await page.setViewportSize({ width: w, height: h })
+      await expect.poll(async () => (await header.boundingBox())!.height, { message: `${w}px wide` }).toBeLessThan(70)
+    }
+  })
+})
+
 test.describe('phone', () => {
   test.use({ viewport: { width: 390, height: 780 }, hasTouch: true })
 
