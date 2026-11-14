@@ -11,6 +11,7 @@
 | `npm test` / `npm run test:watch` | Unit + component tests. |
 | `npm run test:coverage` | Same, enforcing coverage thresholds. |
 | `npm run test:e2e` | Browser tests (Playwright). Builds the app and serves the production build itself (port 5199). |
+| `npm run doctor` | Checks this machine can run the project: Node version, installed packages, the git hook, a browser for e2e, a free port 5199. Reports only; never changes anything. |
 | `npm run check:health` | Unused code (`knip`) and duplicated code or docs (`jscpd`). Also the "Repo health" step of `verify`. |
 
 `verify` runs, stopping at the first failure: **change discipline** -> **lint** -> **repo health** -> **unit/integration + coverage** -> **type-check + build** -> **end-to-end**.
@@ -53,6 +54,8 @@ If anything under `src/` (non-test) changed, the same change must also touch: a 
 
 ## Setup notes
 
+- **Something not working on a new machine? Run `npm run doctor`.** It checks each item below and prints the command that fixes what is wrong (decision 0025). `verify` points to it when the browser tests fail.
 - First run on a new machine: `npm install` (also enables the git hooks via the `prepare` script). Local e2e uses the Edge that ships with Windows; elsewhere run `npx playwright install chromium` and set `CI=1`.
 - On Windows, run Vitest from a directory spelled with a capital drive letter (`C:\...`). `scripts/verify.mjs` fixes this up for itself, so `npm run verify` works from either spelling; a bare `npx vitest` started from `c:\...` fails every file with "Vitest failed to find the current suite".
+- **Do not regenerate `package-lock.json` on Windows.** npm there leaves out the optional WebAssembly packages (the nested `@emnapi/*` entries under `@tailwindcss/oxide-wasm32-wasi` and `@oxc-resolver/binding-wasm32-wasi`) that Linux CI needs, and `npm ci` then fails there with "Missing ... from lock file" while everything passes locally. Adding or updating a dependency on Windows is fine (`npm install <package>`), but check the lockfile diff for removed `@emnapi` entries; if any are gone, rebuild it on Linux from `main`'s lockfile (a `node:24` container: `npm install --package-lock-only`, then a real `npm ci`). Dependabot builds its lockfiles on Linux. (Found while adding `knip`; decision 0025.)
 - The pre-commit hook (`.githooks/pre-commit`) runs the full `verify`. Don't bypass it with `--no-verify`.

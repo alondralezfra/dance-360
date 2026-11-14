@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { requiredNodeMajor } from '../scripts/doctorChecks.ts'
 
 // Guards the repository's automation settings (.github/, package.json scripts), which nothing else
 // exercises until a pull request is opened on GitHub. If one fails, a safeguard was weakened or broken
@@ -95,5 +96,20 @@ describe('the local dependency check', () => {
   it('is an npm script that runs the same blocking audit as CI', () => {
     const scripts = (JSON.parse(file('/package.json')) as { scripts: Record<string, string> }).scripts
     expect(scripts['check:deps']).toBe('npm audit --omit=dev --audit-level=high')
+  })
+})
+
+describe('the Node version', () => {
+  it('is written once, in package.json: CI and the setup check (npm run doctor) use the same major version', () => {
+    const engines = (JSON.parse(file('/package.json')) as { engines?: { node?: string } }).engines?.node
+    const required = requiredNodeMajor(engines ?? '')
+    expect(required, 'package.json needs engines.node written as ">=N"').not.toBeNull()
+    for (const [path, text] of workflows) {
+      for (const m of text.matchAll(/node-version: (\d+)/g)) expect(Number(m[1]), `${path} node-version`).toBe(required)
+    }
+  })
+
+  it('is used by at least one workflow, so the check above is not empty', () => {
+    expect(workflows.some(([, text]) => /node-version: \d+/.test(text))).toBe(true)
   })
 })

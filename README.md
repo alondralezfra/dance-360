@@ -8,6 +8,7 @@ Product plan: [dance-director-app-plan.md](dance-director-app-plan.md). All othe
 ```sh
 npm install     # first time only (also enables the git pre-commit hook)
 npm run dev     # then open http://localhost:5173
+npm run doctor  # if something does not work: checks Node 24+, installed packages, the git hook, a test browser, port 5199
 ```
 
 ## Checking a change

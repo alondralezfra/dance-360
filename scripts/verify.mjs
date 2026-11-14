@@ -50,6 +50,9 @@ if (quick) console.log('  (quick mode: e2e skipped; run the full `npm run verify
 const failed = results.find((r) => !r.ok)
 if (failed) {
   console.error(`\nverify FAILED at: ${failed.name}`)
+  if (failed.name.startsWith('End-to-end')) {
+    console.error('If the failure is about a missing browser or a busy port, `npm run doctor` checks this machine and says how to fix it.')
+  }
   process.exit(1)
 }
 console.log('\nverify passed.')

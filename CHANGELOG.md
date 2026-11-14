@@ -4,6 +4,12 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (setup check and release checklist)
+- **`npm run doctor`**: checks the machine can work on the project (Node version, installed packages, the git pre-commit hook, a browser for the end-to-end tests, a free port 5199) and prints the command that fixes each problem. It only reports and is not part of `verify`; when the browser tests fail, `verify` points to it.
+- **`engines.node` (`>=24`) in `package.json`** is now the one place the Node version is written; a test fails if a GitHub workflow uses a different major.
+- **A release-readiness checklist** (what to walk through before showing the app to anyone, with no hosting yet) in `docs/operations-and-quality.md`.
+- A note in `docs/testing.md` about regenerating the lockfile on Windows (it drops optional WebAssembly packages that Linux CI needs). Decision record 0025.
+
 ### Fixed (test only)
 - The part-colour check in `DancerPanel.test.tsx` reads the dot's inline style directly instead of its computed style, so it passes on both jsdom 29 and 31 (jsdom 31 no longer resolves `var()` in computed styles, which failed the pending jsdom update). No app change.
 

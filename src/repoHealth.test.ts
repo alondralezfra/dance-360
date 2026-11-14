@@ -86,7 +86,7 @@ describe('findBrokenDocReferences', () => {
 })
 
 // The real repo. (Records of past decisions and the changelog are history: they may name files that were later renamed.)
-const sources = import.meta.glob(['/src/**/*.{ts,tsx}', '/e2e/**/*.ts', '/scripts/*.mjs'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>
+const sources = import.meta.glob(['/src/**/*.{ts,tsx}', '/e2e/**/*.ts', '/scripts/*.{mjs,ts}'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 const documents = import.meta.glob(['/docs/*.md', '/docs/features/*.md', '/README.md', '/CLAUDE.md', '/dance-director-app-plan.md'], {
   query: '?raw',
   import: 'default',
