@@ -24,7 +24,7 @@ const changed = execSync('git -c core.quotepath=off status --porcelain', { encod
   .map((line) => line.slice(3).replace(/^"|"$/g, ''))
 
 const needsVerify = changed.some((f) =>
-  /^(src|e2e|scripts|\.githooks)\//.test(f) ||
+  /^(src|e2e|scripts)\//.test(f) ||
   /^(package(-lock)?\.json|vite\.config\.ts|playwright\.config\.ts|tsconfig.*\.json|index\.html)$/.test(f),
 )
 if (!needsVerify) process.exit(0)

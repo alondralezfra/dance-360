@@ -1,6 +1,6 @@
 # 0006. Verification workflow: nothing is done until `verify` passes
 
-- Status: Accepted
+- Status: Accepted. The git pre-commit hook it describes was removed by [0029](0029-no-commit-hook.md); the rest stands.
 - Date: 2026-11-03
 
 ## Context

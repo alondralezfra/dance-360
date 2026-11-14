@@ -21,10 +21,9 @@ try {
 
 const args = new Set(process.argv.slice(2))
 const quick = args.has('--quick')
-const staged = args.has('--staged')
 
 const steps = [
-  { name: 'Change discipline (tests + docs + changelog)', cmd: ['node', 'scripts/check-changes.mjs', ...(staged ? ['--staged'] : [])] },
+  { name: 'Change discipline (tests + docs + changelog)', cmd: ['node', 'scripts/check-changes.mjs'] },
   { name: 'Lint', cmd: ['npm', 'run', '--silent', 'lint'] },
   { name: 'Repo health (unused code, duplicate code and docs)', cmd: ['npm', 'run', '--silent', 'check:health'] },
   { name: 'Unit + integration tests (with coverage thresholds)', cmd: ['npm', 'run', '--silent', 'test:coverage'] },
@@ -45,7 +44,7 @@ for (const [i, step] of steps.entries()) {
 
 console.log('\n━━ verify summary')
 for (const r of results) console.log(`${r.ok ? '  PASS' : '  FAIL'}  ${r.name} (${r.seconds}s)`)
-if (quick) console.log('  (quick mode: e2e skipped; run the full `npm run verify` before finishing)')
+if (quick) console.log('  (quick mode: e2e skipped; the full verify runs when Claude finishes a turn, and in CI on the pull request)')
 
 const failed = results.find((r) => !r.ok)
 if (failed) {
