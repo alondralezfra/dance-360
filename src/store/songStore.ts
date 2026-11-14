@@ -21,7 +21,7 @@ const AUDIO_NAME = /\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|weba)$/i
 export const isAudioFile = (file: File) => file.type.startsWith('audio/') || AUDIO_NAME.test(file.name)
 
 /** What was found out about the song's tempo, shown beside the tempo fields. */
-export interface TempoNote {
+interface TempoNote {
   /** Which song it is about, so a note for one song is never shown for another. */
   hash: string
   /**
@@ -34,7 +34,7 @@ export interface TempoNote {
   estimate: { bpm: number; startOffsetSec: number } | null
 }
 
-export type SongFileState =
+type SongFileState =
   | 'none' // the project has no song
   | 'checking' // looking for the file on this device
   | 'present' // the file is here and ready

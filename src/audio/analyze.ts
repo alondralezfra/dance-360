@@ -7,7 +7,7 @@ import { peaksFromChannels, type Peaks } from '../model/peaks'
 import { estimateTempoFromSamples, MIN_CONFIDENCE, type TempoEstimate } from '../model/tempoEstimate'
 
 /** Decoded audio, as plain numbers. */
-export interface DecodedAudio {
+interface DecodedAudio {
   channels: Float32Array[]
   sampleRate: number
 }
@@ -20,7 +20,7 @@ export type Decode = (data: ArrayBuffer) => Promise<DecodedAudio>
  * not CD quality, and a four-minute song then takes about 15MB instead of 85MB
  * while it is analysed, which matters on phones.
  */
-export const ANALYSIS_SAMPLE_RATE = 8000
+const ANALYSIS_SAMPLE_RATE = 8000
 
 /** The file could not be read as audio (wrong type, damaged, or empty). */
 export class UnreadableAudioError extends Error {
@@ -31,7 +31,7 @@ export class UnreadableAudioError extends Error {
 }
 
 /** The browser's decoder. The length given to the context does not limit how much audio is decoded. */
-export const decodeWithBrowser: Decode = async (data) => {
+const decodeWithBrowser: Decode = async (data) => {
   const context = new OfflineAudioContext(1, 1, ANALYSIS_SAMPLE_RATE)
   const buffer = await context.decodeAudioData(data)
   return {

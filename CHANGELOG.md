@@ -7,6 +7,15 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 ### Fixed (test only)
 - The part-colour check in `DancerPanel.test.tsx` reads the dot's inline style directly instead of its computed style, so it passes on both jsdom 29 and 31 (jsdom 31 no longer resolves `var()` in computed styles, which failed the pending jsdom update). No app change.
 
+### Added (repo health checks)
+- **File-size limits**: application files at most 400 lines, tests at most 900, with an allowlist (starts empty) for a justified exception (`src/repoHealth.test.ts`).
+- **A check that the docs name real things**: every markdown link or backticked path in the current docs, README, CLAUDE.md and the plan must point at a file or folder that exists.
+- **`npm run check:health`** (a new "Repo health" step in `npm run verify`): `knip` fails on unused files, exports, types and dependencies; `jscpd` fails on copy-pasted code or documentation. `knip` and `jscpd` are development-only dependencies.
+- Decision record 0024 and architecture rule 11.
+
+### Changed (found by the new checks)
+- Six exports that nothing outside their own file used are no longer exported, and the test helper `wavBytes` calls the real `encodeWav` instead of carrying a copy of it. No behaviour change.
+
 ### Added (the safety net: accessibility checks)
 - **An automated accessibility scan** (axe, `e2e/accessibility.spec.ts`) of the projects home, stage, dancer drawer, Cast & Parts (and its sections picker), Song tab (with no song, with a song, and with speaker-delay calibration open), the error screen and the not-found screen, in the light and dark themes at desktop and phone width, against WCAG 2.1 A and AA. Any violation fails the test. `@axe-core/playwright` is a development-only dependency.
 - **A contrast test for the theme** (`src/theme/contrast.test.ts`) that checks every text-on-background colour pair in both themes (4.5 : 1 for text, 3 : 1 for icons).

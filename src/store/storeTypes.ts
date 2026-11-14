@@ -15,7 +15,7 @@ import type {
 } from '../model/types'
 
 /** Where the open project is in its load/save lifecycle. */
-export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
+type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 export type SaveState = 'saved' | 'dirty' | 'error'
 
 export interface SessionSlice {

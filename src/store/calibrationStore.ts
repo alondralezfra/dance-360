@@ -6,7 +6,7 @@ import { useTransport } from './transport'
 // The "tap along to the clicks" speaker-delay measurement (decisions/0020). Screen state only:
 // the delay it finds is kept by speakerStore once the person accepts it.
 
-export type CalibrationStatus = 'idle' | 'starting' | 'listening' | 'done'
+type CalibrationStatus = 'idle' | 'starting' | 'listening' | 'done'
 
 interface CalibrationState {
   status: CalibrationStatus

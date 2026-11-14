@@ -13,7 +13,7 @@ import type { Project } from '../model/types'
 /** What marks a file as ours. */
 export const PROJECT_FILE_KIND = 'dance-360-project'
 /** The version of the file wrapper (not of the project data inside, which has its own). */
-export const PROJECT_FILE_VERSION = 1
+const PROJECT_FILE_VERSION = 1
 /** Files bigger than this are refused: a real project is tens of kilobytes. */
 export const MAX_PROJECT_FILE_BYTES = 5_000_000
 /** Names are kept to a sensible length. */

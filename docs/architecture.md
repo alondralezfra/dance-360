@@ -1,6 +1,6 @@
 # Architecture
 
-*Last verified against the code: 2026-11-09.* Rules marked **(enforced)** are checked by `src/architecture.test.ts`; breaking one fails `npm run verify`.
+*Last verified against the code: 2026-11-12.* Rules marked **(enforced)** are checked by `src/architecture.test.ts`; breaking one fails `npm run verify`.
 
 ## Stack
 
@@ -72,6 +72,7 @@ This is one repository on purpose (decisions/0016): the backend is Supabase, the
 8. **Reuse `components/ui/`.** Every control is built once there (catalog: [components.md](components.md)). Add a variant or prop rather than repeating class strings; add a new component only on the second use of a pattern. Screens may not use raw `<button>`/`<input>`/`<select>`/`<textarea>`/`<svg>` or text-symbol icons. **(enforced)** [decisions/0011](decisions/0011-component-based-ui.md)
 9. **Touch first.** 40px minimum targets, nothing essential behind hover or right-click, panels that are a sidebar on wide screens and a drawer on narrow ones. ([plan §6.5](../dance-director-app-plan.md))
 10. **Every feature folder has a doc** in `docs/features/`. **(enforced)**
+11. **Repo health: small files, no dead or copied code, docs that name real things.** Application files stay under **400 lines** and tests under **900** (`src/test/repoHealth.ts`; a file that must be longer goes on the allowlist there with a reason, otherwise split it). `knip` fails on unused files, exports, types and dependencies (`knip.json`); `jscpd` fails on copy-pasted code *or* documentation (`.jscpd.json`: 10 lines / 100 tokens): reuse or link instead of copying. Every file or folder named in the docs (a markdown link or a backticked path) must exist. **(enforced)** by `src/repoHealth.test.ts` and `npm run check:health`. [decisions/0024](decisions/0024-repo-health-checks.md)
 
 ## Data flow
 

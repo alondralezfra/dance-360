@@ -36,7 +36,7 @@ export interface StageSettings {
 }
 
 /** A change of speed partway through the song, from `atCount` onward. */
-export interface TempoChange {
+interface TempoChange {
   atCount: number
   bpm: number
 }

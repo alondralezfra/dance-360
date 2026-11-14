@@ -1,0 +1,10 @@
+{
+  "path": ["src", "e2e", "scripts", "docs", "README.md", "CLAUDE.md", "dance-director-app-plan.md"],
+  "ignore": ["**/fixtures/**", "**/node_modules/**", "CHANGELOG.md"],
+  "format": ["typescript", "tsx", "javascript", "markdown"],
+  "minLines": 10,
+  "minTokens": 100,
+  "threshold": 0,
+  "reporters": ["console"],
+  "gitignore": true
+}

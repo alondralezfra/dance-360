@@ -11,8 +11,9 @@
 | `npm test` / `npm run test:watch` | Unit + component tests. |
 | `npm run test:coverage` | Same, enforcing coverage thresholds. |
 | `npm run test:e2e` | Browser tests (Playwright). Builds the app and serves the production build itself (port 5199). |
+| `npm run check:health` | Unused code (`knip`) and duplicated code or docs (`jscpd`). Also the "Repo health" step of `verify`. |
 
-`verify` runs, stopping at the first failure: **change discipline** -> **lint** -> **unit/integration + coverage** -> **type-check + build** -> **end-to-end**.
+`verify` runs, stopping at the first failure: **change discipline** -> **lint** -> **repo health** -> **unit/integration + coverage** -> **type-check + build** -> **end-to-end**.
 
 ## The layers
 
@@ -22,6 +23,7 @@
 | Integration | `src/store`, `src/persistence` tests | Stores, autosave timing, repository, migrations, error paths. | jsdom |
 | Component | `src/**/*.test.tsx` | A screen or control against the real stores: what the user sees and can do. | jsdom + Testing Library |
 | Architecture | `src/architecture.test.ts` | The rules in [architecture.md](architecture.md). | node |
+| Repo health | `src/repoHealth.test.ts`, `npm run check:health` | File sizes (400 lines app code, 900 tests), docs that name files that do not exist, unused code, copy-pasted code and docs. Rule 11 in [architecture.md](architecture.md); decision 0024. | node |
 | Data fixtures | `src/persistence/fixtures*` | Every saved-data version still loads. | node |
 | End-to-end | `e2e/*.spec.ts` | Real flows in a real browser, including dragging dots, reloads, themes, phone layout. | Edge (local) / Chromium (CI) |
 | Accessibility | `e2e/accessibility.spec.ts`, `src/theme/contrast.test.ts` | An axe scan (WCAG 2.1 A/AA) of every screen and open state in both themes at desktop and phone width, where any violation fails; and the contrast of every text/background colour pair the app uses. Decision 0023. | Edge/Chromium; node |

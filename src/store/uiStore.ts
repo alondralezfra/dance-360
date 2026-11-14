@@ -5,7 +5,7 @@ import type { Id } from '../model/types'
 // Ids here may go stale (e.g. after a delete), so readers fall back gracefully.
 
 /** Who chose the current formation: the person, or the song's playhead moving past it. */
-export type SelectionSource = 'user' | 'playhead'
+type SelectionSource = 'user' | 'playhead'
 
 interface UiState {
   selectedDancerId: Id | null
