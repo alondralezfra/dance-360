@@ -4,6 +4,12 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (setup check and release checklist)
+- **`npm run doctor`**: checks the machine can work on the project (Node version, installed packages, the git pre-commit hook, a browser for the end-to-end tests, a free port 5199) and prints the command that fixes each problem. It only reports and is not part of `verify`; when the browser tests fail, `verify` points to it.
+- **`engines.node` (`>=24`) in `package.json`** is now the one place the Node version is written; a test fails if a GitHub workflow uses a different major.
+- **A release-readiness checklist** (what to walk through before showing the app to anyone, with no hosting yet) in `docs/operations-and-quality.md`.
+- A note in `docs/testing.md` about regenerating the lockfile on Windows (it drops optional WebAssembly packages that Linux CI needs). Decision record 0025.
+
 ### Fixed (test only: a flaky end-to-end test)
 - `e2e/playback.spec.ts` "scrubbing shows the dancers where they are at that count" failed on the Linux CI runner with "Cannot read properties of null (reading 'width')". The stage canvas is only drawn once its container has been measured, so right after a screen opens it can be missing or hidden; `stagePixel` now waits for it (and says clearly if it never appears). Reproducing it under load found a second part of the same race: the dot's colour was read once, before the canvas had been painted (`rgb(0,0,0)`), so the new `expectDotColor` waits for the painted colour, and replaces the one-shot colour checks in the playback, cast and part-sections specs. No app change; no assertion was loosened. New `e2e/helpers.spec.ts` covers the wait.
 

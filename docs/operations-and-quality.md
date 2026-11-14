@@ -31,6 +31,7 @@ Work is grouped by what must be true before the next audience can use the app. E
 | CI on every pull request and push to `main` | **Done** | `.github/workflows/ci.yml` runs `npm run verify` on Ubuntu with Playwright's Chromium. Protect `main` and require **CI / verify** (a setting on GitHub, owned by the project owner). |
 | Unit, component, architecture, e2e, regression tests | **Done** | See [testing.md](testing.md). Bug fixes start with a failing test. |
 | Make new tests CI-proof before pushing | **Done** (a habit, documented) | Stress changed e2e specs with `CI=1 ... --repeat-each=3 --workers=6`, wait before measuring, leave margin on numeric layout limits (three CI failures on the playback branch came from skipping this). Now a step in testing.md. |
+| Setup check for a new machine | **Done** (decision 0025) | `npm run doctor` checks the Node version (`engines.node` in `package.json`, which CI must match: tested), installed packages, the git hook, a browser for the end-to-end tests and the test port, and says how to fix each. Report only. |
 | Dependency audit and automatic update PRs | **Done** (decision 0022) | `.github/workflows/security.yml` runs `npm audit --omit=dev --audit-level=high` (blocks a PR) and the same for build/test tools (warns only), on every PR, on `main` and every Monday; `npm run check:deps` runs the blocking check locally. `.github/dependabot.yml` opens weekly PRs for npm and GitHub Actions (small updates grouped, majors one at a time). |
 | Secret scanning and keeping secrets out of the repo | **Done** in CI (decision 0022); **needs two GitHub settings** (owner); **Stage 2** (real secrets) | gitleaks scans every PR and, weekly, the whole history. Still to switch on by the repository owner: **Settings → Code security → Secret scanning** and **Push protection**, which stop a key before it is pushed. No secrets exist today; `.env*` stays ignored, and only the Supabase *anon* key ever reaches the browser. |
 | Continuous deployment to a preview URL on each PR, and to staging on merge | **Stage 1** | Static hosting is enough (the app is a static build). Production only deploys from `main` after CI is green. |
@@ -79,6 +80,20 @@ Password reset and email verification must be tested end to end (including expir
 
 ### AI features (only if plan §10 idea 4, "sketch or describe a shape", or any model feature is built)
 Today the "smart" ideas are ordinary algorithms (assignment, snapping, conflicts) and need none of this. If a model is added: **evals** (a fixed set of inputs with expected outputs, run in CI); **prompt-injection tests** (uploaded files and project text are untrusted: the model has no tools that can change data without the director's confirmation); a **fallback** when the model API is down or slow (the feature is hidden or degraded, never blocking); **token and context limits** handled explicitly (truncate or refuse with a clear message); cost caps and rate limits per user; and opt-in with a clear statement of what leaves the device (plan §10 rules).
+
+## Release readiness (before showing the app to anyone)
+
+Walk through this before each time the app is handed to someone new (a beta tester, a hosted preview). It covers what applies today, with no hosting; the deployment, rollback, monitoring and privacy items are the **Stage 1** rows above, and they join this list when they are built. Tick each one yourself: the point is that a person looked.
+
+- [ ] `npm run doctor` and `npm run verify` pass on a clean checkout of `main`, and the **CI**, **Security / audit** and **Security / secrets** runs on the merge are green.
+- [ ] No open Dependabot pull request for an advisory rated high or critical.
+- [ ] `CHANGELOG.md`: **Unreleased** is moved under a dated heading and reads as release notes. Every data-format change names its migration.
+- [ ] If saved data changed since the last release: open a project saved by the previous release and check nothing is lost (the fixtures test proves it loads; a person checks it looks right).
+- [ ] Export a project and import it back on the real browser being shipped. Backups are the user's safety net.
+- [ ] Changed screens work by keyboard alone, at 390px wide and at desktop width, in both themes. The automated scan covers rules, not feel.
+- [ ] What automated tests cannot prove, tried by hand with real equipment: play a real song (tempo estimate, playback, metronome), and a real Bluetooth speaker through the speaker-delay calibration. [testing.md](testing.md) says these have not been tried.
+- [ ] No keys, tokens or real people's names (a real cast roster) in the repository, sample projects or screenshots.
+- [ ] Docs match the app: `npm run check:health` passes, and the "Last verified" date in [architecture.md](architecture.md) is current.
 
 ## Per-change review (add these to your thinking at step 1 and step 9)
 
