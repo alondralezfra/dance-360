@@ -142,6 +142,35 @@ describe('editGroup', () => {
     expect(editGroup(before, { ...before, name: 'Spring show' })).toBe('name:project')
   })
 
+  it('also groups typing in a link’s title and in a note’s text, so each is one undo step', () => {
+    const before: Project = {
+      ...base(),
+      resources: [{ id: 'r1', title: 'Tutor', url: 'https://a.com/', kind: 'other', sectionId: null, partId: null, startSec: null }],
+      notes: [{ id: 'n1', text: 'Arms', anchor: { kind: 'dance' }, partId: null }],
+    }
+    const typedTitle = { ...before, resources: before.resources.map((r) => ({ ...r, title: 'Tutorial' })) }
+    const typedText = { ...before, notes: before.notes.map((n) => ({ ...n, text: 'Arms up' })) }
+    expect(editGroup(before, typedTitle)).toBe('name:resources:r1')
+    expect(editGroup(before, typedText)).toBe('name:notes:n1')
+  })
+
+  it('does not group a link or note change that is more than typed text', () => {
+    const before: Project = {
+      ...base(),
+      resources: [{ id: 'r1', title: 'Tutor', url: 'https://a.com/', kind: 'other', sectionId: null, partId: null, startSec: null }],
+      notes: [{ id: 'n1', text: 'Arms', anchor: { kind: 'dance' }, partId: null }],
+    }
+    const retitledAndRekinded = { ...before, resources: before.resources.map((r) => ({ ...r, title: 'T', kind: 'document' as const })) }
+    const moved = { ...before, notes: before.notes.map((n) => ({ ...n, anchor: { kind: 'count' as const, count: 4 } })) }
+    const typedAndMoved = { ...before, notes: before.notes.map((n) => ({ ...n, text: 'More', partId: 'x' })) }
+    expect(editGroup(before, retitledAndRekinded)).toBeNull()
+    expect(editGroup(before, moved)).toBeNull()
+    expect(editGroup(before, typedAndMoved)).toBeNull()
+    expect(editGroup(before, { ...before, notes: [...before.notes, { id: 'n2', text: 'x', anchor: { kind: 'dance' }, partId: null }] })).toBeNull()
+    // a link title and a note text edited in the same step are two things, not one
+    expect(editGroup(before, { ...before, resources: before.resources.map((r) => ({ ...r, title: 'T2' })), notes: before.notes.map((n) => ({ ...n, text: 'N2' })) })).toBeNull()
+  })
+
   it('is null for anything that is more than one rename', () => {
     const before = base()
     expect(editGroup(before, before)).toBeNull()
