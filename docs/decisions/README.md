@@ -49,3 +49,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0024](0024-repo-health-checks.md) | Repo health checks: file size limits (400 / 900 lines), unused code (`knip`), duplicated code and docs (`jscpd`), docs that name real files; all hard-fail in `verify` |
 | [0025](0025-setup-check.md) | A setup check (`npm run doctor`, report only, on demand), the Node version written once in `engines.node`, a pre-hosting release checklist, and the lockfile-on-Windows lesson |
 | [0026](0026-ui-styling-skill-and-screenshots.md) | A `ui-styling` project skill, `npm run screenshots` (phone and desktop, light and dark), and a written style guide derived from the current UI |
+| [0027](0027-resources-links.md) | Resources, slice 1: links with a type tag, attached to a section and/or part; nothing fetched or embedded; http/https only; one Resources tab for Links and Notes; phone tabs scroll sideways |

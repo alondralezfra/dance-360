@@ -1,0 +1,149 @@
+{
+  "name": "Fixture v5",
+  "stage": {
+    "width": 40,
+    "depth": 24
+  },
+  "tempo": {
+    "bpm": 112,
+    "startOffsetSec": 1.25,
+    "changes": []
+  },
+  "song": {
+    "name": "Spring Medley.mp3",
+    "durationSec": 201.4,
+    "size": 4812345,
+    "mime": "audio/mpeg",
+    "hash": "9f2c1d7a5b3e48aa0c64d1e2f7b8a9c0d3e4f5a6b7c8d9e0f1a2b3c4d5e6f708"
+  },
+  "dancers": [
+    {
+      "id": "d1",
+      "name": "Maya"
+    },
+    {
+      "id": "d2",
+      "name": "Jordan"
+    }
+  ],
+  "formations": [
+    {
+      "id": "f1",
+      "name": "Opening",
+      "count": 0,
+      "transitionCounts": 4,
+      "positions": {
+        "d1": {
+          "x": 10,
+          "y": 12
+        },
+        "d2": {
+          "x": 20,
+          "y": 12
+        }
+      }
+    },
+    {
+      "id": "f2",
+      "name": "Chorus",
+      "count": 16,
+      "transitionCounts": 4,
+      "positions": {
+        "d1": {
+          "x": 30,
+          "y": 8
+        },
+        "d2": {
+          "x": 10,
+          "y": 8
+        }
+      }
+    }
+  ],
+  "parts": [
+    {
+      "id": "pa",
+      "name": "Part A",
+      "color": "blue",
+      "sectionIds": [
+        "s1",
+        "s3"
+      ]
+    },
+    {
+      "id": "pf",
+      "name": "Floor",
+      "color": "red",
+      "sectionIds": [
+        "s2",
+        "s4"
+      ]
+    },
+    {
+      "id": "ps",
+      "name": "Standing",
+      "color": "green",
+      "sectionIds": [
+        "s2",
+        "s4"
+      ]
+    },
+    {
+      "id": "pg",
+      "name": "Everywhere",
+      "color": "gray",
+      "sectionIds": null
+    }
+  ],
+  "sections": [
+    {
+      "id": "s1",
+      "name": "Intro",
+      "startCount": 0
+    },
+    {
+      "id": "s2",
+      "name": "Chorus 1",
+      "startCount": 16
+    },
+    {
+      "id": "s3",
+      "name": "Verse",
+      "startCount": 32
+    },
+    {
+      "id": "s4",
+      "name": "Chorus 2",
+      "startCount": 48
+    }
+  ],
+  "assignments": {
+    "s2": {
+      "d1": "pf",
+      "d2": "ps"
+    },
+    "s4": {
+      "d1": "ps"
+    }
+  },
+  "resources": [
+    {
+      "id": "r1",
+      "title": "Chorus tutorial",
+      "url": "https://www.youtube.com/watch?v=abc123",
+      "kind": "tutorial",
+      "sectionId": "s2",
+      "partId": "pf",
+      "startSec": 83
+    },
+    {
+      "id": "r2",
+      "title": "Costume ideas",
+      "url": "https://drive.google.com/file/d/1AbC/view",
+      "kind": "document",
+      "sectionId": null,
+      "partId": null,
+      "startSec": null
+    }
+  ]
+}

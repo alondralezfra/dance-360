@@ -1,4 +1,5 @@
 import type { History } from '../model/history'
+import type { ResourceDraft } from '../model/resources'
 import type {
   Assignments,
   Dancer,
@@ -8,6 +9,7 @@ import type {
   Part,
   Point,
   Project,
+  Resource,
   Section,
   Song,
   StageSettings,
@@ -86,6 +88,18 @@ export interface PartsSlice {
   assignDancer: (sectionId: Id, dancerId: Id, partId: Id | null) => void
 }
 
+export interface ResourcesSlice {
+  resources: Resource[]
+  /** Adds a link (a blank title becomes the site's name). Returns its id, or null if the address is not a usable web link. */
+  addResource: (draft: ResourceDraft) => Id | null
+  /**
+   * Changes a link. An address that is not a usable web link, a section or a part that does not exist, leaves
+   * that field as it was. `null` for the section, part or start time clears it.
+   */
+  updateResource: (id: Id, patch: Partial<Omit<Resource, 'id'>>) => void
+  removeResource: (id: Id) => void
+}
+
 export interface HistorySlice {
   /**
    * While a take of taps is open, edits to the formations are one undo step however far apart they are.
@@ -106,6 +120,7 @@ export type ProjectStore = SessionSlice &
   RosterSlice &
   FormationSlice &
   PartsSlice &
+  ResourcesSlice &
   HistorySlice
 
 /** The fields that make up the saved project document. */
@@ -119,6 +134,7 @@ export const DOCUMENT_KEYS = [
   'parts',
   'sections',
   'assignments',
+  'resources',
 ] as const
 
 export function selectDocument(s: ProjectStore): Project {
@@ -132,5 +148,6 @@ export function selectDocument(s: ProjectStore): Project {
     parts: s.parts,
     sections: s.sections,
     assignments: s.assignments,
+    resources: s.resources,
   }
 }

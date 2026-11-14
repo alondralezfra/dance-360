@@ -111,11 +111,36 @@ describe('migrateProject', () => {
     expect(p.assignments).toEqual({ 'section-1': {} })
   })
 
+  it('v4 -> v5: no links yet, and nothing else changes', () => {
+    const v4 = {
+      name: 'Song dance',
+      stage: { width: 40, depth: 24 },
+      tempo: { bpm: 112, startOffsetSec: 1.25, changes: [] },
+      song: null,
+      dancers: [{ id: 'd1', name: 'Maya' }],
+      formations: [],
+      parts: [{ id: 'p', name: 'Everyone', color: 'blue', sectionIds: null }],
+      sections: [{ id: 's', name: 'Section 1', startCount: 0 }],
+      assignments: { s: { d1: 'p' } },
+    }
+    const p = migrateProject(4, structuredClone(v4))
+    expect(p.resources).toEqual([])
+    const { resources: _added, ...rest } = p
+    expect(rest).toEqual(v4)
+  })
+
+  it('v4 -> v5: does not share one list between projects', () => {
+    const a = migrateProject(4, { name: 'a' })
+    const b = migrateProject(4, { name: 'b' })
+    expect(a.resources).not.toBe(b.resources)
+  })
+
   it('v0 projects are carried all the way to the current version', () => {
     const p = migrateProject(0, v0)
     expect(p.parts).toHaveLength(1)
     expect(p.sections).toHaveLength(1)
     expect(p.assignments['section-1']).toEqual({ d1: 'part-a' })
+    expect(p.resources).toEqual([])
   })
 
   it('leaves a current-version project unchanged', () => {

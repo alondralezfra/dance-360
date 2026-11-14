@@ -51,6 +51,31 @@ describe('undo and redo', () => {
     expect(state().dancers.map((d) => d.name)).toEqual(['Maya'])
   })
 
+  it('undoes and redoes adding, changing and removing a link, and a removed section that detached one', () => {
+    const id = state().addResource({ title: 'Chorus tutorial', url: 'https://a.com' })!
+    expect(state().resources).toHaveLength(1)
+    state().undo()
+    expect(state().resources).toEqual([])
+    state().redo()
+    expect(state().resources.map((r) => r.title)).toEqual(['Chorus tutorial'])
+
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    const second = state().addSection()
+    state().updateResource(id, { sectionId: second })
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    state().removeSection(second) // the link is kept, as a whole-dance link
+    expect(state().resources[0].sectionId).toBeNull()
+    state().undo() // brings back the section and the link's attachment to it, together
+    expect(state().sections).toHaveLength(2)
+    expect(state().resources[0].sectionId).toBe(second)
+
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    state().removeResource(id)
+    expect(state().resources).toEqual([])
+    state().undo()
+    expect(state().resources).toHaveLength(1)
+  })
+
   it('undoes edits in the order they were made, across different parts of the project', () => {
     state().addDancer('Maya')
     const formationId = state().formations[0].id

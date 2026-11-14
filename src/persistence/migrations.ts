@@ -10,8 +10,9 @@ import type { Project } from '../model/types'
 //   v2  project has `parts`, `sections` and `assignments`
 //   v3  each part has `sectionIds` (the sections it applies to; null = all)
 //   v4  project has `song` (null until one is attached); `tempo` has `changes` (always empty for now)
+//   v5  project has `resources` (links to videos and documents; empty until some are added)
 
-export const CURRENT_VERSION = 4
+export const CURRENT_VERSION = 5
 
 type Doc = Record<string, unknown>
 
@@ -57,6 +58,9 @@ const migrations: Record<number, (doc: Doc) => Doc> = {
       tempo: { bpm: 120, startOffsetSec: 0, ...tempo, changes: [] },
     }
   },
+
+  // No links yet; everything else is kept exactly as it was.
+  4: (doc) => ({ ...doc, resources: [] }),
 }
 
 /** Upgrade a stored document to the current model. Throws if it's from the future. */

@@ -33,6 +33,17 @@ function richProject(): Project {
     assignments: { [project.sections[0].id]: { d1: project.parts[0].id } },
     song: { name: 'Groove.mp3', durationSec: 201.4, size: 4_812_345, mime: 'audio/mpeg', hash: 'abc123' },
     tempo: { bpm: 127.5, startOffsetSec: 1.26, changes: [] },
+    resources: [
+      {
+        id: 'r1',
+        title: 'Chorus tutorial',
+        url: 'https://www.youtube.com/watch?v=abc',
+        kind: 'tutorial',
+        sectionId: project.sections[0].id,
+        partId: project.parts[0].id,
+        startSec: 83,
+      },
+    ],
   }
 }
 
@@ -162,6 +173,19 @@ describe('reading a backup back', () => {
       damaged((p) => (p.sections = [{ id: 's', name: 'S', startCount: 'zero' }]))
       damaged((p) => (p.assignments = [] as unknown as Record<string, unknown>))
       damaged((p) => (p.assignments = { s1: { d1: 5 } }))
+    })
+
+    it('with a link that is not a real web address, or is about something that is not there', () => {
+      const link = (over: Record<string, unknown>) => ({ ...richProject().resources[0], ...over })
+      damaged((p) => delete p.resources)
+      damaged((p) => (p.resources = 'links'))
+      damaged((p) => (p.resources = [link({ url: 'javascript:alert(1)' })]))
+      damaged((p) => (p.resources = [link({ url: 'data:text/html,<script>alert(1)</script>' })]))
+      damaged((p) => (p.resources = [link({ kind: 'virus' })]))
+      damaged((p) => (p.resources = [link({ sectionId: 'no-such-section' })]))
+      damaged((p) => (p.resources = [link({ partId: 'no-such-part' })]))
+      damaged((p) => (p.resources = [link({ startSec: -3 })]))
+      damaged((p) => (p.resources = [link({ id: 'a' }), link({ id: 'a' })]))
     })
 
     it('without ever opening the door to anything it did not check', () => {

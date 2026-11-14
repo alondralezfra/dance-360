@@ -103,6 +103,27 @@ export interface Section {
 /** sectionId -> dancerId -> partId. A missing entry means "no part yet". */
 export type Assignments = Record<Id, Record<Id, Id>>
 
+/** What a link is, for finding the right one ("the tutorial for the chorus"). */
+export type ResourceKind = 'tutorial' | 'reference' | 'rehearsal' | 'document' | 'other'
+
+/**
+ * A web link attached to the project: a tutorial video, a reference, a document. Optionally about one section
+ * and/or one part. Nothing is fetched from the link: the app only shows it and opens it in a new tab.
+ */
+export interface Resource {
+  id: Id
+  title: string
+  /** An http or https address (`normalizeUrl` in model/resources.ts is the one rule for that). */
+  url: string
+  kind: ResourceKind
+  /** The section it is about, or null for the whole dance. */
+  sectionId: Id | null
+  /** The part it is about, or null for any part. */
+  partId: Id | null
+  /** Where in a video to start, in seconds, or null. Shown to the person; the address is never changed. */
+  startSec: number | null
+}
+
 export interface Project {
   name: string
   stage: StageSettings
@@ -116,4 +137,6 @@ export interface Project {
   /** Always kept sorted by `startCount`, first at 0, at least one (the store guarantees this). */
   sections: Section[]
   assignments: Assignments
+  /** Links to videos and documents, in the order they were added. */
+  resources: Resource[]
 }

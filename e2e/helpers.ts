@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 import { fitStage } from '../src/features/stage/stageLayout'
 import { beatTrack, wavBytes, whiteNoise, type BeatTrackOptions } from '../src/test/syntheticAudio'
 
@@ -149,6 +149,31 @@ export function wavFile({ seconds = 6, frequency = 440, sampleRate = 8000 } = {}
   header.write('data', 36)
   header.writeUInt32LE(data.length, 40)
   return Buffer.concat([header, data])
+}
+
+/** True when the open tab lies wholly inside the visible part of the (sideways scrolling) project tab row. */
+export async function tabFullyInView(nav: Locator) {
+  return nav
+    .evaluate((el) => {
+      const open = el.querySelector('[aria-current="page"]')
+      if (!open) return false
+      const row = el.getBoundingClientRect()
+      const tab = open.getBoundingClientRect()
+      return tab.left >= row.left - 0.5 && tab.right <= row.right + 0.5
+    })
+    .catch(() => false)
+}
+
+export async function goToResources(page: Page) {
+  await page.getByRole('link', { name: 'Resources', exact: true }).click()
+  await expect(page).toHaveURL(/\/resources$/)
+}
+
+/** Add a link on the Resources tab with the form at the top. */
+export async function addLink(page: Page, url: string, title = '') {
+  await page.getByLabel('Web address of the new link').fill(url)
+  await page.getByLabel('Title of the new link').fill(title)
+  await page.getByRole('button', { name: '+ Add link' }).click()
 }
 
 export async function goToSong(page: Page) {

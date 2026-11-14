@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptyProject } from '../model/project'
+import { problemWithResources } from '../model/resources'
 import { CURRENT_VERSION, migrateProject } from './migrations'
 
 // Regression guard for saved data. fixtures/vN.json is a FROZEN example of what
@@ -65,6 +66,15 @@ describe('saved-data fixtures', () => {
       }
       // Projects saved before part scoping existed keep every part applying everywhere.
       if (version < 3) expect(p.parts.every((part) => part.sectionIds === null)).toBe(true)
+    }
+  })
+
+  it('every migrated link is well formed and about a section and part that exist; older projects have none', () => {
+    for (const { version, doc } of byVersion) {
+      const p = migrateProject(version, structuredClone(doc))
+      expect(problemWithResources(p), `v${version}`).toBeNull()
+      if (version < 5) expect(p.resources).toEqual([])
+      else expect(p.resources).toEqual(doc.resources)
     }
   })
 
