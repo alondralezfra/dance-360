@@ -5,7 +5,7 @@ import {
   chooseFile,
   createProject,
   dotColor,
-  expectColor,
+  expectDotColor,
   goToSong,
   goToStage,
   rgb,
@@ -212,13 +212,13 @@ test.describe('the stage follows the song', () => {
   test('scrubbing shows the dancers where they are at that count', async ({ page }) => {
     const home = await setUp(page)
     await slider(page).fill('0')
-    expectColor(await dotColor(page, home), blue) // at the start, at home
+    await expectDotColor(page, home, blue) // at the start, at home
     await slider(page).fill('8')
-    expectColor(await dotColor(page, { x: 20, y: 8 }), blue) // the second formation has landed
+    await expectDotColor(page, { x: 20, y: 8 }, blue) // the second formation has landed
     await slider(page).fill('6') // half way through the four counts of travel
     await expect(page.getByLabel('Formation name')).toHaveValue('Formation 1') // still the first formation until it lands
     const halfway = { x: (home.x + 20) / 2, y: (home.y + 8) / 2 }
-    expectColor(await dotColor(page, halfway), blue)
+    await expectDotColor(page, halfway, blue)
   })
 
   test('the selected formation follows the position, forwards and backwards', async ({ page }) => {
@@ -238,7 +238,7 @@ test.describe('the stage follows the song', () => {
     await expect(page.getByLabel('Formation name')).toHaveValue('Formation 2', { timeout: 10_000 })
     expect(await position(page)).toBeGreaterThanOrEqual(8)
     await pauseButton(page).click()
-    expectColor(await dotColor(page, { x: 20, y: 8 }), blue) // and the dancer is there
+    await expectDotColor(page, { x: 20, y: 8 }, blue) // and the dancer is there
   })
 
   test('stepping to a formation yourself stops the song and previews the step as before', async ({ page }) => {
