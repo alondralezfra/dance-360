@@ -50,3 +50,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0025](0025-setup-check.md) | A setup check (`npm run doctor`, report only, on demand), the Node version written once in `engines.node`, a pre-hosting release checklist, and the lockfile-on-Windows lesson |
 | [0026](0026-ui-styling-skill-and-screenshots.md) | A `ui-styling` project skill, `npm run screenshots` (phone and desktop, light and dark), and a written style guide derived from the current UI |
 | [0027](0027-resources-links.md) | Resources, slice 1: links with a type tag, attached to a section and/or part; nothing fetched or embedded; http/https only; one Resources tab for Links and Notes; phone tabs scroll sideways |
+| [0029](0029-no-commit-hook.md) | No git commit hook: Claude runs `verify` once before reporting done, CI runs it on every pull request, so committing and pushing are instant |

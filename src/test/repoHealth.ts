@@ -34,7 +34,7 @@ export function findOversized(
   return problems
 }
 
-const KNOWN_ROOTS = ['src/', 'docs/', 'e2e/', 'scripts/', '.github/', '.githooks/', '.claude/', 'public/']
+const KNOWN_ROOTS = ['src/', 'docs/', 'e2e/', 'scripts/', '.github/', '.claude/', 'public/']
 const FILE_EXTENSION = /\.(md|ts|tsx|mjs|json|yml|css)$/
 
 /** True for a backticked token that is meant to be a path in this repo (and can be checked). */
