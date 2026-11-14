@@ -3,7 +3,7 @@ import {
   addDancer,
   createProject,
   dotColor,
-  expectColor,
+  expectDotColor,
   goToCast,
   goToStage,
   resetStorage,
@@ -195,18 +195,18 @@ test.describe('part colours on the stage', () => {
     await goToCast(page)
     await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
     await goToStage(page)
-    expectColor(await dotColor(page, FIRST_SPOT), rgb('#94a3b8')) // no part chosen yet
+    await expectDotColor(page, FIRST_SPOT, rgb('#94a3b8')) // no part chosen yet
 
     await goToCast(page)
     await page.getByRole('button', { name: '+ Add part' }).click() // two parts, so dancers have to be put in one
     await page.getByLabel('Maya, Section 1').selectOption({ label: 'Everyone' })
     await goToStage(page)
-    expectColor(await dotColor(page, FIRST_SPOT), rgb('#0072b2')) // blue
+    await expectDotColor(page, FIRST_SPOT, rgb('#0072b2')) // blue
 
     await goToCast(page)
     await page.getByLabel('Colour of part 1').selectOption('green')
     await goToStage(page)
-    expectColor(await dotColor(page, FIRST_SPOT), rgb('#009e73'))
+    await expectDotColor(page, FIRST_SPOT, rgb('#009e73'))
   })
 
   test('the dot colour uses the dark-theme palette in dark mode', async ({ page }) => {
@@ -270,7 +270,7 @@ test.describe('part colours on the stage', () => {
 
     // Select in the dancer list. (A bare listitem would also match the Cast page's lists while the route is still changing.)
     await page.getByRole('listitem').filter({ has: page.getByRole('button', { name: 'Remove Maya' }) }).click()
-    expectColor(await dotColor(page, FIRST_SPOT), rgb('#0072b2')) // fill unchanged
+    await expectDotColor(page, FIRST_SPOT, rgb('#0072b2')) // fill unchanged
   })
 })
 
@@ -298,7 +298,7 @@ test.describe('upgrading older saved projects', () => {
     await page.goto('/projects/old-v1/stage')
     await expect(page.getByLabel('Project name')).toHaveValue('Before parts')
     await expect(page.getByRole('group', { name: 'Parts legend' })).toContainText('Part A')
-    expectColor(await dotColor(page, { x: 10, y: 12 }), rgb('#0072b2'))
+    await expectDotColor(page, { x: 10, y: 12 }, rgb('#0072b2'))
 
     await goToCast(page)
     await expect(page.getByRole('status').filter({ hasText: 'No missing assignments' })).toBeVisible()
