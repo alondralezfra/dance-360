@@ -4,6 +4,7 @@ import type { Formation } from '../model/types'
 import { createFormationSlice } from './slices/formationSlice'
 import { createHistorySlice } from './slices/historySlice'
 import { createPartsSlice } from './slices/partsSlice'
+import { createResourcesSlice } from './slices/resourcesSlice'
 import { createProjectSlice } from './slices/projectSlice'
 import { createRosterSlice } from './slices/rosterSlice'
 import { createSessionSlice } from './slices/sessionSlice'
@@ -17,6 +18,7 @@ export const useProject = create<ProjectStore>()((...a) => ({
   ...createRosterSlice(...a),
   ...createFormationSlice(...a),
   ...createPartsSlice(...a),
+  ...createResourcesSlice(...a),
   ...createHistorySlice(...a),
 }))
 

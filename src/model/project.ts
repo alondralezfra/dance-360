@@ -23,5 +23,6 @@ export function createEmptyProject(name = 'My Dance'): Project {
     parts: [{ id: newId(), name: 'Everyone', color: 'blue', sectionIds: null }],
     sections: [{ id: newId(), name: 'Section 1', startCount: 0 }],
     assignments: {},
+    resources: [],
   }
 }
