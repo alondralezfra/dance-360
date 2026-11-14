@@ -6,7 +6,7 @@ import { requiredNodeMajor } from '../scripts/doctorChecks.ts'
 // by accident: put it back rather than loosening the test, unless the safeguard is deliberately changing
 // (then update docs/operations-and-quality.md and the decision record, docs/decisions/0022).
 
-const raw = import.meta.glob(['/.github/**/*.{yml,yaml}', '/package.json'], {
+const raw = import.meta.glob(['/.github/**/*.{yml,yaml}', '/package.json', '/.gitignore', '/playwright.screenshots.config.ts', '/.claude/skills/*/SKILL.md'], {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -111,5 +111,37 @@ describe('the Node version', () => {
 
   it('is used by at least one workflow, so the check above is not empty', () => {
     expect(workflows.some(([, text]) => /node-version: \d+/.test(text))).toBe(true)
+  })
+})
+
+describe('the screenshot tool (npm run screenshots)', () => {
+  const scripts = () => (JSON.parse(file('/package.json')) as { scripts: Record<string, string> }).scripts
+
+  it('has its own Playwright config that only picks up *.shots.ts, so test:e2e and verify never run it', () => {
+    expect(scripts().screenshots).toBe('playwright test -c playwright.screenshots.config.ts')
+    expect(scripts()['test:e2e']).toBe('playwright test')
+    expect(file('/playwright.screenshots.config.ts')).toContain(String.raw`testMatch: /.*\.shots\.ts$/`)
+  })
+
+  it('keeps the pictures out of git', () => {
+    expect(file('/.gitignore')).toMatch(/^screenshots$/m)
+  })
+})
+
+describe('project skills (.claude/skills)', () => {
+  const skills = Object.entries(raw).filter(([path]) => path.startsWith('/.claude/skills/'))
+
+  it('has the ui-styling skill', () => {
+    expect(skills.map(([path]) => path)).toContain('/.claude/skills/ui-styling/SKILL.md')
+  })
+
+  it('names each skill after its folder and says when to use it, so it can be found', () => {
+    for (const [path, text] of skills) {
+      const folder = path.split('/')[3]
+      const front = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text)?.[1] ?? ''
+      expect(front, `${path} needs front matter`).not.toBe('')
+      expect(front, `${path} name`).toMatch(new RegExp(`^name: ${folder}$`, 'm'))
+      expect(front, `${path} description`).toMatch(/^description: .{40,}/m)
+    }
   })
 })

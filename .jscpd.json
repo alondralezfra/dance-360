@@ -1,5 +1,5 @@
 {
-  "path": ["src", "e2e", "scripts", "docs", "README.md", "CLAUDE.md", "dance-director-app-plan.md"],
+  "path": ["src", "e2e", "scripts", "docs", "README.md", "CLAUDE.md", "dance-director-app-plan.md", ".claude/skills"],
   "ignore": ["**/fixtures/**", "**/node_modules/**", "CHANGELOG.md"],
   "format": ["typescript", "tsx", "javascript", "markdown"],
   "minLines": 10,
