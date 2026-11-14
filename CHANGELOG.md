@@ -4,10 +4,22 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
-### Added (Resources: links, part 1 of slice 1: saved data)
-- **Saved data version 5** adds `resources`: links to videos and documents, each with a title, an http or https address, a kind (tutorial video, reference video, rehearsal recording, document, other), and optionally the section and/or part it is about and a start time to show. Migrated projects get an empty list (`fixtures/v5.json`, a migration test). The store can add, change and remove links (all undoable), and removing a section or a part **keeps** the links about it (as whole-dance links / any part).
-- Links travel in **backup files** and are validated strictly on import: only http and https addresses (`javascript:` and other schemes are refused), known kinds, unique ids, and sections and parts that exist.
-- Decision record 0027 (the screen follows in the next commit).
+### Added (Resources: links, slice 1 of resources and notes)
+- **A Resources tab with Links**: paste a web address (and, if you like, a title) to add a link. Each link has a kind (tutorial video, reference video, rehearsal recording, document, other), can be about a section and/or a part, can carry a start time to show, and is edited in place. Links are grouped by section, open in a new tab, and can be removed (Undo brings them back). Nothing is fetched from a link: no thumbnails or embedded player, so it works offline and nothing leaves the device.
+- Only **http and https** addresses are accepted (adding, editing and importing): `javascript:` and other schemes are refused. Links open with `rel="noopener noreferrer"`.
+- Removing a section or a part **keeps** the links about it (as whole-dance links / any part).
+- **Saved data version 5** adds `resources` (migrated projects get an empty list; `fixtures/v5.json`, a migration test). Links travel in **backup files** and are validated strictly on import.
+- `Icon` gains `externalLink`; `buttonVariants` (in `components/ui/buttonVariants.ts`) lets a link look like a `Button`. The Resources screen is in the accessibility scan and the screenshot tool.
+- Decision record 0027; the plan's "Notes: separate tab?" question is answered (one Resources tab for Links and Notes; notes are the next slice).
+
+### Changed (project tabs on a phone)
+- With four tabs, the project tabs **scroll sideways on a phone** (no scrollbar drawn) and the open tab is kept fully in view, also when its address is opened directly. Two e2e checks that assumed the tabs always fit ("no stray scrollbar at 390px wide" and "all three project tabs fit on one row") were rewritten to check what still matters: no drawn scrollbar, every tab reachable, the open tab fully in view. (Behaviour deliberately changed; decision 0027.)
+
+### Added (UI styling skill and screenshots)
+- **A `ui-styling` skill** (`.claude/skills/ui-styling/SKILL.md`): the order to apply the project's UI rules in, ending with a look at the result. It links to the docs and copies none of them.
+- **`npm run screenshots`**: photographs the projects home, stage, cast, song (empty and with a song) and, on a phone, the dancer drawer, at 390px and 1280px wide in both themes, into `screenshots` (git-ignored). On demand; not part of `verify`.
+- **"How the app looks"** in `docs/components.md`: the sizes, spacing, surfaces, messages and emphasis the UI already uses, written down from the current screens so new ones match.
+- CLAUDE.md step 8 points to the skill. The docs check and the copy-paste check now also read the skill file. Decision record 0026.
 
 ### Added (setup check and release checklist)
 - **`npm run doctor`**: checks the machine can work on the project (Node version, installed packages, the git pre-commit hook, a browser for the end-to-end tests, a free port 5199) and prints the command that fixes each problem. It only reports and is not part of `verify`; when the browser tests fail, `verify` points to it.

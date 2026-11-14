@@ -51,10 +51,10 @@ src/
     audioCleanup.ts  clears song files no project uses
     autosave.ts      debounced save of the open project
   features/       Screens, one folder per feature, each documented in docs/features/.  (enforced)
-  components/     Shared UI: ui/ (Button, IconButton, Icon, Input, Select, Checkbox, FileButton, Slider, NumberField, SectionHeader, Drawer, Popover; see components.md), ThemeToggle
+  components/     Shared UI: ui/ (Button, IconButton, Icon, Input, Select, Checkbox, FileButton, Slider, NumberField, SectionHeader, Drawer, Popover, buttonVariants; see components.md), ThemeToggle
   theme/          Theme switching + the canvas colour hook
   lib/            Small helpers (cn, readableOn, devicePixels, hash, format, typing, playheadClock, download, useDevicePixelRatio, useElementSize)
-  router.tsx      URL map (project screens are tabs: Stage, Cast & Parts, Song)
+  router.tsx      URL map (project screens are tabs: Stage, Cast & Parts, Song, Resources)
 ```
 
 ## One repository

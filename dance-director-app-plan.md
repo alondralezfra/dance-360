@@ -86,6 +86,8 @@ Dancers frequently switch between choreographies partway through a song, so part
 
 Not hosting uploads (too expensive). MVP = **paste links** (YouTube, Drive, etc.) with a title, a type tag (tutorial / reference / rehearsal recording), and attachment to section and/or part. Auto-fetch thumbnail and title where possible; embed for in-app playback. Note: private Drive links only play for people with access, which matters once dancer logins exist. Hosted video can be a later add-on.
 
+*First slice, decided (docs/decisions/0027): any web link with a title and one type tag (tutorial video, reference video, rehearsal recording, document, other), optionally about a section and/or a part, with an optional start time to show. Nothing is fetched from the link: no thumbnails, no titles, no embedded player, and the link opens in a new tab, so it works offline and nothing leaves the device. Thumbnails and in-app playback stay possible later; they would need a privacy note and a security policy change.*
+
 ---
 
 ## 4. Data Model (conceptual)
@@ -282,7 +284,7 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 
 - **Transition semantics:** arrive-on vs. leave-on at a marked count; default transition length?
 - **Roster library:** include in MVP or copy-roster-between-projects instead?
-- **Notes:** separate tab, or only anchored inside Stage/Resources?
+- **Notes:** *Decided (docs/decisions/0027): the Resources tab holds a Links section and a Notes section. Notes can be anchored to a count, section or part, and later shown beside the stage when the playhead reaches them.* (Links are built; notes are the next slice.)
 - **Tempo changes:** *Decided (docs/decisions/0013): one BPM per project in the MVP; the saved tempo gets an empty list of tempo changes in the same migration that adds the song, so changes can be supported later without another data change.*
 - **Music files:** *Decided for now (0013): the file is stored in the browser (IndexedDB), the project saves only its name/length/hash, and another device asks you to re-attach the file.* Still open: licensing considerations when sharing with dancers, and cloud storage (opt-in).
 - **Half-counts ("&"):** *Decided for now (0013): whole counts only.* Revisit with the choreographers before or soon after the timeline exists; it is a data migration, cheapest while there are few projects.

@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { expect, test } from '@playwright/test'
-import { addDancer, beatsWav, chooseFile, createProject, goToCast, goToSong, waitForSaved } from './helpers'
+import { addDancer, addLink, beatsWav, chooseFile, createProject, goToCast, goToResources, goToSong, waitForSaved } from './helpers'
 
 // Not a test of the app: photographs the main screens so they can be looked at (docs/components.md, "How the app
 // looks"; the ui-styling skill in .claude/skills). Run `npm run screenshots`. The pictures are whole pages, named
@@ -45,6 +45,16 @@ for (const scheme of ['light', 'dark'] as const) {
       await chooseFile(page, beatsWav({ bpm: 120, seconds: 20, firstBeatSec: 0.5 }, 'Groove.wav'))
       await page.getByRole('region', { name: 'Tempo' }).getByRole('status').waitFor({ timeout: 25_000 })
       await shoot('song-with-song')
+      await goToResources(page)
+      await shoot('resources-empty')
+      await addLink(page, 'https://www.youtube.com/watch?v=abc123', 'Chorus tutorial')
+      await addLink(page, 'drive.google.com/file/d/1AbC/view', 'Costume ideas')
+      await page.getByLabel('Kind of link 1').selectOption('tutorial')
+      await page.getByLabel('Section of link 1').selectOption({ index: 0 })
+      await page.getByLabel('Start time of link 1').fill('1:23')
+      await page.getByLabel('Start time of link 1').blur()
+      await page.getByLabel('Kind of link 2').selectOption('document')
+      await shoot('resources')
     })
   }
 }

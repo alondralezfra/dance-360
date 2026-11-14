@@ -93,8 +93,12 @@ test.describe('project tabs', () => {
       const overflow = await page.getByRole('navigation', { name: 'Project sections' }).evaluate((el) => ({
         x: el.scrollWidth - el.clientWidth,
         y: el.scrollHeight - el.clientHeight,
+        bar: el.offsetHeight - el.clientHeight, // room taken by a drawn scrollbar
       }))
-      expect(overflow).toEqual({ x: 0, y: 0 })
+      expect(overflow.y).toBe(0)
+      expect(overflow.bar).toBe(0)
+      // On a phone the tabs scroll sideways when they do not all fit (decision 0027), with no scrollbar drawn.
+      if (viewport.width >= 768) expect(overflow.x).toBe(0)
     })
   }
 })

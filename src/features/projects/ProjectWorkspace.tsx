@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Link, NavLink, Outlet, useParams } from 'react-router'
+import { useEffect, useRef } from 'react'
+import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { Icon } from '../../components/ui/Icon'
 import { Input } from '../../components/ui/Input'
@@ -16,6 +16,7 @@ const tabs = [
   { to: 'stage', label: 'Stage' },
   { to: 'cast', label: 'Cast & Parts' },
   { to: 'song', label: 'Song' },
+  { to: 'resources', label: 'Resources' },
 ]
 
 const saveLabel: Record<SaveState, string> = {
@@ -37,6 +38,16 @@ export function ProjectWorkspace() {
   const saveState = useProject((s) => s.saveState)
   useUndoShortcuts()
   usePlaybackShortcut()
+
+  // On a phone the tabs scroll sideways (they no longer all fit beside Undo/Redo): keep the open one fully in view,
+  // whether it was reached by tapping or by opening the address directly.
+  const tabsRef = useRef<HTMLElement>(null)
+  const { pathname } = useLocation()
+  const tabsShown = status === 'ready' && openId === projectId
+  useEffect(() => {
+    // (scrollIntoView is missing from the test environment's DOM)
+    tabsRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' })
+  }, [pathname, tabsShown])
 
   useEffect(() => {
     if (!projectId) return
@@ -69,10 +80,12 @@ export function ProjectWorkspace() {
           )}
         </nav>
         {ready && (
-          // On a phone the tabs share the second row with Undo/Redo: the row minus their width.
+          // On a phone the tabs share the second row with Undo/Redo: the row minus their width. They scroll
+          // sideways when they do not all fit (no scrollbar drawn); the next tab peeking in shows there is more.
           <nav
+            ref={tabsRef}
             aria-label="Project sections"
-            className="order-3 flex w-[calc(100%-5.75rem)] gap-1 overflow-x-auto md:order-none md:ml-2 md:w-auto"
+            className="order-3 flex w-[calc(100%-5.75rem)] gap-1 overflow-x-auto [scrollbar-width:none] md:order-none md:ml-2 md:w-auto [&::-webkit-scrollbar]:hidden"
           >
             {tabs.map((tab) => (
               <NavLink

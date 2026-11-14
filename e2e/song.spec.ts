@@ -6,6 +6,7 @@ import {
   goToStage,
   savedProject,
   storedSongs,
+  tabFullyInView,
   timelineImage,
   waitForSaved,
   wavFile,
@@ -255,11 +256,16 @@ test.describe('the song tab on a phone', () => {
     expect(canvas.x + canvas.width).toBeLessThanOrEqual(390)
   })
 
-  test('all three project tabs fit on one row', async ({ page }) => {
+  // The four tabs no longer fit beside Undo/Redo on a phone (decision 0027): the row scrolls sideways, so what
+  // matters is that every tab can be reached and the open one is always fully in view.
+  test('the project tabs are all reachable: the row scrolls, and the open tab is always fully in view', async ({ page }) => {
     await createProject(page)
     const nav = page.getByRole('navigation', { name: 'Project sections' })
-    const overflow = await nav.evaluate((el) => ({ x: el.scrollWidth - el.clientWidth, y: el.scrollHeight - el.clientHeight }))
-    expect(overflow).toEqual({ x: 0, y: 0 })
-    for (const name of ['Stage', 'Cast & Parts', 'Song']) await expect(nav.getByRole('link', { name })).toBeVisible()
+    for (const [name, url] of [['Stage', /\/stage$/], ['Cast & Parts', /\/cast$/], ['Song', /\/song$/], ['Resources', /\/resources$/], ['Stage', /\/stage$/]] as const) {
+      await nav.getByRole('link', { name }).click()
+      await expect(page).toHaveURL(url)
+      await expect(nav.getByRole('link', { name })).toHaveAttribute('aria-current', 'page')
+      await expect.poll(() => tabFullyInView(nav), { message: `the ${name} tab is fully in view` }).toBe(true)
+    }
   })
 })
