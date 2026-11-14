@@ -136,7 +136,7 @@ test.describe('stage size when the browser zooms', () => {
 
 test.describe('the header with a wide font', () => {
   // CI's Linux browser draws text in DejaVu Sans, which is much wider than Segoe UI or Roboto; Verdana is as wide
-  // and is on Windows. At 150% zoom (911px) the header is one row of breadcrumb, four tabs, Undo/Redo and the save
+  // and is on Windows. At 150% zoom (911px) the header is one row of breadcrumb, five tabs, Undo/Redo and the save
   // status, and a wide font must not push the last of them onto a second row (that cost the stage a quarter of its
   // room on CI). A test that only passes with this machine's narrow font proves nothing about CI.
   test('stays on one row at 150% zoom and at a normal desktop width', async ({ page }) => {

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
-import { addDancer, addLink, addNote, beatsWav, chooseFile, createProject, goToCast, goToResources, goToSong, waitForSaved } from './helpers'
+import { addDancer, addLink, addNote, beatsWav, chooseFile, createProject, goToCast, goToOverview, goToResources, goToSong, waitForSaved } from './helpers'
 
 // An automated accessibility scan of every screen and its open states (menus, dialogs, panels), in the
 // light and dark themes, on a desktop and a phone, against WCAG 2.1 levels A and AA (decisions/0023).
@@ -81,6 +81,9 @@ for (const scheme of themes) {
         await expect(page.getByRole('button', { name: 'Tap on each click' })).toBeEnabled()
         await expectAccessible(page, where('the speaker delay calibration'))
         await page.getByRole('button', { name: 'Cancel' }).click()
+
+        await goToOverview(page)
+        await expectAccessible(page, where('the overview screen with problems'))
 
         await goToResources(page)
         await expectAccessible(page, where('the resources screen with no links'))

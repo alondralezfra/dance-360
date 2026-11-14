@@ -52,3 +52,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0027](0027-resources-links.md) | Resources, slice 1: links with a type tag, attached to a section and/or part; nothing fetched or embedded; http/https only; one Resources tab for Links and Notes; phone tabs scroll sideways |
 | [0028](0028-notes.md) | Resources, slice 2: notes with one anchor (whole dance, a section, or one count) plus an optional part; one count not a range; shown on the Resources tab only for now; typing in notes and link titles is one undo step |
 | [0029](0029-no-commit-hook.md) | No git commit hook: Claude runs `verify` once before reporting done, CI runs it on every pull request, so committing and pushing are instant |
+| [0030](0030-overview-problems-derived.md) | The Overview's problems are worked out from the project each time: nothing saved, nothing dismissible (yet); each links to where it is fixed |

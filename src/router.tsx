@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { CastPage } from './features/cast/CastPage'
 import { ErrorScreen } from './features/projects/ErrorScreen'
 import { NotFound } from './features/projects/NotFound'
+import { OverviewPage } from './features/overview/OverviewPage'
 import { ProjectsHome } from './features/projects/ProjectsHome'
 import { ProjectWorkspace } from './features/projects/ProjectWorkspace'
 import { ResourcesPage } from './features/resources/ResourcesPage'
@@ -9,6 +10,7 @@ import { SongPage } from './features/song/SongPage'
 import { StagePage } from './features/stage/StagePage'
 
 // URL map:   /                          projects home
+//            /projects/:id/overview     the project's summary and problems
 //            /projects/:id/stage        the stage editor
 //            /projects/:id/cast         parts, sections and the assignment grid
 //            /projects/:id/song         the song, tempo and timeline
@@ -24,6 +26,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorScreen />,
     children: [
       { index: true, element: <Navigate to="stage" replace /> },
+      { path: 'overview', element: <OverviewPage /> },
       { path: 'stage', element: <StagePage /> },
       { path: 'cast', element: <CastPage /> },
       { path: 'song', element: <SongPage /> },
