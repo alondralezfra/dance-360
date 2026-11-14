@@ -11,6 +11,7 @@
 | `npm test` / `npm run test:watch` | Unit + component tests. |
 | `npm run test:coverage` | Same, enforcing coverage thresholds. |
 | `npm run test:e2e` | Browser tests (Playwright). Builds the app and serves the production build itself (port 5199). |
+| `npm run screenshots` | Photographs the main screens (phone and desktop, light and dark) into `screenshots` (git-ignored) so the UI can be looked at. Not part of `verify`. See [components.md](components.md). |
 | `npm run doctor` | Checks this machine can run the project: Node version, installed packages, the git hook, a browser for e2e, a free port 5199. Reports only; never changes anything. |
 | `npm run check:health` | Unused code (`knip`) and duplicated code or docs (`jscpd`). Also the "Repo health" step of `verify`. |
 

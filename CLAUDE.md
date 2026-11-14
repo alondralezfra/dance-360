@@ -11,7 +11,7 @@ A web app for dance directors (formations, cast, parts, music, resources in one 
 5. **Implement** within the architecture rules below.
 6. **Update docs in the same change** (see the table in `docs/README.md`): the feature doc, `docs/architecture.md` if structure/rules/data changed, the plan if a decision was made or an open question answered, the checklist in `README.md`, and an entry under **Unreleased** in `CHANGELOG.md`. Docs describe what the app does *now*; never leave stale statements.
 7. **Verify: `npm run verify` must pass completely** (change discipline, lint, tests + coverage thresholds, type-check + build, e2e). `npm run verify:quick` is for iterating only; the final run is the full one. If it fails, fix the root cause and run it again.
-8. **Look at it.** For UI changes, run the app and exercise the change (or screenshot via Playwright). Passing tests don't prove it looks or feels right. Check phone width too.
+8. **Look at it.** For UI changes follow the `ui-styling` skill (`.claude/skills/ui-styling/SKILL.md`): `npm run screenshots`, then look at the pictures at phone and desktop width in both themes. Passing tests don't prove it looks or feels right. For non-visual behaviour, run the app and exercise the change.
 9. **Review your own diff** against the checklist below.
 10. **Report honestly:** what changed, tests added, docs updated, the assumptions you made without asking, and anything you couldn't verify. Never say "done" if `verify` hasn't passed.
 

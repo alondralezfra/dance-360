@@ -4,6 +4,12 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (UI styling skill and screenshots)
+- **A `ui-styling` skill** (`.claude/skills/ui-styling/SKILL.md`): the order to apply the project's UI rules in, ending with a look at the result. It links to the docs and copies none of them.
+- **`npm run screenshots`**: photographs the projects home, stage, cast, song (empty and with a song) and, on a phone, the dancer drawer, at 390px and 1280px wide in both themes, into `screenshots` (git-ignored). On demand; not part of `verify`.
+- **"How the app looks"** in `docs/components.md`: the sizes, spacing, surfaces, messages and emphasis the UI already uses, written down from the current screens so new ones match.
+- CLAUDE.md step 8 points to the skill. The docs check and the copy-paste check now also read the skill file. Decision record 0026.
+
 ### Added (setup check and release checklist)
 - **`npm run doctor`**: checks the machine can work on the project (Node version, installed packages, the git pre-commit hook, a browser for the end-to-end tests, a free port 5199) and prints the command that fixes each problem. It only reports and is not part of `verify`; when the browser tests fail, `verify` points to it.
 - **`engines.node` (`>=24`) in `package.json`** is now the one place the Node version is written; a test fails if a GitHub workflow uses a different major.
