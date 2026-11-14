@@ -1,4 +1,4 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "entry": ["scripts/stop-gate.mjs", "e2e/*.shots.ts", "playwright.screenshots.config.ts"]
+  "entry": ["scripts/stop-gate.mjs", "e2e/*.shots.ts"]
 }
