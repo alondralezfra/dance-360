@@ -44,6 +44,11 @@ function richProject(): Project {
         startSec: 83,
       },
     ],
+    notes: [
+      { id: 'n1', text: 'Arms up on 5-6', anchor: { kind: 'count', count: 20 }, partId: project.parts[0].id },
+      { id: 'n2', text: 'Smile.\nBig.', anchor: { kind: 'section', sectionId: project.sections[0].id }, partId: null },
+      { id: 'n3', text: 'Whole dance note', anchor: { kind: 'dance' }, partId: null },
+    ],
   }
 }
 
@@ -186,6 +191,21 @@ describe('reading a backup back', () => {
       damaged((p) => (p.resources = [link({ partId: 'no-such-part' })]))
       damaged((p) => (p.resources = [link({ startSec: -3 })]))
       damaged((p) => (p.resources = [link({ id: 'a' }), link({ id: 'a' })]))
+    })
+
+    it('with a note that is about something that is not there, or is not a note', () => {
+      const note = (over: Record<string, unknown>) => ({ ...richProject().notes[0], ...over })
+      damaged((p) => delete p.notes)
+      damaged((p) => (p.notes = 'notes'))
+      damaged((p) => (p.notes = [null]))
+      damaged((p) => (p.notes = [note({ text: 5 })]))
+      damaged((p) => (p.notes = [note({ text: 'x'.repeat(6000) })]))
+      damaged((p) => (p.notes = [note({ anchor: { kind: 'section', sectionId: 'no-such-section' } })]))
+      damaged((p) => (p.notes = [note({ anchor: { kind: 'count', count: -1 } })]))
+      damaged((p) => (p.notes = [note({ anchor: { kind: 'count', count: 2.5 } })]))
+      damaged((p) => (p.notes = [note({ anchor: 'dance' })]))
+      damaged((p) => (p.notes = [note({ partId: 'no-such-part' })]))
+      damaged((p) => (p.notes = [note({ id: 'a' }), note({ id: 'a' })]))
     })
 
     it('without ever opening the door to anything it did not check', () => {

@@ -12,7 +12,8 @@ Every control in the app is built **once** here and reused. A screen never style
 | `IconButton` | A button that is only an icon (remove, previous/next, show/hide, theme) | `icon` + **required** `label` (its accessible name and tooltip). Takes every `Button` variant. |
 | `Icon` | A symbol next to text or inside a button | One inline-SVG set (`close`, `chevronLeft/Right/Up/Down`, `sun`, `moon`, `undo`, `redo`, `plus`, `minus`, `play`, `pause`, `flag`, `download`, `externalLink`); inherits text colour; decorative (`aria-hidden`). Add icons in `Icon.tsx`. |
 | `Input` | Text entry | `variant`: `default`, `inline` (looks like text until hovered/focused: names edited in place). |
-| `NumberField` | A labelled number field that commits on blur/Enter and reverts bad entries | Built on `Input`. Whole numbers unless `decimals` is set (e.g. a 127.5 BPM). |
+| `NumberField` | A labelled number field that commits on blur/Enter and reverts bad entries | Built on `Input`. Whole numbers unless `decimals` is set (e.g. a 127.5 BPM). Give it `name` when the visible label alone would be ambiguous on the page ("Set of note 2"). |
+| `Textarea` | A multi-line text box (a note) | Looks like `Input`; the box can be dragged taller. Raw `<textarea>` is not allowed on screens. |
 | `Select` | A native dropdown | |
 | `Slider` | A draggable value (a playback position) | `label` (required: its accessible name), `value`, `min`, `max`, `step`, `onChange(number)`, `valueText` for screen readers. 40px tall; arrow keys, Home and End work. |
 | `Checkbox` | A checkbox with its label as one 40px row | `children` is the label. |
@@ -40,7 +41,7 @@ What the screens do today, so a new one matches. These are observed from the com
 
 ### Looking at it
 
-`npm run screenshots` builds the app and photographs the projects home, stage, cast, song (empty and with a song), resources (empty and with links) and, on a phone, the dancer drawer, at 390px and 1280px wide in the light and dark themes (`e2e/ui.shots.ts`, config `playwright.screenshots.config.ts`). The whole-page pictures go to `screenshots` (git-ignored; `SCREENSHOT_DIR` changes where) and replace earlier ones of the same name. It takes about 15 seconds, is not part of `npm run verify`, and is how the `ui-styling` skill (`.claude/skills/ui-styling/SKILL.md`) looks at a change. A new screen worth photographing is added to `e2e/ui.shots.ts`.
+`npm run screenshots` builds the app and photographs the projects home, stage, cast, song (empty and with a song), resources (empty, with links, and with notes) and, on a phone, the dancer drawer, at 390px and 1280px wide in the light and dark themes (`e2e/ui.shots.ts`, config `playwright.screenshots.config.ts`). The whole-page pictures go to `screenshots` (git-ignored; `SCREENSHOT_DIR` changes where) and replace earlier ones of the same name. It takes about 15 seconds, is not part of `npm run verify`, and is how the `ui-styling` skill (`.claude/skills/ui-styling/SKILL.md`) looks at a change. A new screen worth photographing is added to `e2e/ui.shots.ts`.
 
 ## Rules for building UI (also in CLAUDE.md)
 

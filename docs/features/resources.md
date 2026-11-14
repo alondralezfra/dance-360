@@ -4,7 +4,7 @@
 
 ## What it does today
 
-The tab has one section so far, **Links**. (Notes join it in the next slice.)
+The tab has two sections: **Links**, then **Notes**.
 
 ### Links (`LinksSection`)
 - **Add** a link by pasting a web address into the form at the top and choosing **+ Add link** (or pressing Enter). The title is optional: a blank one becomes the site's name ("youtube.com"). A bare address such as `youtube.com/watch?v=abc` gets `https://` added. Only **http and https** addresses are accepted: anything else (`javascript:`, `data:`, `file:`, `mailto:`...), an empty entry or something that is not an address is refused with a message ("That is not a web link...") and nothing is added; what you typed stays so you can fix it.
@@ -16,6 +16,16 @@ The tab has one section so far, **Links**. (Notes join it in the next slice.)
 - **Saved with the project** (data version 5, `resources`), included in a **backup file**, and checked strictly when a backup is imported: a link with a bad address, an unknown kind, or about a section or part that does not exist makes the file count as damaged.
 - On a **phone** each row puts the title, Open and ✕ on the first line and the fields below; every control is at least 40px and the page does not scroll sideways. The project **tabs** now scroll sideways on a phone (the four no longer fit beside Undo/Redo), keeping the open tab in view ([projects.md](projects.md)).
 
+### Notes (`NotesSection`)
+- **Add** a note by typing in the box at the top and choosing **+ Add note** (or pressing **Ctrl/Cmd + Enter** in the box). The text can run to several lines (Enter makes a line break) and up to 5000 characters. A blank note is refused ("Write the note first."), and nothing is added.
+- **What it is about** (the first menu beside the box): **Whole dance** (the default), **one of the sections**, or **A count**. Choosing A count shows **Set** and **Count** fields (the same as the formations use; a note starts at Set 1 · Count 1). It is always **one** thing: a count already sits inside exactly one section, so there is no separate section to disagree with it. For a stretch ("arms up on 5-6") say so in the text; the note is anchored to its first count. The note can **also** be about **one part** (Any part by default). What the form was last set to is kept for the next note, since notes tend to come in runs about one place.
+- Each note is a **row**, edited in place (every change is saved and can be undone): its **text**, what it is about, and which part. **✕** removes the note (Undo brings it back). Typing in a note's text is **one** undo step, not one per letter (the same is now true of a link's title).
+- Notes are **organised by section** like links: a "Whole dance" group first, then one group per section in song order; a note at a count is filed under the section that count falls in. Inside a group, notes about the section itself come first, then notes at counts, **earliest count first**; ties keep the order added. If a note's section or count changes, it moves to the right heading.
+- Removing a **section** keeps the notes about it, as whole-dance notes (a note at a count stays at that count, now inside the section that stretched over it). Removing a **part** keeps its notes, about any part.
+- **Saved with the project** (data version 6, `notes`), included in a **backup file**, and checked strictly on import: a note about a section that does not exist, a count that is not a whole number in range, an unknown part, a repeated id, or text over the limit makes the file count as damaged.
+- On a **phone** the text box is full width with the menus below it; every control is at least 40px and the page does not scroll sideways.
+
 ## Not built yet
-- **Notes** (text, optionally anchored to a count, section or part): the next slice.
+- **Showing notes beside the stage** when the playhead reaches them (and per dancer or part), the next slice.
+- Note ranges (an end count), formatting, and sharing notes with dancers.
 - Link thumbnails, titles fetched from the site, and an in-app player; clicking a dancer to see their videos; showing links beside the stage.

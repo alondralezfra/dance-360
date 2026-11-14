@@ -34,6 +34,11 @@ export function toSetAndCount(count: number): { set: number; count: number } {
   }
 }
 
+/** 1-based set and count within the set -> absolute count (the inverse of `toSetAndCount`). */
+export function fromSetAndCount(set: number, count: number): number {
+  return (set - 1) * COUNTS_PER_SET + count - 1
+}
+
 /** "Set 3 · Count 5" */
 export function formatCount(count: number): string {
   const sc = toSetAndCount(count)

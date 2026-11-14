@@ -124,6 +124,18 @@ export interface Resource {
   startSec: number | null
 }
 
+/** What a note is about: the whole dance, one section, or one whole count. A count is always inside exactly one section. */
+export type NoteAnchor = { kind: 'dance' } | { kind: 'section'; sectionId: Id } | { kind: 'count'; count: number }
+
+/** A director's note ("arms up on 5-6"). Optionally also about one part. */
+export interface Note {
+  id: Id
+  text: string
+  anchor: NoteAnchor
+  /** The part it is about, or null for any part. */
+  partId: Id | null
+}
+
 export interface Project {
   name: string
   stage: StageSettings
@@ -139,4 +151,6 @@ export interface Project {
   assignments: Assignments
   /** Links to videos and documents, in the order they were added. */
   resources: Resource[]
+  /** Notes, in the order they were added. */
+  notes: Note[]
 }

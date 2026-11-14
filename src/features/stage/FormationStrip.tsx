@@ -2,7 +2,7 @@ import { NumberField } from '../../components/ui/NumberField'
 import { Button } from '../../components/ui/Button'
 import { IconButton } from '../../components/ui/IconButton'
 import { Input } from '../../components/ui/Input'
-import { COUNTS_PER_SET, toSetAndCount } from '../../model/tempo'
+import { COUNTS_PER_SET, fromSetAndCount, toSetAndCount } from '../../model/tempo'
 import { useProject } from '../../store/projectStore'
 import { useUi } from '../../store/uiStore'
 import { FormationList } from './FormationList'
@@ -62,14 +62,14 @@ export function FormationStrip() {
             label="Set"
             min={1}
             value={at.set}
-            onCommit={(set) => setFormationCount(current.id, (set - 1) * COUNTS_PER_SET + at.count - 1)}
+            onCommit={(set) => setFormationCount(current.id, fromSetAndCount(set, at.count))}
           />
           <NumberField
             label="Count"
             min={1}
             max={COUNTS_PER_SET}
             value={at.count}
-            onCommit={(count) => setFormationCount(current.id, (at.set - 1) * COUNTS_PER_SET + count - 1)}
+            onCommit={(count) => setFormationCount(current.id, fromSetAndCount(at.set, count))}
           />
           <NumberField
             label="Travel counts"

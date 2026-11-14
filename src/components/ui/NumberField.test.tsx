@@ -127,4 +127,16 @@ describe('NumberField', () => {
     await user.type(input, '7.6{Enter}')
     expect(onCommit).toHaveBeenCalledExactlyOnceWith(8)
   })
+
+  it('can be given a fuller accessible name, so several of them on one page can be told apart', () => {
+    render(
+      <>
+        <NumberField label="Set" name="Set of note 1" value={1} onCommit={vi.fn()} />
+        <NumberField label="Set" name="Set of note 2" value={2} onCommit={vi.fn()} />
+      </>,
+    )
+    expect(screen.getByLabelText('Set of note 1')).toHaveValue('1')
+    expect(screen.getByLabelText('Set of note 2')).toHaveValue('2')
+    expect(screen.getAllByText('Set')).toHaveLength(2) // the visible label is still "Set"
+  })
 })

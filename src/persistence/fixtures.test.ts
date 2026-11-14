@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptyProject } from '../model/project'
+import { problemWithNotes } from '../model/notes'
 import { problemWithResources } from '../model/resources'
 import { CURRENT_VERSION, migrateProject } from './migrations'
 
@@ -75,6 +76,15 @@ describe('saved-data fixtures', () => {
       expect(problemWithResources(p), `v${version}`).toBeNull()
       if (version < 5) expect(p.resources).toEqual([])
       else expect(p.resources).toEqual(doc.resources)
+    }
+  })
+
+  it('every migrated note is well formed and about a section, count and part that exist; older projects have none', () => {
+    for (const { version, doc } of byVersion) {
+      const p = migrateProject(version, structuredClone(doc))
+      expect(problemWithNotes(p), `v${version}`).toBeNull()
+      if (version < 6) expect(p.notes).toEqual([])
+      else expect(p.notes).toEqual(doc.notes)
     }
   })
 

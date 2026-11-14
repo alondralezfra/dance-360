@@ -12,6 +12,19 @@ describe('migrateProject', () => {
     ],
   }
 
+  // A small project as data versions 4 and 5 saved it (they differ only by the links added in 5).
+  const songDance = {
+    name: 'Song dance',
+    stage: { width: 40, depth: 24 },
+    tempo: { bpm: 112, startOffsetSec: 1.25, changes: [] },
+    song: null,
+    dancers: [{ id: 'd1', name: 'Maya' }],
+    formations: [],
+    parts: [{ id: 'p', name: 'Everyone', color: 'blue', sectionIds: null }],
+    sections: [{ id: 's', name: 'Section 1', startCount: 0 }],
+    assignments: { s: { d1: 'p' } },
+  }
+
   it('upgrades a v0 project: spaces formations a set apart and adds a tempo map', () => {
     const p = migrateProject(0, v0)
     expect(p.tempo.bpm).toBeGreaterThan(0)
@@ -112,20 +125,10 @@ describe('migrateProject', () => {
   })
 
   it('v4 -> v5: no links yet, and nothing else changes', () => {
-    const v4 = {
-      name: 'Song dance',
-      stage: { width: 40, depth: 24 },
-      tempo: { bpm: 112, startOffsetSec: 1.25, changes: [] },
-      song: null,
-      dancers: [{ id: 'd1', name: 'Maya' }],
-      formations: [],
-      parts: [{ id: 'p', name: 'Everyone', color: 'blue', sectionIds: null }],
-      sections: [{ id: 's', name: 'Section 1', startCount: 0 }],
-      assignments: { s: { d1: 'p' } },
-    }
+    const v4 = songDance // (the project as saved by data version 4)
     const p = migrateProject(4, structuredClone(v4))
     expect(p.resources).toEqual([])
-    const { resources: _added, ...rest } = p
+    const { resources: _added, notes: _laterMigration, ...rest } = p // (notes come from the next migration, v5 -> v6)
     expect(rest).toEqual(v4)
   })
 
@@ -135,12 +138,28 @@ describe('migrateProject', () => {
     expect(a.resources).not.toBe(b.resources)
   })
 
+  it('v5 -> v6: no notes yet, and nothing else changes (links included)', () => {
+    const v5 = {
+      ...songDance,
+      resources: [{ id: 'r', title: 'T', url: 'https://a.com/', kind: 'other', sectionId: null, partId: null, startSec: null }],
+    }
+    const p = migrateProject(5, structuredClone(v5))
+    expect(p.notes).toEqual([])
+    const { notes: _added, ...rest } = p
+    expect(rest).toEqual(v5)
+  })
+
+  it('v5 -> v6: does not share one list between projects', () => {
+    expect(migrateProject(5, { name: 'a' }).notes).not.toBe(migrateProject(5, { name: 'b' }).notes)
+  })
+
   it('v0 projects are carried all the way to the current version', () => {
     const p = migrateProject(0, v0)
     expect(p.parts).toHaveLength(1)
     expect(p.sections).toHaveLength(1)
     expect(p.assignments['section-1']).toEqual({ d1: 'part-a' })
     expect(p.resources).toEqual([])
+    expect(p.notes).toEqual([])
   })
 
   it('leaves a current-version project unchanged', () => {

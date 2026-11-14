@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
-import { addDancer, addLink, beatsWav, chooseFile, createProject, goToCast, goToResources, goToSong, waitForSaved } from './helpers'
+import { addDancer, addLink, addNote, beatsWav, chooseFile, createProject, goToCast, goToResources, goToSong, waitForSaved } from './helpers'
 
 // An automated accessibility scan of every screen and its open states (menus, dialogs, panels), in the
 // light and dark themes, on a desktop and a phone, against WCAG 2.1 levels A and AA (decisions/0023).
@@ -87,6 +87,10 @@ for (const scheme of themes) {
         await addLink(page, 'https://tutorials.example.test/chorus', 'Chorus tutorial')
         await expect(page.getByLabel('Title of link 1')).toBeVisible()
         await expectAccessible(page, where('the resources screen with a link'))
+        await page.getByLabel('About the new note').selectOption('count')
+        await addNote(page, 'Arms up on 5-6')
+        await expect(page.getByLabel('Text of note 1')).toBeVisible()
+        await expectAccessible(page, where('the resources screen with a note at a count'))
       })
 
       test('the error screen', async ({ page }) => {

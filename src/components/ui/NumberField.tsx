@@ -4,6 +4,8 @@ import { Input } from './Input'
 
 interface NumberFieldProps {
   label: string
+  /** The accessible name when the visible label alone would be ambiguous on the page ("Set of note 2"); it should contain the label. */
+  name?: string
   value: number
   onCommit: (value: number) => void
   min?: number
@@ -18,7 +20,7 @@ interface NumberFieldProps {
  * clear and retype freely; the value is validated and applied when you leave the
  * field or press Enter.
  */
-export function NumberField({ label, value, onCommit, min, max, decimals = 0, className }: NumberFieldProps) {
+export function NumberField({ label, name, value, onCommit, min, max, decimals = 0, className }: NumberFieldProps) {
   const id = useId()
   // While you're typing, `draft` holds your text; otherwise the field shows `value`.
   const [draft, setDraft] = useState<string | null>(null)
@@ -40,6 +42,7 @@ export function NumberField({ label, value, onCommit, min, max, decimals = 0, cl
       </label>
       <Input
         id={id}
+        aria-label={name}
         inputMode={decimals > 0 ? 'decimal' : 'numeric'}
         value={text}
         onChange={(e) => setDraft(e.target.value)}

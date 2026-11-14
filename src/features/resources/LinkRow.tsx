@@ -8,6 +8,7 @@ import { RESOURCE_KINDS, formatStartTime, isResourceKind, normalizeUrl, parseSta
 import type { Part, Resource, Section } from '../../model/types'
 import { useProject } from '../../store/projectStore'
 import { CommittedInput } from './CommittedInput'
+import { PartSelect } from './PartSelect'
 
 interface LinkRowProps {
   resource: Resource
@@ -61,19 +62,13 @@ export function LinkRow({ resource, number, sections, parts }: LinkRowProps) {
           </option>
         ))}
       </Select>
-      <Select
-        value={resource.partId ?? ''}
-        onChange={(e) => updateResource(resource.id, { partId: e.target.value || null })}
-        aria-label={`Part of link ${number}`}
+      <PartSelect
+        parts={parts}
+        value={resource.partId}
+        onChange={(partId) => updateResource(resource.id, { partId })}
+        label={`Part of link ${number}`}
         className="order-4 md:order-none"
-      >
-        <option value="">Any part</option>
-        {parts.map((part) => (
-          <option key={part.id} value={part.id}>
-            {part.name}
-          </option>
-        ))}
-      </Select>
+      />
       <CommittedInput
         value={resource.startSec === null ? '' : formatStartTime(resource.startSec)}
         parse={(typed) => (typed.trim() === '' ? '' : parseStartTime(typed) === null ? null : formatStartTime(parseStartTime(typed)!))}

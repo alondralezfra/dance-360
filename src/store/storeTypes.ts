@@ -1,10 +1,12 @@
 import type { History } from '../model/history'
+import type { NoteDraft } from '../model/notes'
 import type { ResourceDraft } from '../model/resources'
 import type {
   Assignments,
   Dancer,
   Formation,
   Id,
+  Note,
   PartColorId,
   Part,
   Point,
@@ -100,6 +102,21 @@ export interface ResourcesSlice {
   removeResource: (id: Id) => void
 }
 
+export interface NotesSlice {
+  notes: Note[]
+  /**
+   * Adds a note. Returns its id, or null if there is no text, or the anchor or part it names does not exist.
+   * With no anchor it is about the whole dance, and with no part about any part.
+   */
+  addNote: (draft: NoteDraft) => Id | null
+  /**
+   * Changes a note. The text may be emptied while editing. An anchor or part that does not exist leaves that
+   * field as it was; `null` for the part clears it.
+   */
+  updateNote: (id: Id, patch: Partial<Omit<Note, 'id'>>) => void
+  removeNote: (id: Id) => void
+}
+
 export interface HistorySlice {
   /**
    * While a take of taps is open, edits to the formations are one undo step however far apart they are.
@@ -121,6 +138,7 @@ export type ProjectStore = SessionSlice &
   FormationSlice &
   PartsSlice &
   ResourcesSlice &
+  NotesSlice &
   HistorySlice
 
 /** The fields that make up the saved project document. */
@@ -135,6 +153,7 @@ export const DOCUMENT_KEYS = [
   'sections',
   'assignments',
   'resources',
+  'notes',
 ] as const
 
 export function selectDocument(s: ProjectStore): Project {
@@ -149,5 +168,6 @@ export function selectDocument(s: ProjectStore): Project {
     sections: s.sections,
     assignments: s.assignments,
     resources: s.resources,
+    notes: s.notes,
   }
 }
