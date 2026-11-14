@@ -13,6 +13,7 @@ import { useUndoShortcuts } from './useUndoShortcuts'
 
 /** The project's screens. Relative links resolve under /projects/:id. */
 const tabs = [
+  { to: 'overview', label: 'Overview' },
   { to: 'stage', label: 'Stage' },
   { to: 'cast', label: 'Cast & Parts' },
   { to: 'song', label: 'Song' },
@@ -75,7 +76,7 @@ export function ProjectWorkspace() {
               onChange={(e) => setProjectName(e.target.value)}
               aria-label="Project name"
               variant="inline"
-              className="w-36 min-w-0 lg:w-56"
+              className="w-24 min-w-0 lg:w-56"
             />
           ) : (
             <span className="text-muted-foreground">Project</span>
@@ -95,7 +96,7 @@ export function ProjectWorkspace() {
                 to={tab.to}
                 className={({ isActive }) =>
                   cn(
-                    'inline-flex min-h-11 items-center border-b-2 px-3 text-sm font-medium whitespace-nowrap',
+                    'inline-flex min-h-11 items-center border-b-2 px-1.5 text-sm lg:px-3 font-medium whitespace-nowrap',
                     isActive
                       ? 'border-primary text-foreground'
                       : 'border-transparent text-muted-foreground hover:text-foreground',

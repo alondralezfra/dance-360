@@ -82,6 +82,11 @@ export async function goToCast(page: Page) {
   await expect(page).toHaveURL(/\/cast$/)
 }
 
+export async function goToOverview(page: Page) {
+  await page.getByRole('link', { name: 'Overview', exact: true }).click()
+  await expect(page).toHaveURL(/\/overview$/)
+}
+
 export async function goToStage(page: Page) {
   await page.getByRole('link', { name: 'Stage', exact: true }).click()
   await expect(page).toHaveURL(/\/stage$/)

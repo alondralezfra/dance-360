@@ -4,6 +4,11 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (Overview: problem checks, step 5 of the build order)
+- **An Overview tab** (first in the row; a project still opens on Stage): a small summary (song, dancers, formations, sections) and a **Problems** list. Two checks to begin with: **dancers with no part in a section** ("3 dancers have no part in Verse", with their names; the same rule as the Cast & Parts warnings, `findGaps`) and **formations that leave a dancer out** ("Formation 7 has 11 of 12 dancers placed"). Choosing a problem goes to where it is fixed (Cast & Parts, or the Stage with that formation selected). With nothing wrong it says so.
+- The list is **worked out each time** from the project: nothing new is saved (no data version change), and a problem cannot be dismissed yet. Decision record 0030; the README checklist step "Overview problem checks" is ticked.
+- The fifth tab needed room in the header: below 1024px the tabs have a little less padding and the project name box is narrower, so the header still stays on one row at 150% zoom in a wide font.
+
 ### Removed (the git pre-commit hook)
 - **Committing no longer runs the tests.** The hook (`.githooks/pre-commit`) ran the full `npm run verify` before every commit, on top of Claude's own check and CI's, so one change was tested three or four times and every commit waited minutes. The full `npm run verify` now runs twice instead of four times: the Stop hook still runs it when Claude finishes a turn (and blocks the turn while it fails), and CI runs it on every pull request and on `main`; Claude works with `npm run verify:quick` and targeted tests and no longer also runs the full suite by hand. Gone with it: the `prepare` script that switched the hook on, the `--staged` options of `verify` and the change-discipline check, and the "Git hooks" test of `npm run doctor` (its unit tests were removed with the behaviour they covered). Decision record 0029.
 

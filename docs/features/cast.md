@@ -37,7 +37,7 @@
 
 ## Not yet built
 
-Drag-to-fill across a row and other bulk editing (plan §5.3, for larger screens); a vertical per-dancer list as the phone default for the grid (plan §6.3); a "show only Part X" filter on the stage (deferred until the timeline exists); parts on the timeline; videos and notes attached to a part (build-order step 4); the Overview "problems" list (step 5, which will reuse `findGaps`); roster library; dancer logins.
+Drag-to-fill across a row and other bulk editing (plan §5.3, for larger screens); a vertical per-dancer list as the phone default for the grid (plan §6.3); a "show only Part X" filter on the stage (deferred until the timeline exists); parts on the timeline; videos and notes attached to a part (build-order step 4); roster library; dancer logins.
 
 ## Tests
 
