@@ -3,7 +3,7 @@ import {
   addDancer,
   createProject,
   dotColor,
-  expectColor,
+  expectDotColor,
   goToCast,
   goToStage,
   resetStorage,
@@ -210,7 +210,7 @@ test.describe('on the stage', () => {
     await expect(legend).toContainText('Intro')
     await expect(legend).toContainText('Everyone')
     await expect(legend).not.toContainText('Floor')
-    expectColor(await dotColor(page, FIRST_SPOT), rgb('#0072b2'))
+    await expectDotColor(page, FIRST_SPOT, rgb('#0072b2'))
 
     // Formation 2 at Set 3 (count 16) is inside Chorus 1: Floor and Standing apply, and Maya is in Floor.
     await page.getByRole('button', { name: '+ New formation' }).click()
@@ -274,7 +274,7 @@ test.describe('upgrading older saved projects', () => {
     await expect(status(page)).toHaveText('No missing assignments.')
 
     await goToStage(page)
-    expectColor(await dotColor(page, { x: 10, y: 12 }), rgb('#d55e00')) // Part B (red)
+    await expectDotColor(page, { x: 10, y: 12 }, rgb('#d55e00')) // Part B (red)
   })
 })
 

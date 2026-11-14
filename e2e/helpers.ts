@@ -56,9 +56,22 @@ export async function savedProject(page: Page) {
   })
 }
 
-/** Where a point on stage (in feet) is drawn on screen, using the app's own layout maths. */
-export async function stagePixel(page: Page, feet: { x: number; y: number }, stage = { width: 40, depth: 24 }) {
-  const box = (await page.locator('canvas').first().boundingBox())!
+/**
+ * Where a point on stage (in feet) is drawn on screen, using the app's own layout maths.
+ * Waits (up to `timeoutMs`) for the stage canvas to be drawn: it only appears once its container has been
+ * measured, so right after a screen opens it can be missing or hidden for a moment, longer on a slow runner.
+ */
+export async function stagePixel(page: Page, feet: { x: number; y: number }, stage = { width: 40, depth: 24 }, timeoutMs = 10_000) {
+  const canvas = page.locator('canvas').first()
+  const found: { box: Awaited<ReturnType<typeof canvas.boundingBox>> } = { box: null }
+  try {
+    await expect
+      .poll(async () => ((found.box = await canvas.boundingBox({ timeout: 1000 }).catch(() => null)) === null ? 'not drawn' : 'drawn'), { timeout: timeoutMs })
+      .toBe('drawn')
+  } catch {
+    throw new Error(`The stage canvas was not drawn within ${timeoutMs} ms (is the stage screen open?)`)
+  }
+  const box = found.box!
   const dpr = await page.evaluate(() => window.devicePixelRatio)
   const { scale, originX, originY } = fitStage(box, stage, dpr)
   return { x: box.x + originX + feet.x * scale, y: box.y + originY + feet.y * scale, scale }
@@ -96,9 +109,20 @@ export async function dotColor(page: Page, feet: { x: number; y: number }) {
   )
 }
 
-/** Compare two colours allowing a little rounding. */
-export function expectColor(actual: number[], expected: number[]) {
-  actual.forEach((channel, i) => expect(Math.abs(channel - expected[i]), `rgb(${actual}) vs rgb(${expected})`).toBeLessThanOrEqual(3))
+const sameColor = (actual: number[], expected: number[]) => actual.every((channel, i) => Math.abs(channel - expected[i]) <= 3)
+
+/**
+ * Wait until the dot at `feet` is drawn in `expected` (allowing a little rounding). The canvas is painted a moment
+ * after the data changes (a scrub, an assignment, a screen opening), longer on a slow runner, so sampling it once
+ * can read a blank pixel: poll instead.
+ */
+export async function expectDotColor(page: Page, feet: { x: number; y: number }, expected: number[]) {
+  await expect
+    .poll(async () => {
+      const actual = await dotColor(page, feet)
+      return sameColor(actual, expected) ? 'as expected' : `rgb(${actual}) but wanted rgb(${expected})`
+    })
+    .toBe('as expected')
 }
 
 /** A real, playable mono WAV file: a sine tone that is loud for the first half and quiet for the second. */
