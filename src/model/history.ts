@@ -79,12 +79,20 @@ const sameEntity = (a: object, b: object) => {
   return ka.length === Object.keys(b).length && ka.every((k) => a[k] === b[k as keyof typeof b])
 }
 
-const COLLECTIONS = ['dancers', 'formations', 'parts', 'sections'] as const
+/** The lists whose entries have a text field people type into, and that field's name. */
+const TEXT_COLLECTIONS = [
+  { key: 'dancers', field: 'name' },
+  { key: 'formations', field: 'name' },
+  { key: 'parts', field: 'name' },
+  { key: 'sections', field: 'name' },
+  { key: 'resources', field: 'title' },
+  { key: 'notes', field: 'text' },
+] as const
 const OTHER_KEYS = ['stage', 'tempo', 'song', 'assignments'] as const
 
 /**
- * If the only difference between two projects is one thing's name being edited
- * (typing in a rename box fires an edit per keystroke), return a key naming that
+ * If the only difference between two projects is one thing's name (or a link's title, or a note's text)
+ * being edited (typing in a box fires an edit per keystroke), return a key naming that
  * thing so `record` can merge the keystrokes into one undo step. Otherwise null.
  */
 export function editGroup(before: Project, after: Project): string | null {
@@ -93,17 +101,18 @@ export function editGroup(before: Project, after: Project): string | null {
   const nameChanged = before.name !== after.name
   let found: string | null = nameChanged ? 'name:project' : null
 
-  for (const key of COLLECTIONS) {
-    const a = before[key] as { id: string; name: string }[]
-    const b = after[key] as { id: string; name: string }[]
+  for (const { key, field } of TEXT_COLLECTIONS) {
+    const a = before[key] as { id: string }[]
+    const b = after[key] as { id: string }[]
     if (a === b) continue
     if (a.length !== b.length) return null
     for (let i = 0; i < a.length; i++) {
       if (a[i] === b[i]) continue
-      const sameThing =
-        a[i].id === b[i].id && a[i].name !== b[i].name && sameEntity({ ...a[i], name: b[i].name }, b[i])
-      if (!sameThing || found !== null) return null // a second change, or more than a rename
-      found = `name:${key}:${a[i].id}`
+      const was = a[i] as unknown as Record<string, unknown>
+      const now = b[i] as unknown as Record<string, unknown>
+      const sameThing = was.id === now.id && was[field] !== now[field] && sameEntity({ ...was, [field]: now[field] }, now)
+      if (!sameThing || found !== null) return null // a second change, or more than the typed text
+      found = `name:${key}:${was.id}`
     }
   }
   return found

@@ -8,6 +8,7 @@ import {
   nextPartName,
   normalizeSections,
 } from '../../model/parts'
+import { notesWithoutPart, notesWithoutSection } from '../../model/notes'
 import { withoutPart, withoutSection } from '../../model/resources'
 import type { Assignments, Part } from '../../model/types'
 import type { PartsSlice, ProjectStore } from '../storeTypes'
@@ -48,8 +49,13 @@ export const createPartsSlice: StateCreator<ProjectStore, [], [], PartsSlice> = 
       for (const [sectionId, byDancer] of Object.entries(s.assignments)) {
         assignments[sectionId] = Object.fromEntries(Object.entries(byDancer).filter(([, partId]) => partId !== id))
       }
-      // Links about this part stay, attached to no part.
-      return { parts: s.parts.filter((p) => p.id !== id), assignments, resources: withoutPart(s.resources, id) }
+      // Links and notes about this part stay, attached to no part.
+      return {
+        parts: s.parts.filter((p) => p.id !== id),
+        assignments,
+        resources: withoutPart(s.resources, id),
+        notes: notesWithoutPart(s.notes, id),
+      }
     }),
 
   addSection: () => {
@@ -95,8 +101,10 @@ export const createPartsSlice: StateCreator<ProjectStore, [], [], PartsSlice> = 
       return {
         sections: normalizeSections(s.sections.filter((x) => x.id !== id)),
         assignments,
-        // Links about this section stay, as whole-dance links.
+        // Links and notes about this section stay, as whole-dance links and notes (a note at a count needs no change:
+        // the count falls in the section that stretched over this one).
         resources: withoutSection(s.resources, id),
+        notes: notesWithoutSection(s.notes, id),
         // Parts that listed this section stop listing it (one left with none applies nowhere).
         parts: s.parts.map((p) =>
           p.sectionIds?.includes(id) ? { ...p, sectionIds: p.sectionIds.filter((x) => x !== id) } : p,

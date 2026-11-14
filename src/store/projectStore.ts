@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import type { Formation } from '../model/types'
 import { createFormationSlice } from './slices/formationSlice'
 import { createHistorySlice } from './slices/historySlice'
+import { createNotesSlice } from './slices/notesSlice'
 import { createPartsSlice } from './slices/partsSlice'
 import { createResourcesSlice } from './slices/resourcesSlice'
 import { createProjectSlice } from './slices/projectSlice'
@@ -19,6 +20,7 @@ export const useProject = create<ProjectStore>()((...a) => ({
   ...createFormationSlice(...a),
   ...createPartsSlice(...a),
   ...createResourcesSlice(...a),
+  ...createNotesSlice(...a),
   ...createHistorySlice(...a),
 }))
 

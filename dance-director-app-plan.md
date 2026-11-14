@@ -284,7 +284,7 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 
 - **Transition semantics:** arrive-on vs. leave-on at a marked count; default transition length?
 - **Roster library:** include in MVP or copy-roster-between-projects instead?
-- **Notes:** *Decided (docs/decisions/0027): the Resources tab holds a Links section and a Notes section. Notes can be anchored to a count, section or part, and later shown beside the stage when the playhead reaches them.* (Links are built; notes are the next slice.)
+- **Notes:** *Decided (docs/decisions/0027): the Resources tab holds a Links section and a Notes section. Notes can be anchored to a count, section or part, and later shown beside the stage when the playhead reaches them.* (Links and notes are built: decisions 0027 and 0028.)
 - **Tempo changes:** *Decided (docs/decisions/0013): one BPM per project in the MVP; the saved tempo gets an empty list of tempo changes in the same migration that adds the song, so changes can be supported later without another data change.*
 - **Music files:** *Decided for now (0013): the file is stored in the browser (IndexedDB), the project saves only its name/length/hash, and another device asks you to re-attach the file.* Still open: licensing considerations when sharing with dancers, and cloud storage (opt-in).
 - **Half-counts ("&"):** *Decided for now (0013): whole counts only.* Revisit with the choreographers before or soon after the timeline exists; it is a data migration, cheapest while there are few projects.

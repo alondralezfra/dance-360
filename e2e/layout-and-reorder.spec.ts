@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { addDancer, createProject, savedProject, waitForSaved } from './helpers'
+import { addDancer, createProject, savedProject, useWideFont, waitForSaved } from './helpers'
 
 const canvasBox = async (page: Page) => (await page.locator('canvas').first().boundingBox())!
 
@@ -142,7 +142,7 @@ test.describe('the header with a wide font', () => {
   test('stays on one row at 150% zoom and at a normal desktop width', async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 768 })
     await createProject(page)
-    await page.addStyleTag({ content: 'body, input, button, select { font-family: "DejaVu Sans", Verdana, sans-serif !important }' })
+    await useWideFont(page)
     const header = page.locator('header')
     for (const [w, h] of [
       [1366, 768],

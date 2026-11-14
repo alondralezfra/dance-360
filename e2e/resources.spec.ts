@@ -1,9 +1,15 @@
 import { expect, test, type Page } from '@playwright/test'
-import { addLink, createProject, goToCast, goToResources, savedProject, tabFullyInView, waitForSaved } from './helpers'
+import { addLink, addNote, createProject, goToCast, goToResources, savedProject, tabFullyInView, useWideFont, waitForSaved } from './helpers'
 
 // The Resources tab: links to videos and documents, attached to a section and/or part, saved with the project.
 
 const TUTORIAL = 'https://tutorials.example.test/chorus'
+
+/** The saved project's notes, once autosave has caught up. */
+async function savedNotes(page: Page) {
+  await waitForSaved(page)
+  return (await savedProject(page)).notes as Record<string, unknown>[]
+}
 
 /** The saved project's links, once autosave has caught up. */
 async function savedLinks(page: Page) {
@@ -133,12 +139,125 @@ test.describe('links', () => {
   })
 })
 
+test.describe('notes', () => {
+  test.beforeEach(async ({ page }) => {
+    await createProject(page)
+    await goToResources(page)
+  })
+
+  test('start with an empty list that says how to add one', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Notes' })).toBeVisible()
+    await expect(page.getByText(/No notes yet/)).toBeVisible()
+  })
+
+  test('are added, saved with the project, and still there after a reload', async ({ page }) => {
+    await addNote(page, 'Arms up on 5-6')
+    await expect(page.getByLabel('Text of note 1')).toHaveValue('Arms up on 5-6')
+    await expect(page.getByLabel('Text of the new note')).toHaveValue('')
+    expect(await savedNotes(page)).toMatchObject([{ text: 'Arms up on 5-6', anchor: { kind: 'dance' }, partId: null }])
+
+    await page.reload()
+    await expect(page.getByLabel('Text of note 1')).toHaveValue('Arms up on 5-6')
+  })
+
+  test('refuse a blank note, and say so', async ({ page }) => {
+    await addNote(page, '   ')
+    await expect(page.getByRole('alert')).toContainText('Write the note first.')
+    await expect(page.getByLabel('Text of note 1')).toHaveCount(0)
+    expect(await savedNotes(page)).toEqual([])
+  })
+
+  test('can be about a count, a section and a part, and keep that across a reload', async ({ page }) => {
+    await goToCast(page)
+    await page.getByRole('button', { name: '+ Add part' }).click()
+    await page.getByRole('button', { name: '+ Add section' }).click()
+    await goToResources(page)
+
+    await page.getByLabel('About the new note').selectOption('count')
+    await page.getByLabel('Set of the new note').fill('2')
+    await page.getByLabel('Set of the new note').blur()
+    await page.getByLabel('Count of the new note').fill('5')
+    await page.getByLabel('Count of the new note').blur()
+    await page.getByLabel('Part of the new note').selectOption('Part A')
+    await addNote(page, 'Arms up on 5-6')
+
+    await page.getByLabel('About the new note').selectOption('Section 2')
+    await addNote(page, 'Chorus: sharper')
+    await expect(page.getByRole('heading', { level: 3, name: 'Section 1' })).toBeVisible() // count 13 is in the first section
+    await expect(page.getByRole('heading', { level: 3, name: 'Section 2' })).toBeVisible()
+
+    const [first, second] = await savedNotes(page)
+    expect(first).toMatchObject({ anchor: { kind: 'count', count: 12 } })
+    expect(first.partId).not.toBeNull()
+    expect(second).toMatchObject({ anchor: { kind: 'section' }, partId: first.partId })
+
+    await page.reload()
+    await expect(page.getByLabel('About note 1')).toHaveValue('count')
+    await expect(page.getByLabel('Set of note 1')).toHaveValue('2')
+    await expect(page.getByLabel('Count of note 1')).toHaveValue('5')
+    await expect(page.getByLabel('About note 2')).not.toHaveValue('dance')
+  })
+
+  test('stay when the section they are about is removed, as whole-dance notes', async ({ page }) => {
+    await goToCast(page)
+    await page.getByRole('button', { name: '+ Add section' }).click()
+    await goToResources(page)
+    await page.getByLabel('About the new note').selectOption('Section 2')
+    await addNote(page, 'Chorus: sharper')
+    await expect(page.getByRole('heading', { level: 3, name: 'Section 2' })).toBeVisible()
+
+    await goToCast(page)
+    await page.getByRole('button', { name: /^Remove Section 2/ }).click()
+    await goToResources(page)
+    await expect(page.getByLabel('Text of note 1')).toHaveValue('Chorus: sharper')
+    await expect(page.getByRole('heading', { level: 3, name: 'Whole dance' })).toBeVisible()
+    await expect(page.getByLabel('About note 1')).toHaveValue('dance')
+  })
+
+  test('are edited in place; typing is one undo step, and removing can be undone', async ({ page }) => {
+    await addNote(page, 'Arms')
+    const text = page.getByLabel('Text of note 1')
+    await text.click()
+    await page.keyboard.press('End')
+    await page.keyboard.type(' up on five and six', { delay: 20 })
+    await expect(text).toHaveValue('Arms up on five and six')
+    expect(await savedNotes(page)).toMatchObject([{ text: 'Arms up on five and six' }])
+
+    await page.getByRole('button', { name: 'Undo' }).click() // all the typing at once
+    await expect(text).toHaveValue('Arms')
+
+    await page.getByRole('button', { name: 'Remove note 1' }).click()
+    await expect(page.getByLabel('Text of note 1')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Undo' }).click()
+    await expect(page.getByLabel('Text of note 1')).toHaveValue('Arms')
+  })
+
+  test('keep line breaks, and Ctrl+Enter adds the note', async ({ page }) => {
+    await page.getByLabel('Text of the new note').fill('line one')
+    await page.keyboard.press('Enter')
+    await page.keyboard.type('line two')
+    await page.keyboard.press('Control+Enter')
+    await expect(page.getByLabel('Text of note 1')).toHaveValue('line one\nline two')
+  })
+
+  test('have no console errors during normal use', async ({ page }) => {
+    const errors: string[] = []
+    page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
+    page.on('pageerror', (e) => errors.push(e.message))
+    await addNote(page, 'A note')
+    await page.getByLabel('About note 1').selectOption('count')
+    await page.getByRole('button', { name: 'Remove note 1' }).click()
+    expect(errors).toEqual([])
+  })
+})
+
 test.describe('the Resources tab on a phone', () => {
   test.use({ viewport: { width: 390, height: 780 }, hasTouch: true })
 
-  test('fits the screen, with touch-sized controls', async ({ page }) => {
+  test('fits the screen, with touch-sized controls, even in a wide font', async ({ page }) => {
     await createProject(page)
     await goToResources(page)
+    await useWideFont(page)
     await addLink(page, TUTORIAL, 'Chorus tutorial')
     await expect(page.getByLabel('Title of link 1')).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
@@ -153,6 +272,37 @@ test.describe('the Resources tab on a phone', () => {
       page.getByLabel('Start time of link 1'),
     ]
     for (const control of controls) {
+      const box = (await control.boundingBox())!
+      const name = (await control.getAttribute('aria-label')) ?? (await control.textContent())
+      expect(box.height, `${name} height`).toBeGreaterThanOrEqual(40)
+      expect(box.x, `${name} left edge`).toBeGreaterThanOrEqual(0)
+      expect(box.x + box.width, `${name} right edge`).toBeLessThanOrEqual(390)
+    }
+  })
+
+  test('the notes form and a note fit the screen, with touch-sized controls, even in a wide font', async ({ page }) => {
+    await createProject(page)
+    await goToResources(page)
+    await useWideFont(page)
+    await page.getByLabel('About the new note').selectOption('count')
+    await addNote(page, 'Arms up on 5-6')
+    await expect(page.getByLabel('Text of note 1')).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+
+    const controls = [
+      page.getByRole('button', { name: '+ Add note' }),
+      page.getByLabel('About the new note'),
+      page.getByLabel('Set of the new note'),
+      page.getByLabel('Count of the new note'),
+      page.getByLabel('Part of the new note'),
+      page.getByLabel('About note 1'),
+      page.getByLabel('Set of note 1'),
+      page.getByLabel('Count of note 1'),
+      page.getByLabel('Part of note 1'),
+      page.getByRole('button', { name: 'Remove note 1' }),
+    ]
+    for (const control of controls) {
+      await control.scrollIntoViewIfNeeded()
       const box = (await control.boundingBox())!
       const name = (await control.getAttribute('aria-label')) ?? (await control.textContent())
       expect(box.height, `${name} height`).toBeGreaterThanOrEqual(40)

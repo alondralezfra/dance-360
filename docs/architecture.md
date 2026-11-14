@@ -1,6 +1,6 @@
 # Architecture
 
-*Last verified against the code: 2026-11-14.* Rules marked **(enforced)** are checked by `src/architecture.test.ts`; breaking one fails `npm run verify`.
+*Last verified against the code: 2026-11-13.* Rules marked **(enforced)** are checked by `src/architecture.test.ts`; breaking one fails `npm run verify`.
 
 ## Stack
 
@@ -22,6 +22,7 @@ src/
     tempoEstimate.ts  estimates a song's tempo and first beat from decoded samples (pure); fft.ts is its spectrum
     formations.ts   stage helpers, count ordering, moveFormation (reorder; counts stay in their slots)
     parts.ts        sections/parts/assignments: which parts apply in a section, which part a dancer is in at a count, ordering, gap detection
+    notes.ts        notes: what a note may be about (the whole dance, a section, or one whole count), grouping by section and sorting by count, tidying up when a section or part is removed, checking an imported file's notes
     resources.ts    links to videos and documents: what counts as a web address (http/https only), start times, grouping by section, tidying up when a section or part is removed, checking an imported file's links
     project.ts      new-project factory
     types.ts        the saved Project shape
@@ -41,7 +42,7 @@ src/
     migrations.ts              versioned upgrades of saved data
     fixtures/                  frozen example of every saved-data version
   store/          Zustand stores, composed from slices.
-    projectStore.ts  the open project: session / project / roster / formation / parts / resources / history slices
+    projectStore.ts  the open project: session / project / roster / formation / parts / resources / notes / history slices
     history.ts       records every document change for undo (watches the store, like autosave)
     uiStore.ts       selections (not saved)
     layoutStore.ts   which panels are open (remembered per device, not in the project)
@@ -51,7 +52,7 @@ src/
     audioCleanup.ts  clears song files no project uses
     autosave.ts      debounced save of the open project
   features/       Screens, one folder per feature, each documented in docs/features/.  (enforced)
-  components/     Shared UI: ui/ (Button, IconButton, Icon, Input, Select, Checkbox, FileButton, Slider, NumberField, SectionHeader, Drawer, Popover, buttonVariants; see components.md), ThemeToggle
+  components/     Shared UI: ui/ (Button, IconButton, Icon, Input, Select, Checkbox, FileButton, Slider, NumberField, Textarea, SectionHeader, Drawer, Popover, buttonVariants; see components.md), ThemeToggle
   theme/          Theme switching + the canvas colour hook
   lib/            Small helpers (cn, readableOn, devicePixels, hash, format, typing, playheadClock, download, useDevicePixelRatio, useElementSize)
   router.tsx      URL map (project screens are tabs: Stage, Cast & Parts, Song, Resources)
@@ -94,7 +95,7 @@ Undo is a stack of earlier `Project` snapshots in `projectStore.history` (sessio
 
 ## Saved data
 
-`Project { name, stage, tempo, song, dancers[], formations[], parts[], sections[], assignments, resources[] }`.
+`Project { name, stage, tempo, song, dancers[], formations[], parts[], sections[], assignments, resources[], notes[] }`.
 
 - `tempo` is `{ bpm, startOffsetSec, changes[] }`. `changes` (`{ atCount, bpm }`) is always empty for now: the shape has room for tempo changes, but `countToSeconds` / `secondsToCount` do not read them yet, so nothing may add one until they do.
 - `song` is `null` or `{ name, durationSec, size, mime, hash }`. The audio file is **not** in the project: it is stored separately on the device and found by `hash` ([decisions/0013](decisions/0013-audio-and-timeline-architecture.md)).
@@ -103,6 +104,7 @@ Undo is a stack of earlier `Project` snapshots in `projectStore.history` (sessio
 - A part is `{ id, name, color, sectionIds }` where `color` is a palette id (`blue`, `red`, `green`, `orange`, `sky`, `pink`, `yellow`, `gray`) and `sectionIds` is the list of sections it applies to, or `null` for all sections (including future ones). An empty list applies nowhere.
 - A section is `{ id, name, startCount }`. `sections` is always sorted, the first starts at 0, there is at least one, and a section runs until the next starts (`normalizeSections`), so every count is in exactly one section.
 - A resource (link) is `{ id, title, url, kind, sectionId, partId, startSec }`: `url` is always an http or https address in standard form (`normalizeUrl` in `model/resources.ts` is the one rule; anything else, such as `javascript:`, is refused when adding, editing and importing), `kind` is `tutorial`, `reference`, `rehearsal`, `document` or `other`, `sectionId` / `partId` are the section and part it is about (`null` = the whole dance / any part), and `startSec` is a video start time to show (or `null`). Removing a section or part keeps its links and detaches them. Nothing is ever fetched from a link ([decisions/0027](decisions/0027-resources-links.md)).
+- A note is `{ id, text, anchor, partId }`: `anchor` is exactly one of `{ kind: 'dance' }` (the whole dance), `{ kind: 'section', sectionId }` or `{ kind: 'count', count }` (one whole count, 0 = Set 1 Count 1), and `partId` is the part it is also about (`null` = any part). A count is always inside exactly one section (`sectionIndexAt`), so a note at a count has no separate section and the two can never disagree. Text is plain, up to 5000 characters, line breaks kept; it may be emptied while editing but a note is only added with text. Removing a section keeps its notes as whole-dance notes (a note at a count needs no change: the count falls in the section that stretched over it); removing a part keeps its notes, about any part ([decisions/0028](decisions/0028-notes.md)).
 - `assignments` is `sectionId -> dancerId -> partId`: a dancer's *chosen* part. **Never read it directly to find out who is in what part.** Use `effectivePartId` / `partIdAt` (`model/parts.ts`), which apply the rules: `availableParts` = the parts limited to that section if any (they replace the all-sections parts), otherwise the all-sections parts; if exactly one part is available everyone is in it automatically; otherwise it is the chosen part if that part is still available there, else nobody. Nobody only counts as a **gap** (`findGaps`) where two or more parts apply; where none applies (`isUncovered`) the dance isn't split and it is not an error. Stored choices for parts that don't currently apply are kept but ignored.
 
 Stored as `dance360:project:<id>` = `{ version, updatedAt, project, sync }`. `sync` is `{ localRevision, remoteRevision, dirty, deleted }`: bookkeeping for cloud sync that lives *beside* the document (not in it, so it never needs a data-version bump); a project stored without it reads as "never synced". Deleting a project the cloud knows about leaves a tombstone until sync tells the cloud. [decisions/0015](decisions/0015-cloud-storage-and-sync.md)
@@ -115,6 +117,7 @@ Stored as `dance360:project:<id>` = `{ version, updatedAt, project, sync }`. `sy
 | 3 | `parts[].sectionIds` (the sections a part applies to; `null` = all); migrated parts all get `null` |
 | 4 | `song` (migrated projects get `null`) and `tempo.changes` (migrated projects get `[]`); bpm and start offset are kept |
 | 5 | `resources` (migrated projects get `[]`) |
+| 6 | `notes` (migrated projects get `[]`) |
 
 ## Planned (from the build order)
 

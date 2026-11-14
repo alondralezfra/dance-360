@@ -4,6 +4,7 @@ import {
   countToSeconds,
   isDefaultTempo,
   formatCount,
+  fromSetAndCount,
   secondsToCount,
   snapToCount,
   toSetAndCount,
@@ -64,5 +65,21 @@ describe('count labels', () => {
   it('snaps to the nearest count', () => {
     expect(snapToCount(4.4)).toBe(4)
     expect(snapToCount(4.6)).toBe(5)
+  })
+})
+
+describe('fromSetAndCount', () => {
+  it('turns a 1-based set and count into an absolute count', () => {
+    expect(fromSetAndCount(1, 1)).toBe(0)
+    expect(fromSetAndCount(1, 8)).toBe(7)
+    expect(fromSetAndCount(2, 1)).toBe(8)
+    expect(fromSetAndCount(3, 5)).toBe(20)
+  })
+
+  it('is the inverse of toSetAndCount', () => {
+    for (const count of [0, 1, 7, 8, 9, 23, 64, 255]) {
+      const { set, count: c } = toSetAndCount(count)
+      expect(fromSetAndCount(set, c)).toBe(count)
+    }
   })
 })

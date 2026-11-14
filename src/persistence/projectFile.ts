@@ -8,6 +8,7 @@
 // from it, upgraded from an older data version if need be, and refused if it is from a newer one.
 
 import { CURRENT_VERSION, migrateProject } from './migrations'
+import { problemWithNotes } from '../model/notes'
 import { problemWithResources } from '../model/resources'
 import type { Project } from '../model/types'
 
@@ -142,8 +143,12 @@ function problemWith(p: unknown): string | null {
   ) {
     return 'the part assignments are wrong'
   }
-  // Links come from outside the app, so they get the strictest look: only real web addresses, and only about things that exist.
-  return problemWithResources(p as unknown as Pick<Project, 'resources' | 'sections' | 'parts'>)
+  // Links and notes come from outside the app, so they get the strictest look: links only to real web addresses, and
+  // both only about things that exist.
+  return (
+    problemWithResources(p as unknown as Pick<Project, 'resources' | 'sections' | 'parts'>) ??
+    problemWithNotes(p as unknown as Pick<Project, 'notes' | 'sections' | 'parts'>)
+  )
 }
 
 /**

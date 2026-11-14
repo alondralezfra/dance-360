@@ -76,6 +76,38 @@ describe('undo and redo', () => {
     expect(state().resources).toHaveLength(1)
   })
 
+  it('undoes typing in a note, or in a link’s title, as one step, and a note with the section change that detached it', () => {
+    const noteId = state().addNote({ text: 'A' })!
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    for (const text of ['Ar', 'Arm', 'Arms', 'Arms up']) {
+      state().updateNote(noteId, { text })
+      vi.advanceTimersByTime(50)
+    }
+    expect(state().notes[0].text).toBe('Arms up')
+    state().undo() // all the typing at once, back to what it was before it began
+    expect(state().notes[0].text).toBe('A')
+
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    const linkId = state().addResource({ title: 'T', url: 'https://a.com' })!
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    for (const title of ['Tu', 'Tut', 'Tutorial']) {
+      state().updateResource(linkId, { title })
+      vi.advanceTimersByTime(50)
+    }
+    state().undo()
+    expect(state().resources[0].title).toBe('T')
+
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    const second = state().addSection()
+    state().updateNote(noteId, { anchor: { kind: 'section', sectionId: second } })
+    vi.advanceTimersByTime(COALESCE_MS + 1)
+    state().removeSection(second)
+    expect(state().notes[0].anchor).toEqual({ kind: 'dance' })
+    state().undo()
+    expect(state().notes[0].anchor).toEqual({ kind: 'section', sectionId: second })
+    expect(state().sections).toHaveLength(2)
+  })
+
   it('undoes edits in the order they were made, across different parts of the project', () => {
     state().addDancer('Maya')
     const formationId = state().formations[0].id

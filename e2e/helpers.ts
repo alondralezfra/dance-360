@@ -151,6 +151,14 @@ export function wavFile({ seconds = 6, frequency = 440, sampleRate = 8000 } = {}
   return Buffer.concat([header, data])
 }
 
+/**
+ * Draws the page in a wide font. CI's Linux browser uses DejaVu Sans, much wider than Segoe UI or Roboto (Verdana is
+ * as wide and is on Windows), so a layout that only fits in a narrow font passes here and fails there.
+ */
+export async function useWideFont(page: Page) {
+  await page.addStyleTag({ content: 'body, input, button, select, textarea { font-family: "DejaVu Sans", Verdana, sans-serif !important }' })
+}
+
 /** True when the open tab lies wholly inside the visible part of the (sideways scrolling) project tab row. */
 export async function tabFullyInView(nav: Locator) {
   return nav
@@ -174,6 +182,12 @@ export async function addLink(page: Page, url: string, title = '') {
   await page.getByLabel('Web address of the new link').fill(url)
   await page.getByLabel('Title of the new link').fill(title)
   await page.getByRole('button', { name: '+ Add link' }).click()
+}
+
+/** Add a note on the Resources tab with the form at the top (what it is about stays as it was left). */
+export async function addNote(page: Page, text: string) {
+  await page.getByLabel('Text of the new note').fill(text)
+  await page.getByRole('button', { name: '+ Add note' }).click()
 }
 
 export async function goToSong(page: Page) {
