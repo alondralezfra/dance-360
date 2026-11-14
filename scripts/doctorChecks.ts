@@ -39,16 +39,6 @@ export function checkDependencies(declared: string[], isInstalled: (name: string
   return fail(name, `${missing.length} missing: ${shown}`, 'Run npm install.')
 }
 
-export function checkHooks(hooksPath: string): Check {
-  const name = 'Git hooks'
-  if (hooksPath.trim() === '.githooks') return pass(name, 'the pre-commit hook (.githooks) is switched on')
-  return fail(
-    name,
-    hooksPath.trim() === '' ? 'core.hooksPath is not set, so the pre-commit check will not run' : `core.hooksPath is "${hooksPath.trim()}", not ".githooks"`,
-    'Run npm install (its prepare step sets it), or: git config core.hooksPath .githooks',
-  )
-}
-
 export interface BrowserFacts {
   /** True when CI=1 is set: the tests then use Playwright's own Chromium instead of Edge. */
   ci: boolean

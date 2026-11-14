@@ -4,6 +4,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Removed (the git pre-commit hook)
+- **Committing no longer runs the tests.** The hook (`.githooks/pre-commit`) ran the full `npm run verify` before every commit, on top of Claude's own check and CI's, so one change was tested three or four times and every commit waited minutes. The full `npm run verify` now runs twice instead of four times: the Stop hook still runs it when Claude finishes a turn (and blocks the turn while it fails), and CI runs it on every pull request and on `main`; Claude works with `npm run verify:quick` and targeted tests and no longer also runs the full suite by hand. Gone with it: the `prepare` script that switched the hook on, the `--staged` options of `verify` and the change-discipline check, and the "Git hooks" test of `npm run doctor` (its unit tests were removed with the behaviour they covered). Decision record 0029.
+
 ### Added (Resources: notes, slice 2 of resources and notes)
 - **A Notes section on the Resources tab**: type a note (several lines are fine; Ctrl/Cmd + Enter adds it) and say what it is about: the **whole dance**, **one section**, or **one count** (shown as Set and Count), and optionally **one part**. For a stretch such as "arms up on 5-6", say so in the text; the note is anchored to its first count. Notes are edited in place, grouped by section (a note at a count is filed under the section that count falls in, earliest count first), and can be removed (Undo brings them back).
 - Removing a section **keeps** its notes, as whole-dance notes; removing a part keeps its notes, about any part.
