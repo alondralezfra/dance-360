@@ -1,18 +1,18 @@
 # Testing & verification
 
-**A change is not implemented until `npm run verify` passes completely.** No exceptions, and no weakening, skipping or deleting a test to get green (a test may be removed only when the behaviour it covers is deliberately removed, and the change log says so).
+**A change is not implemented until the full `npm run verify` passes** (the Stop hook runs it when Claude finishes a turn; CI runs it on the pull request). No exceptions, and no weakening, skipping or deleting a test to get green (a test may be removed only when the behaviour it covers is deliberately removed, and the change log says so).
 
 ## The commands
 
 | Command | Use |
 |---|---|
-| `npm run verify` | Everything below, in order. Required before a change counts as done. |
-| `npm run verify:quick` | Same minus the browser tests. For iterating only. |
+| `npm run verify` | Everything below, in order. Run by the Stop hook when Claude finishes a turn, and by CI on every pull request and on `main`; Claude does not run it by hand. Run it yourself before pushing a change you made by hand. |
+| `npm run verify:quick` | Same minus the browser tests. What Claude runs while working, with targeted tests (`npx playwright test e2e/<spec>` for a flow). |
 | `npm test` / `npm run test:watch` | Unit + component tests. |
 | `npm run test:coverage` | Same, enforcing coverage thresholds. |
 | `npm run test:e2e` | Browser tests (Playwright). Builds the app and serves the production build itself (port 5199). |
 | `npm run screenshots` | Photographs the main screens (phone and desktop, light and dark) into `screenshots` (git-ignored) so the UI can be looked at. Not part of `verify`. See [components.md](components.md). |
-| `npm run doctor` | Checks this machine can run the project: Node version, installed packages, the git hook, a browser for e2e, a free port 5199. Reports only; never changes anything. |
+| `npm run doctor` | Checks this machine can run the project: Node version, installed packages, a browser for e2e, a free port 5199. Reports only; never changes anything. |
 | `npm run check:health` | Unused code (`knip`) and duplicated code or docs (`jscpd`). Also the "Repo health" step of `verify`. |
 
 `verify` runs, stopping at the first failure: **change discipline** -> **lint** -> **repo health** -> **unit/integration + coverage** -> **type-check + build** -> **end-to-end**.
@@ -34,7 +34,7 @@ Coverage thresholds (lines/statements/functions 95%, branches 90%) apply to `mod
 
 ## Change discipline (`scripts/check-changes.mjs`)
 
-If anything under `src/` (non-test) changed, the same change must also touch: a test file (or `e2e/`), `CHANGELOG.md`, and something in `docs/` (or the root `README.md`). It runs inside `verify`, on every commit (pre-commit hook), and when Claude finishes a turn (Stop hook). It checks that the files were touched; reviewing that they are *right* is part of the workflow in `CLAUDE.md`.
+If anything under `src/` (non-test) changed, the same change must also touch: a test file (or `e2e/`), `CHANGELOG.md`, and something in `docs/` (or the root `README.md`). It runs inside `verify` (so also in CI and when Claude finishes a turn, the Stop hook); there is no commit hook ([decisions/0029](decisions/0029-no-commit-hook.md)). It checks that the files were touched; reviewing that they are *right* is part of the workflow in `CLAUDE.md`.
 
 ## Continuous integration
 
@@ -56,8 +56,8 @@ If anything under `src/` (non-test) changed, the same change must also touch: a 
 ## Setup notes
 
 - **Something not working on a new machine? Run `npm run doctor`.** It checks each item below and prints the command that fixes what is wrong (decision 0025). `verify` points to it when the browser tests fail.
-- First run on a new machine: `npm install` (also enables the git hooks via the `prepare` script). Local e2e uses the Edge that ships with Windows; elsewhere run `npx playwright install chromium` and set `CI=1`.
+- First run on a new machine: `npm install`. Local e2e uses the Edge that ships with Windows; elsewhere run `npx playwright install chromium` and set `CI=1`.
 - On Windows, run Vitest from a directory spelled with a capital drive letter (`C:\...`). `scripts/verify.mjs` fixes this up for itself, so `npm run verify` works from either spelling; a bare `npx vitest` started from `c:\...` fails every file with "Vitest failed to find the current suite".
 - **Reproducing CI's browser run on your machine** (a layout test can pass on Windows and fail on CI because CI draws text in a different font): in Docker, copy the committed code to a scratch folder (`git archive HEAD | tar -x -C <folder>`) and run it in `mcr.microsoft.com/playwright:v<your Playwright version>-noble` with `-e CI=1`, after `npm ci --ignore-scripts` and `apt-get install -y fonts-dejavu-core` (CI's default sans-serif font is **DejaVu Sans**, much wider than Segoe UI; the image alone picks a different one, and a failing test then passes). With DejaVu installed this reproduced a CI failure to every digit. A layout that only fits in a narrow font is a bug: test it with a wide one (see `e2e/layout-and-reorder.spec.ts`, "the header with a wide font").
 - **Do not regenerate `package-lock.json` on Windows.** npm there leaves out the optional WebAssembly packages (the nested `@emnapi/*` entries under `@tailwindcss/oxide-wasm32-wasi` and `@oxc-resolver/binding-wasm32-wasi`) that Linux CI needs, and `npm ci` then fails there with "Missing ... from lock file" while everything passes locally. Adding or updating a dependency on Windows is fine (`npm install <package>`), but check the lockfile diff for removed `@emnapi` entries; if any are gone, rebuild it on Linux from `main`'s lockfile (a `node:24` container: `npm install --package-lock-only`, then a real `npm ci`). Dependabot builds its lockfiles on Linux. (Found while adding `knip`; decision 0025.)
-- The pre-commit hook (`.githooks/pre-commit`) runs the full `verify`. Don't bypass it with `--no-verify`.
+- **There is no commit hook**: committing and pushing do not run the tests. the full `verify` runs when Claude finishes a turn that left code uncommitted (the Stop hook, which also blocks the turn while it fails), and in CI on every pull request and on `main` ([decisions/0029](decisions/0029-no-commit-hook.md)). Claude does not run it by hand as well. Run `npm run verify` yourself before pushing a change you made by hand.

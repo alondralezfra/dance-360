@@ -4,6 +4,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Removed (the git pre-commit hook)
+- **Committing no longer runs the tests.** The hook (`.githooks/pre-commit`) ran the full `npm run verify` before every commit, on top of Claude's own check and CI's, so one change was tested three or four times and every commit waited minutes. The full `npm run verify` now runs twice instead of four times: the Stop hook still runs it when Claude finishes a turn (and blocks the turn while it fails), and CI runs it on every pull request and on `main`; Claude works with `npm run verify:quick` and targeted tests and no longer also runs the full suite by hand. Gone with it: the `prepare` script that switched the hook on, the `--staged` options of `verify` and the change-discipline check, and the "Git hooks" test of `npm run doctor` (its unit tests were removed with the behaviour they covered). Decision record 0029.
+
 ### Added (Resources: links, slice 1 of resources and notes)
 - **A Resources tab with Links**: paste a web address (and, if you like, a title) to add a link. Each link has a kind (tutorial video, reference video, rehearsal recording, document, other), can be about a section and/or a part, can carry a start time to show, and is edited in place. Links are grouped by section, open in a new tab, and can be removed (Undo brings them back). Nothing is fetched from a link: no thumbnails or embedded player, so it works offline and nothing leaves the device.
 - Only **http and https** addresses are accepted (adding, editing and importing): `javascript:` and other schemes are refused. Links open with `rel="noopener noreferrer"`.

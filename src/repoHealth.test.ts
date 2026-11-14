@@ -96,7 +96,7 @@ const documents = import.meta.glob(['/docs/*.md', '/docs/features/*.md', '/READM
 const paths = new Set(
   ['/src/repoHealth.test.ts', ...Object.keys(
     import.meta.glob(
-      ['/src/**', '/docs/**', '/e2e/**', '/scripts/**', '/public/**', '/.github/**', '/.githooks/**', '/.claude/**', '/*.md', '/*.json', '/*.ts', '/*.mjs', '/index.html'],
+      ['/src/**', '/docs/**', '/e2e/**', '/scripts/**', '/public/**', '/.github/**', '/.claude/**', '/*.md', '/*.json', '/*.ts', '/*.mjs', '/index.html'],
       { eager: false },
     ),
   )],

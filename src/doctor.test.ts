@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkBrowser, checkDependencies, checkHooks, checkNode, checkPort, formatReport, requiredNodeMajor } from '../scripts/doctorChecks.ts'
+import { checkBrowser, checkDependencies, checkNode, checkPort, formatReport, requiredNodeMajor } from '../scripts/doctorChecks.ts'
 
 // The judging behind `npm run doctor` (scripts/doctor.mjs, which only looks at the machine). Docs: docs/testing.md "Setup".
 
@@ -51,17 +51,6 @@ describe('checkDependencies', () => {
   })
 })
 
-describe('checkHooks', () => {
-  it('passes when the pre-commit hook folder is set (ignoring the newline git prints)', () => {
-    expect(checkHooks('.githooks\n').ok).toBe(true)
-  })
-
-  it('fails when it is unset or points somewhere else', () => {
-    expect(checkHooks('')).toMatchObject({ ok: false, detail: expect.stringMatching(/not set/) })
-    expect(checkHooks('.husky\n')).toMatchObject({ ok: false, detail: expect.stringMatching(/"\.husky"/) })
-  })
-})
-
 describe('checkBrowser', () => {
   it('locally, wants Edge', () => {
     expect(checkBrowser({ ci: false, edgeFound: true, chromiumFound: false }).ok).toBe(true)
@@ -94,7 +83,7 @@ describe('formatReport', () => {
   })
 
   it('counts the failures and shows the fix for each', () => {
-    const text = formatReport([checkNode('20.0.0', '>=24'), checkPort(5199, true), checkHooks('.githooks')])
+    const text = formatReport([checkNode('20.0.0', '>=24'), checkPort(5199, true), checkDependencies([], () => true)])
     expect(text).toMatch(/FAIL {2}Node\.js version: running 20\.0\.0/)
     expect(text).toMatch(/-> Install Node\.js 24/)
     expect(text).toMatch(/-> Stop that program/)
