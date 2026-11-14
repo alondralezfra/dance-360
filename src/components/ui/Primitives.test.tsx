@@ -8,6 +8,7 @@ import { Icon } from './Icon'
 import { IconButton } from './IconButton'
 import { Input } from './Input'
 import { Select } from './Select'
+import { Textarea } from './Textarea'
 import { fieldClass } from './field'
 
 describe('Icon', () => {
@@ -117,5 +118,25 @@ describe('Button chip variant', () => {
     expect(screen.getByRole('button', { name: 'Selected' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Selected' })).toHaveClass('aria-pressed:border-primary')
     expect(screen.getByRole('button', { name: 'Other' })).toHaveAttribute('aria-pressed', 'false')
+  })
+})
+
+describe('Textarea', () => {
+  it('is a labelled multi-line box that takes typing, line breaks and a limit, and looks like the other fields', async () => {
+    const user = userEvent.setup()
+    render(<Textarea aria-label="Note" maxLength={11} placeholder="A note" />)
+    const box = screen.getByRole('textbox', { name: 'Note' })
+    expect(box.tagName).toBe('TEXTAREA')
+    expect(box).toHaveClass(...fieldClass.split(' ').filter((c) => c.startsWith('border') || c === 'rounded-md'))
+    await user.type(box, 'one{Enter}two and more text')
+    expect(box).toHaveValue('one\ntwo and')
+  })
+
+  it('takes a class from the caller and can be disabled', () => {
+    render(<Textarea aria-label="Note" className="min-h-40" disabled />)
+    const box = screen.getByRole('textbox', { name: 'Note' })
+    expect(box).toHaveClass('min-h-40')
+    expect(box).not.toHaveClass('min-h-20') // the caller's size replaces the default
+    expect(box).toBeDisabled()
   })
 })

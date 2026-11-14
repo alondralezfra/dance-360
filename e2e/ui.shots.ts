@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { expect, test } from '@playwright/test'
-import { addDancer, addLink, beatsWav, chooseFile, createProject, goToCast, goToResources, goToSong, waitForSaved } from './helpers'
+import { addDancer, addLink, addNote, beatsWav, chooseFile, createProject, goToCast, goToResources, goToSong, waitForSaved } from './helpers'
 
 // Not a test of the app: photographs the main screens so they can be looked at (docs/components.md, "How the app
 // looks"; the ui-styling skill in .claude/skills). Run `npm run screenshots`. The pictures are whole pages, named
@@ -54,6 +54,13 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.getByLabel('Start time of link 1').fill('1:23')
       await page.getByLabel('Start time of link 1').blur()
       await page.getByLabel('Kind of link 2').selectOption('document')
+      await addNote(page, 'Everyone: smile from the very first count.')
+      await page.getByLabel('About the new note').selectOption('count')
+      await page.getByLabel('Set of the new note').fill('2')
+      await page.getByLabel('Set of the new note').blur()
+      await page.getByLabel('Count of the new note').fill('5')
+      await page.getByLabel('Count of the new note').blur()
+      await addNote(page, 'Arms up on 5-6.\nHold until the next set.')
       await shoot('resources')
     })
   }
