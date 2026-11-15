@@ -1,6 +1,6 @@
 import { availableParts, isUncovered, sectionIndexAt } from '../../model/parts'
 import { useCurrentFormation, useProject } from '../../store/projectStore'
-import { PartSwatch } from './PartSwatch'
+import { PartSwatch } from '../../components/PartSwatch'
 
 const chip = 'inline-flex items-center gap-1.5 rounded-full bg-surface/90 px-2.5 py-1 text-xs text-foreground shadow'
 

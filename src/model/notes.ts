@@ -74,6 +74,34 @@ export function groupNotes(notes: Note[], sections: Section[]): NoteGroup[] {
   return groups
 }
 
+export interface NotesAtCount {
+  /** The section the count is in. */
+  section: Section | null
+  /** Notes about the whole dance (always relevant), in the order added. */
+  whole: Note[]
+  /** Notes about this section or about a count in it: the section's own first, then counts earliest first. */
+  inSection: Note[]
+  /** The latest count, at or before this one, that has a note (so its note(s) stay up until the next one), or null. */
+  activeCount: number | null
+}
+
+/**
+ * What to show beside the stage when the playhead is at `count` (a whole count): the whole-dance notes, the notes in the
+ * section the count is in, and which count's notes are "now". A note at a count stays "now" until a later count has a note,
+ * so it can be read while dancing. Counts before a section's first note have none "now".
+ */
+export function notesAtCount(notes: Note[], sections: Section[], count: number): NotesAtCount {
+  const groups = groupNotes(notes, sections)
+  const section = sections[sectionIndexAt(sections, count)] ?? null
+  const whole = groups.find((g) => g.section === null)?.items ?? []
+  const inSection = (section && groups.find((g) => g.section?.id === section.id)?.items) || []
+  let activeCount: number | null = null
+  for (const n of inSection) {
+    if (n.anchor.kind === 'count' && n.anchor.count <= count) activeCount = n.anchor.count
+  }
+  return { section, whole, inSection, activeCount }
+}
+
 /** The notes with a removed section forgotten: notes about it stay, as whole-dance notes. (A note at a count needs no change: the count falls in the section that stretched over it.) */
 export const notesWithoutSection = (notes: Note[], sectionId: Id): Note[] =>
   notes.map((n) => (n.anchor.kind === 'section' && n.anchor.sectionId === sectionId ? { ...n, anchor: DANCE_ANCHOR } : n))

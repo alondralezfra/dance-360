@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { expect, test } from '@playwright/test'
-import { addDancer, addLink, addNote, beatsWav, chooseFile, createProject, goToCast, goToOverview, goToResources, goToSong, waitForSaved } from './helpers'
+import { addDancer, addLink, addNote, beatsWav, chooseFile, createProject, goToCast, goToOverview, goToResources, goToSong, goToStage, waitForSaved } from './helpers'
 
 // Not a test of the app: photographs the main screens so they can be looked at (docs/components.md, "How the app
 // looks"; the ui-styling skill in .claude/skills). Run `npm run screenshots`. The pictures are whole pages, named
@@ -65,6 +65,11 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.getByLabel('Count of the new note').blur()
       await addNote(page, 'Arms up on 5-6.\nHold until the next set.')
       await shoot('resources')
+      await goToStage(page)
+      if (sizeName === 'phone') await page.getByRole('button', { name: /^Notes/ }).click()
+      else await page.getByRole('button', { name: /^Show notes/ }).click()
+      await expect(page.getByText('Arms up on 5-6.').locator('visible=true')).toBeVisible()
+      await shoot('stage-notes')
     })
   }
 }

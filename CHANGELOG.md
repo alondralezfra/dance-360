@@ -4,6 +4,10 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (Notes beside the stage, slice 3 of resources and notes)
+- **A read-only Notes panel on the Stage**: **Show notes (N)** opens a panel on the right (a drawer from the right on a phone, from the **Notes (N)** button). It lists the notes about the **section the playhead is in** and the **whole-dance** notes; the count note the playhead has **reached** is highlighted and stays so until the next count note, so it can be read while the dance plays. It follows playing and stepping through formations. A link takes you to the Resources tab to edit.
+- The panel starts closed and open/closed is remembered **on this device** (not in the project; no data version change). `Drawer` can now slide in from the right. Decision record 0031.
+
 ### Added (Overview: problem checks, step 5 of the build order)
 - **An Overview tab** (first in the row; a project still opens on Stage): a small summary (song, dancers, formations, sections) and a **Problems** list. Two checks to begin with: **dancers with no part in a section** ("3 dancers have no part in Verse", with their names; the same rule as the Cast & Parts warnings, `findGaps`) and **formations that leave a dancer out** ("Formation 7 has 11 of 12 dancers placed"). Choosing a problem goes to where it is fixed (Cast & Parts, or the Stage with that formation selected). With nothing wrong it says so.
 - The list is **worked out each time** from the project: nothing new is saved (no data version change), and a problem cannot be dismissed yet. Decision record 0030; the README checklist step "Overview problem checks" is ticked.

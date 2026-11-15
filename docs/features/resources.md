@@ -26,6 +26,6 @@ The tab has two sections: **Links**, then **Notes**.
 - On a **phone** the text box is full width with the menus below it; every control is at least 40px and the page does not scroll sideways.
 
 ## Not built yet
-- **Showing notes beside the stage** when the playhead reaches them (and per dancer or part), the next slice.
+- Notes are now shown beside the stage ([stage.md](stage.md)); still to do there: filtering by the selected dancer's part, and adding a note from the stage.
 - Note ranges (an end count), formatting, and sharing notes with dancers.
 - Link thumbnails, titles fetched from the site, and an in-app player; clicking a dancer to see their videos; showing links beside the stage.

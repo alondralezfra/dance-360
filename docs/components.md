@@ -20,11 +20,12 @@ Every control in the app is built **once** here and reused. A screen never style
 | `FileButton` | A button that opens the device's file picker | The real file input is hidden and driven by the button. `accept` filters; `onFile` gets the chosen file (and the same file can be chosen again). Takes every `Button` variant. |
 | `SectionHeader` | The title of a screen section, with a line of explanation and action buttons | `id` (for `aria-labelledby`), `title`, `children` (the explanation), `actions`. Used by every section on the Cast and Song tabs. |
 | `Popover` (+ `PopoverTrigger`, `PopoverContent`) | A small floating panel | Radix. Style a trigger with `fieldClass` when it should look like a field. |
-| `Drawer` | A slide-over panel (phone version of a sidebar) | Radix dialog. |
+| `Drawer` | A slide-over panel (phone version of a sidebar), from the left or the right (`side`) | Radix dialog. |
 | `fieldClass` (`field.ts`) | The shared look of text-like controls | Compose it (`cn(fieldClass, ...)`); never copy the string. |
 | `ThemeToggle` (`components/`) | The light/dark switch | |
+| `PartSwatch` (`components/`) | A small circle in a part's colour (neutral, or dashed when there is no part) | Moved here when the stage's notes panel became its second feature to use it. |
 
-Feature-specific pieces that more than one screen could want (like `PartSwatch`) live in their feature folder until a second feature needs them, then move up here.
+Feature-specific pieces that more than one screen could want live in their feature folder until a second feature needs them, then move up here (as `PartSwatch` did).
 
 ## How the app looks (the conventions already in the UI)
 

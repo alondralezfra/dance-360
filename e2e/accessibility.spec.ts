@@ -61,6 +61,15 @@ for (const scheme of themes) {
           await expectAccessible(page, where('the dancer drawer'))
           await page.keyboard.press('Escape')
           await expect(page.getByRole('dialog')).toBeHidden()
+          await page.getByRole('button', { name: 'Notes', exact: true }).click()
+          await expect(page.getByRole('dialog', { name: 'Notes' })).toBeVisible()
+          await expectAccessible(page, where('the notes drawer'))
+          await page.keyboard.press('Escape')
+        } else {
+          await page.getByRole('button', { name: 'Show notes' }).click()
+          await expect(page.getByText('No notes yet.')).toBeVisible()
+          await expectAccessible(page, where('the stage with the notes panel open'))
+          await page.getByRole('button', { name: 'Hide notes' }).click()
         }
 
         await goToCast(page)

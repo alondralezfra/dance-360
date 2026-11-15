@@ -12,18 +12,18 @@ beforeEach(() => localStorage.clear())
 
 describe('device preferences', () => {
   it('defaults to everything open', () => {
-    expect(loadDevicePreferences()).toEqual({ sidebarOpen: true, formationBarOpen: true, speakerDelayMs: 0 })
+    expect(loadDevicePreferences()).toEqual({ sidebarOpen: true, notesOpen: false, formationBarOpen: true, speakerDelayMs: 0 })
   })
 
   it('round-trips', () => {
-    saveDevicePreferences({ sidebarOpen: false, formationBarOpen: true, speakerDelayMs: 220 })
-    expect(loadDevicePreferences()).toEqual({ sidebarOpen: false, formationBarOpen: true, speakerDelayMs: 220 })
+    saveDevicePreferences({ sidebarOpen: false, notesOpen: true, formationBarOpen: true, speakerDelayMs: 220 })
+    expect(loadDevicePreferences()).toEqual({ sidebarOpen: false, notesOpen: true, formationBarOpen: true, speakerDelayMs: 220 })
   })
 
   it('saving one setting leaves the others as they were saved', () => {
     saveDevicePreferences({ speakerDelayMs: 180 })
     saveDevicePreferences({ sidebarOpen: false })
-    expect(loadDevicePreferences()).toEqual({ sidebarOpen: false, formationBarOpen: true, speakerDelayMs: 180 })
+    expect(loadDevicePreferences()).toEqual({ sidebarOpen: false, notesOpen: false, formationBarOpen: true, speakerDelayMs: 180 })
   })
 
   it('saving over unreadable or oddly shaped storage starts clean, and writes only what it was given', () => {
@@ -48,8 +48,8 @@ describe('device preferences', () => {
   it('falls back to defaults for corrupt or wrongly typed data', () => {
     localStorage.setItem(KEY, '{not json')
     expect(loadDevicePreferences()).toEqual(DEFAULT_DEVICE_PREFERENCES)
-    localStorage.setItem(KEY, JSON.stringify({ sidebarOpen: 'no', formationBarOpen: false }))
-    expect(loadDevicePreferences()).toEqual({ sidebarOpen: true, formationBarOpen: false, speakerDelayMs: 0 })
+    localStorage.setItem(KEY, JSON.stringify({ sidebarOpen: 'no', notesOpen: 1, formationBarOpen: false }))
+    expect(loadDevicePreferences()).toEqual({ sidebarOpen: true, notesOpen: false, formationBarOpen: false, speakerDelayMs: 0 })
     localStorage.setItem(KEY, 'null')
     expect(loadDevicePreferences()).toEqual(DEFAULT_DEVICE_PREFERENCES)
   })

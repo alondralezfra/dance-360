@@ -5,7 +5,7 @@ import { cn } from '../../lib/cn'
 import { availableParts, effectivePartId, findGaps, isUncovered } from '../../model/parts'
 import { formatCount } from '../../model/tempo'
 import { useProject } from '../../store/projectStore'
-import { PartSwatch } from './PartSwatch'
+import { PartSwatch } from '../../components/PartSwatch'
 
 /** Dancers down the side, sections across the top; each cell is that dancer's part for that section. */
 export function AssignmentGrid() {

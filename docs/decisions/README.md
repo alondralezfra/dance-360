@@ -53,3 +53,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0028](0028-notes.md) | Resources, slice 2: notes with one anchor (whole dance, a section, or one count) plus an optional part; one count not a range; shown on the Resources tab only for now; typing in notes and link titles is one undo step |
 | [0029](0029-no-commit-hook.md) | No git commit hook: Claude runs `verify` once before reporting done, CI runs it on every pull request, so committing and pushing are instant |
 | [0030](0030-overview-problems-derived.md) | The Overview's problems are worked out from the project each time: nothing saved, nothing dismissible (yet); each links to where it is fixed |
+| [0031](0031-notes-beside-the-stage.md) | Notes beside the stage: a read-only panel for the playhead's section plus whole-dance notes, a reached count note stays "now" until the next; closed by default; a drawer on phones |

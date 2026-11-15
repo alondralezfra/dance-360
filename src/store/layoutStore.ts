@@ -6,21 +6,28 @@ import { loadDevicePreferences, saveDevicePreferences } from '../persistence/dev
 
 interface LayoutState {
   sidebarOpen: boolean
+  notesOpen: boolean
   formationBarOpen: boolean
   setSidebarOpen: (open: boolean) => void
+  setNotesOpen: (open: boolean) => void
   setFormationBarOpen: (open: boolean) => void
 }
 
 export const useLayout = create<LayoutState>()((set, get) => {
   const remember = () => {
-    const { sidebarOpen, formationBarOpen } = get()
-    saveDevicePreferences({ sidebarOpen, formationBarOpen })
+    const { sidebarOpen, notesOpen, formationBarOpen } = get()
+    saveDevicePreferences({ sidebarOpen, notesOpen, formationBarOpen })
   }
   return {
     sidebarOpen: loadDevicePreferences().sidebarOpen,
+    notesOpen: loadDevicePreferences().notesOpen,
     formationBarOpen: loadDevicePreferences().formationBarOpen,
     setSidebarOpen: (open) => {
       set({ sidebarOpen: open })
+      remember()
+    },
+    setNotesOpen: (open) => {
+      set({ notesOpen: open })
       remember()
     },
     setFormationBarOpen: (open) => {
