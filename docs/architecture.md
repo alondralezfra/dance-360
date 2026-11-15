@@ -23,7 +23,7 @@ src/
     formations.ts   stage helpers, count ordering, moveFormation (reorder; counts stay in their slots)
     parts.ts        sections/parts/assignments: which parts apply in a section, which part a dancer is in at a count, ordering, gap detection
     problems.ts     the Overview's problems list: dancers with no part (via findGaps) and formations that leave a dancer out; worked out each time, never saved
-    notes.ts        notes: what a note may be about (the whole dance, a section, or one whole count), grouping by section and sorting by count, tidying up when a section or part is removed, checking an imported file's notes
+    notes.ts        notes (also `notesAtCount`, what the stage shows at a count): what a note may be about (the whole dance, a section, or one whole count), grouping by section and sorting by count, tidying up when a section or part is removed, checking an imported file's notes
     resources.ts    links to videos and documents: what counts as a web address (http/https only), start times, grouping by section, tidying up when a section or part is removed, checking an imported file's links
     project.ts      new-project factory
     types.ts        the saved Project shape
@@ -37,7 +37,7 @@ src/
     localStorageRepository.ts  the app's repository: localStorage + one-time import of the old prototype save
     audioRepository.ts         AudioRepository: song files and their cached peaks, found by file hash
     indexedDbAudioRepository.ts, memoryAudioRepository.ts   its two implementations (browser, tests)
-    devicePreferences.ts       per-device prefs (which panels are open, the speaker delay); not project data
+    devicePreferences.ts       per-device prefs (which panels are open, including the notes panel; the speaker delay); not project data
     projectFile.ts             a project as a backup file: export, strict parsing + migration of an imported file (decisions/0021)
     persistentStorage.ts       asks the browser not to clear this site's data
     migrations.ts              versioned upgrades of saved data
@@ -46,7 +46,7 @@ src/
     projectStore.ts  the open project: session / project / roster / formation / parts / resources / notes / history slices
     history.ts       records every document change for undo (watches the store, like autosave)
     uiStore.ts       selections (not saved)
-    layoutStore.ts   which panels are open (remembered per device, not in the project)
+    layoutStore.ts   which panels are open (dancers, notes, formation bar; remembered per device, not in the project)
     speakerStore.ts  how late this device's speaker is (remembered per device); calibrationStore.ts is the tap-along measurement
     transport.ts     playing the song: the shared playhead (a count outside React), the player and metronome, play/pause/seek, Mark (tap-to-snap takes), speaker delay
     songStore.ts     the Song tab's state: is the song file on this device, its waveform, busy/error (not saved)

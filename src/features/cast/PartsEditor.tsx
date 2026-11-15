@@ -6,7 +6,7 @@ import { Select } from '../../components/ui/Select'
 import { MAX_PARTS, PART_COLOR_IDS, PART_COLOR_NAMES } from '../../model/parts'
 import type { PartColorId } from '../../model/types'
 import { useProject } from '../../store/projectStore'
-import { PartSwatch } from './PartSwatch'
+import { PartSwatch } from '../../components/PartSwatch'
 import { SectionScopeSelect } from './SectionScopeSelect'
 
 export function PartsEditor() {

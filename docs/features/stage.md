@@ -19,6 +19,7 @@
 - Counts are always unique and in order: if you set a formation to a count another one has, or past another one, the list re-sorts / later formations shift by the minimum needed.
 - Wide screens: dancer panel is a sidebar. Phones: a **Dancers** button opens it as a drawer.
 - **Hide panels for a bigger stage.** On wide screens the arrow button at the top left slides the dancer sidebar away (and back); the button at the bottom right slides the formation bar away, leaving a small "Show formation bar" button to bring it back (also on phones). Hidden panels can't be tabbed to. What you hid is remembered on this device (not saved in the project).
+- **Notes beside the stage** (`NotesPanel`, read-only). A **Show notes (N)** button at the bottom left opens a panel on the right (it starts closed and is remembered on this device; on a phone the button, labelled **Notes (N)**, opens it as a drawer from the right). It shows what matters at the playhead: the notes about the **section the playhead is in** (the section's own, then those at counts, earliest first, each with its Set · Count and its part as a colour tag) and, below, the **whole-dance** notes. The count note the playhead has **reached** is highlighted and **stays** highlighted until the next count note is reached (so it can be read while dancing, and stays to the end of the section); the panel scrolls it into view. It follows the playhead while the song plays or when you step through formations, and re-renders once per count, not per frame. Everything is plain text; to change a note, follow **Edit notes on the Resources tab**. Decision [0031](../decisions/0031-notes-beside-the-stage.md).
 - **Browser zoom:** Ctrl + makes the page narrower in CSS pixels while the header and bars keep their height, so they take more of the screen and the stage (which fits the room left) shrinks. The chrome is slim (tabs share the header row on wide screens) and hiding the formation bar gives the room back.
 
 ## How it works
@@ -32,7 +33,7 @@
 
 ## Not yet built
 
-A "show only Part X" filter, multi-select, formation tools (align, mirror, presets). See the plan, build-order steps 2–3.
+Notes filtered by the selected dancer's part, and adding a note from the stage at the playhead. A "show only Part X" filter, multi-select, formation tools (align, mirror, presets). See the plan, build-order steps 2–3.
 
 ## Tests
 

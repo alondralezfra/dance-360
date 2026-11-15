@@ -4,11 +4,13 @@ import { Drawer } from '../../components/ui/Drawer'
 import { Icon } from '../../components/ui/Icon'
 import { IconButton } from '../../components/ui/IconButton'
 import { cn } from '../../lib/cn'
+import { useProject } from '../../store/projectStore'
 import { useLayout } from '../../store/layoutStore'
 import { DancerPanel } from '../cast/DancerPanel'
 import { PartLegend } from '../cast/PartLegend'
 import { TransportBar } from '../transport/TransportBar'
 import { FormationStrip } from './FormationStrip'
+import { NotesPanel } from './NotesPanel'
 import { StageCanvas } from './StageCanvas'
 
 // Panels slide away (width / row height animate) so the stage can use the room.
@@ -18,6 +20,10 @@ const SLIDE = 'transition-all duration-200 ease-out motion-reduce:transition-non
 export function StagePage() {
   // On small screens the dancer panel is a slide-over drawer.
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [notesDrawerOpen, setNotesDrawerOpen] = useState(false)
+  const noteCount = useProject((s) => s.notes.length)
+  const notesOpen = useLayout((s) => s.notesOpen)
+  const setNotesOpen = useLayout((s) => s.setNotesOpen)
   const sidebarOpen = useLayout((s) => s.sidebarOpen)
   const setSidebarOpen = useLayout((s) => s.setSidebarOpen)
   const formationBarOpen = useLayout((s) => s.formationBarOpen)
@@ -45,6 +51,9 @@ export function StagePage() {
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} title="Dancers">
           <DancerPanel />
         </Drawer>
+        <Drawer open={notesDrawerOpen} onOpenChange={setNotesDrawerOpen} title="Notes" side="right">
+          <NotesPanel />
+        </Drawer>
 
         <main className="relative min-w-0 flex-1">
           <Button
@@ -62,6 +71,18 @@ export function StagePage() {
           />
           <PartLegend />
           <StageCanvas />
+          {/* Notes: a button bottom left (opposite the formation bar's); it opens a drawer on a phone, a side panel on wide screens. */}
+          <Button className="absolute bottom-2 left-2 z-10 md:hidden" onClick={() => setNotesDrawerOpen(true)}>
+            Notes{noteCount > 0 && ` (${noteCount})`}
+          </Button>
+          <Button
+            className="absolute bottom-2 left-2 z-10 hidden md:inline-flex"
+            aria-expanded={notesOpen}
+            aria-controls="stage-notes-panel"
+            onClick={() => setNotesOpen(!notesOpen)}
+          >
+            {notesOpen ? 'Hide notes' : `Show notes${noteCount > 0 ? ` (${noteCount})` : ''}`}
+          </Button>
           {formationBarOpen ? (
             <IconButton
               className="absolute bottom-2 right-2 z-10"
@@ -81,6 +102,17 @@ export function StagePage() {
             </Button>
           )}
         </main>
+
+        {/* Notes panel: a sidebar on the right on wide screens (hidden until asked for, and remembered); a drawer on a phone. */}
+        <aside
+          id="stage-notes-panel"
+          inert={!notesOpen}
+          className={cn('hidden shrink-0 overflow-hidden bg-surface md:block', SLIDE, notesOpen ? 'w-64 border-l border-border' : 'invisible w-0')}
+        >
+          <div className="h-full w-64">
+            <NotesPanel />
+          </div>
+        </aside>
       </div>
 
       {/* Bottom bar. Animating the grid row between 1fr and 0fr slides it to its natural height. */}

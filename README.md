@@ -34,6 +34,6 @@ A change isn't done until `npm run verify` passes. See [docs/testing.md](docs/te
 - [x] 1. Static formation editor (stage + dots + multiple formations, with timing in counts)
 - [x] 2. Roster + parts + assignment grid, linked to dot colors
 - [x] 3. Audio + tempo map + timeline + playback *(data model, the Song tab with audio storage, waveform and timeline, tempo/first-beat estimation, playback with a metronome, tap-to-snap, draggable markers and speaker-delay calibration)*
-- [x] 4. Resources + notes *(the Resources tab: links, and notes about the whole dance, a section or a count, each optionally about a part; shown beside the stage is a later step)*
+- [x] 4. Resources + notes *(the Resources tab: links, and notes about the whole dance, a section or a count, each optionally about a part; shown beside the stage as the playhead moves, read-only)*
 - [x] 5. Overview problem checks *(the Overview tab: a summary and a problems list for dancers with no part and formations that leave a dancer out; more checks, such as the song and tempo, can be added later)*
 - [ ] 6. Responsive/mobile refinements

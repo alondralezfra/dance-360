@@ -8,6 +8,7 @@ import {
   createNote,
   groupNotes,
   isValidAnchor,
+  notesAtCount,
   notesWithoutPart,
   notesWithoutSection,
   problemWithNotes,
@@ -124,6 +125,45 @@ describe('groupNotes', () => {
     const copy = structuredClone(notes)
     groupNotes(notes, sections)
     expect(notes).toEqual(copy)
+  })
+})
+
+describe('notesAtCount', () => {
+  const at = (count: number) => ({ kind: 'count', count }) as NoteAnchor
+  const all = [
+    note('whole'),
+    note('verse', { kind: 'section', sectionId: 's1' }),
+    note('c3', at(3)),
+    note('c9', at(9)),
+    note('chorus', { kind: 'section', sectionId: 's2' }),
+    note('c20', at(20)),
+  ]
+  const ids = (list: Note[]) => list.map((n) => n.id)
+
+  it('gives the whole-dance notes and the notes of the section the count is in, in display order', () => {
+    const r = notesAtCount(all, sections, 5)
+    expect(r.section?.name).toBe('Verse')
+    expect(ids(r.whole)).toEqual(['whole'])
+    expect(ids(r.inSection)).toEqual(['verse', 'c3', 'c9'])
+    expect(ids(notesAtCount(all, sections, 16).inSection)).toEqual(['chorus', 'c20'])
+  })
+
+  it('keeps the latest count note reached "now" until a later one is reached', () => {
+    expect(notesAtCount(all, sections, 2).activeCount).toBeNull() // no count note reached yet
+    expect(notesAtCount(all, sections, 3).activeCount).toBe(3) // exactly on it
+    expect(notesAtCount(all, sections, 8).activeCount).toBe(3) // stays up
+    expect(notesAtCount(all, sections, 9).activeCount).toBe(9)
+    expect(notesAtCount(all, sections, 15).activeCount).toBe(9) // to the end of the section
+  })
+
+  it('does not carry a count note into the next section', () => {
+    expect(notesAtCount(all, sections, 17).activeCount).toBeNull() // c9 is in the Verse; c20 not yet reached
+    expect(notesAtCount(all, sections, 20).activeCount).toBe(20)
+  })
+
+  it('copes with no notes and with no sections', () => {
+    expect(notesAtCount([], sections, 4)).toEqual({ section: sections[0], whole: [], inSection: [], activeCount: null })
+    expect(notesAtCount(all, [], 4)).toMatchObject({ section: null, inSection: [] })
   })
 })
 

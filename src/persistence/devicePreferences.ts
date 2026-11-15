@@ -7,6 +7,8 @@ import { MAX_SPEAKER_DELAY_MS } from '../model/calibration'
 export interface DevicePreferences {
   /** Dancer sidebar open (wide screens). */
   sidebarOpen: boolean
+  /** Notes panel open beside the stage (wide screens). */
+  notesOpen: boolean
   /** Bottom formation bar open. */
   formationBarOpen: boolean
   /** How much later than the song's position this device's speaker sounds, in ms (Bluetooth is 150 to 300). */
@@ -15,6 +17,7 @@ export interface DevicePreferences {
 
 export const DEFAULT_DEVICE_PREFERENCES: DevicePreferences = {
   sidebarOpen: true,
+  notesOpen: false,
   formationBarOpen: true,
   speakerDelayMs: 0,
 }
@@ -39,6 +42,7 @@ export function loadDevicePreferences(): DevicePreferences {
       return {
         sidebarOpen:
           typeof raw.sidebarOpen === 'boolean' ? raw.sidebarOpen : DEFAULT_DEVICE_PREFERENCES.sidebarOpen,
+        notesOpen: typeof raw.notesOpen === 'boolean' ? raw.notesOpen : DEFAULT_DEVICE_PREFERENCES.notesOpen,
         formationBarOpen:
           typeof raw.formationBarOpen === 'boolean'
             ? raw.formationBarOpen
