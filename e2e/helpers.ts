@@ -164,19 +164,6 @@ export async function useWideFont(page: Page) {
   await page.addStyleTag({ content: 'body, input, button, select, textarea { font-family: "DejaVu Sans", Verdana, sans-serif !important }' })
 }
 
-/** True when the open tab lies wholly inside the visible part of the (sideways scrolling) project tab row. */
-export async function tabFullyInView(nav: Locator) {
-  return nav
-    .evaluate((el) => {
-      const open = el.querySelector('[aria-current="page"]')
-      if (!open) return false
-      const row = el.getBoundingClientRect()
-      const tab = open.getBoundingClientRect()
-      return tab.left >= row.left - 0.5 && tab.right <= row.right + 0.5
-    })
-    .catch(() => false)
-}
-
 export async function goToResources(page: Page) {
   await page.getByRole('link', { name: 'Resources', exact: true }).click()
   await expect(page).toHaveURL(/\/resources$/)

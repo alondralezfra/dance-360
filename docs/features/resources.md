@@ -14,7 +14,7 @@ The tab has two sections: **Links**, then **Notes**.
 - **Nothing is fetched** from a link: no thumbnail, title or preview, no embedded player. It works offline and nothing leaves the device. (Those could come later; they would need a privacy note and a security policy change.)
 - Removing a **section** or a **part** keeps the links about it: a link about a removed section becomes a whole-dance link, one about a removed part becomes "Any part".
 - **Saved with the project** (data version 5, `resources`), included in a **backup file**, and checked strictly when a backup is imported: a link with a bad address, an unknown kind, or about a section or part that does not exist makes the file count as damaged.
-- On a **phone** each row puts the title, Open and ✕ on the first line and the fields below; every control is at least 40px and the page does not scroll sideways. The project **tabs** now scroll sideways on a phone (the four no longer fit beside Undo/Redo), keeping the open tab in view ([projects.md](projects.md)).
+- On a **phone** each row puts the title, Open and ✕ on the first line and the fields below; every control is at least 40px and the page does not scroll sideways. The project **tabs** are a bar along the bottom of the screen on a phone ([projects.md](projects.md)).
 
 ### Notes (`NotesSection`)
 - **Add** a note by typing in the box at the top and choosing **+ Add note** (or pressing **Ctrl/Cmd + Enter** in the box). The text can run to several lines (Enter makes a line break) and up to 5000 characters. A blank note is refused ("Write the note first."), and nothing is added.

@@ -1,6 +1,6 @@
 # Shared components
 
-*Code: `src/components/ui/`. Last verified against the code: 2026-11-13.*
+*Code: `src/components/ui/`. Last verified against the code: 2026-11-19.*
 
 Every control in the app is built **once** here and reused. A screen never styles its own button, input, checkbox or icon; it picks one of these. That keeps the app visually consistent, makes a restyle a one-file change, and keeps accessibility (names, focus, touch size) solved in one place. Decision: [0011](decisions/0011-component-based-ui.md). Enforced in part by `src/architecture.test.ts` (no raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<svg>` or text-symbol icons outside `components/ui/`).
 
@@ -10,7 +10,7 @@ Every control in the app is built **once** here and reused. A screen never style
 |---|---|---|
 | `Button` | Any text button | `variant`: `primary`, `secondary` (default), `ghost`, `danger`, `danger-ghost`, `chip` (a selectable item: styled by `aria-pressed`). `size`: `md`, `icon`. 40px minimum height. For something that must look like a Button but is a link (one that opens in a new tab), call `buttonVariants({ variant })` (`buttonVariants.ts`) on the `<a>`; never copy the class string. |
 | `IconButton` | A button that is only an icon (remove, previous/next, show/hide, theme) | `icon` + **required** `label` (its accessible name and tooltip). Takes every `Button` variant. |
-| `Icon` | A symbol next to text or inside a button | One inline-SVG set (`close`, `chevronLeft/Right/Up/Down`, `sun`, `moon`, `undo`, `redo`, `plus`, `minus`, `play`, `pause`, `flag`, `download`, `externalLink`); inherits text colour; decorative (`aria-hidden`). Add icons in `Icon.tsx`. |
+| `Icon` | A symbol next to text or inside a button | One inline-SVG set (`close`, `chevronLeft/Right/Up/Down`, `sun`, `moon`, `undo`, `redo`, `plus`, `minus`, `play`, `pause`, `flag`, `download`, `externalLink`, and one per project tab: `overview`, `stage`, `cast`, `song`, `link`); inherits text colour; decorative (`aria-hidden`). Add icons in `Icon.tsx`. |
 | `Input` | Text entry | `variant`: `default`, `inline` (looks like text until hovered/focused: names edited in place). |
 | `NumberField` | A labelled number field that commits on blur/Enter and reverts bad entries | Built on `Input`. Whole numbers unless `decimals` is set (e.g. a 127.5 BPM). Give it `name` when the visible label alone would be ambiguous on the page ("Set of note 2"). |
 | `Textarea` | A multi-line text box (a note) | Looks like `Input`; the box can be dragged taller. Raw `<textarea>` is not allowed on screens. |
@@ -31,7 +31,7 @@ Feature-specific pieces that more than one screen could want live in their featu
 
 What the screens do today, so a new one matches. These are observed from the components and screens, not new rules; if a screen needs to differ, change the convention here in the same change. Colour *roles* are a rule, in [architecture.md](architecture.md) rule 7. To see the screens, run `npm run screenshots` (below).
 
-- **Page frame.** The Cast & Parts, Song and Resources tabs are one centred column (`max-w-5xl`, `p-4`) of sections `gap-8` apart; the projects home is narrower (`max-w-3xl`). The stage is full width: a dancer sidebar, the canvas, and a bottom bar. On a phone the sidebar becomes a drawer and the tabs get their own row, which scrolls sideways when they do not all fit.
+- **Page frame.** The Cast & Parts, Song and Resources tabs are one centred column (`max-w-5xl`, `p-4`) of sections `gap-8` apart; the projects home is narrower (`max-w-3xl`). The stage is full width: a dancer sidebar, the canvas, and a bottom bar. On a phone the sidebar becomes a drawer, and on a phone or tablet the project tabs are a bar fixed along the bottom edge (the page keeps clear of it; decision 0032).
 - **Type.** Almost everything is `text-sm`. A section title is `text-lg font-semibold` with a `text-sm` muted line under it (`SectionHeader`); a screen title is `text-xl font-semibold`; a small panel label is `text-xs font-semibold uppercase tracking-wider text-muted-foreground`; hints and captions are `text-xs`. Emphasis is weight (`font-medium`, `font-semibold`) or the muted/foreground colour, not extra sizes.
 - **Surfaces.** The page is `bg-background`; blocks sit on `bg-surface` with a 1px `border-border` and `rounded-lg`. Controls are `rounded-md` with `border-border-strong` (`fieldClass`, `Button`); pills are `rounded-full`. Shadows are only for things that float (`Popover`, `Drawer`), never for cards.
 - **Rows and cards.** A list row (a part, a section, a link, a project) is `rounded-lg border border-border bg-surface` with `p-2` (editor rows) or `p-3` (project cards); a row with many fields (a link) wraps them, and on a phone puts the title and its main buttons on the first line, controls inside separated by `gap-2`. An empty list is a dashed box (`border-dashed border-border-strong p-4`, muted text; `p-8` and centred on the projects home).
