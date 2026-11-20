@@ -10,7 +10,7 @@
   - **"Formation 7 has 11 of 12 dancers placed"**: a formation with no dot for some dancer in the cast. Choosing it opens the **Stage** with that formation selected.
   - Section problems come first, in song order, then formations in count order.
 - With nothing wrong it says "No problems: every dancer has a part in each section and is placed in every formation."
-- A project still **opens on Stage**; Overview is a tab you choose. On a phone it is the first of the scrolling tabs.
+- A project still **opens on Stage**; Overview is a tab you choose. On a phone it is the first tab of the bottom bar.
 
 ## Not built yet
 - More checks: no song, a song file that is not on this device, no tempo, formations that overlap or run past the end of the song.

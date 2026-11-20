@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { addLink, addNote, createProject, goToCast, goToResources, savedProject, tabFullyInView, useWideFont, waitForSaved } from './helpers'
+import { addLink, addNote, createProject, goToCast, goToResources, savedProject, useWideFont, waitForSaved } from './helpers'
 
 // The Resources tab: links to videos and documents, attached to a section and/or part, saved with the project.
 
@@ -309,13 +309,5 @@ test.describe('the Resources tab on a phone', () => {
       expect(box.x, `${name} left edge`).toBeGreaterThanOrEqual(0)
       expect(box.x + box.width, `${name} right edge`).toBeLessThanOrEqual(390)
     }
-  })
-
-  test('opening the address directly shows the Resources tab fully in view', async ({ page }) => {
-    await createProject(page)
-    await page.goto(page.url().replace(/\/stage$/, '/resources'))
-    const nav = page.getByRole('navigation', { name: 'Project sections' })
-    await expect(nav.getByRole('link', { name: 'Resources' })).toHaveAttribute('aria-current', 'page')
-    await expect.poll(() => tabFullyInView(nav)).toBe(true)
   })
 })

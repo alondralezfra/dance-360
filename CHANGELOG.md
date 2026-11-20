@@ -4,6 +4,12 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Changed (Phone and tablet navigation: a bottom tab bar, step 6 slice 1)
+- **On phones and an iPad held upright the project tabs are a bar along the bottom edge**: five equal tabs with an icon above each label, within thumb reach, the open one marked. Below 832px, and below 1024px unless the window is short, they are a bar; otherwise they stay in the header (so a laptop at 150% zoom keeps its room). Replaces the sideways-scrolling tab row, and fixes the header wrapping at 768px. In a short window too narrow for the header (a phone held sideways) the bar is a compact 40px.
+- **Below 640px the header is two rows**: the app link, save status and theme toggle, then the **project name** (now readable, it was cut to about 80px) beside Undo and Redo.
+- New icons for the tabs in the shared `Icon` set. Decision record 0032 (supersedes the phone tab row of 0027).
+- Removed with the scrolling row: the e2e checks that the open tab was scrolled into view and their helper (`tabFullyInView`), replaced by checks of the bottom bar, its touch targets, that it covers no content, and that the tabs fit at 1280, 768, 390 and 360px. The screenshot tool also photographs a 768px and a 360px width.
+
 ### Added (Notes beside the stage, slice 3 of resources and notes)
 - **A read-only Notes panel on the Stage**: **Show notes (N)** opens a panel on the right (a drawer from the right on a phone, from the **Notes (N)** button). It lists the notes about the **section the playhead is in** and the **whole-dance** notes; the count note the playhead has **reached** is highlighted and stays so until the next count note, so it can be read while the dance plays. It follows playing and stepping through formations. A link takes you to the Resources tab to edit.
 - The panel starts closed and open/closed is remembered **on this device** (not in the project; no data version change). `Drawer` can now slide in from the right. Decision record 0031.

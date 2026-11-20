@@ -6,7 +6,6 @@ import {
   goToStage,
   savedProject,
   storedSongs,
-  tabFullyInView,
   timelineImage,
   waitForSaved,
   wavFile,
@@ -254,18 +253,5 @@ test.describe('the song tab on a phone', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
     const canvas = (await page.locator('canvas[role="img"]').boundingBox())!
     expect(canvas.x + canvas.width).toBeLessThanOrEqual(390)
-  })
-
-  // The four tabs no longer fit beside Undo/Redo on a phone (decision 0027): the row scrolls sideways, so what
-  // matters is that every tab can be reached and the open one is always fully in view.
-  test('the project tabs are all reachable: the row scrolls, and the open tab is always fully in view', async ({ page }) => {
-    await createProject(page)
-    const nav = page.getByRole('navigation', { name: 'Project sections' })
-    for (const [name, url] of [['Stage', /\/stage$/], ['Cast & Parts', /\/cast$/], ['Song', /\/song$/], ['Resources', /\/resources$/], ['Stage', /\/stage$/]] as const) {
-      await nav.getByRole('link', { name }).click()
-      await expect(page).toHaveURL(url)
-      await expect(nav.getByRole('link', { name })).toHaveAttribute('aria-current', 'page')
-      await expect.poll(() => tabFullyInView(nav), { message: `the ${name} tab is fully in view` }).toBe(true)
-    }
   })
 })

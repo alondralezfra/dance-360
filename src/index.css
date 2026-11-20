@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* A short window (a phone held sideways, or a laptop at 150% to 200% browser zoom): bars shrink to leave the screen its room. */
+@custom-variant short (@media (max-height: 32rem));
+/* The project tabs are a bar along the bottom edge: below 832px, and below 1024px unless the window is short (a short
+   window keeps them in the header, which costs less height, as soon as they fit there). */
+@custom-variant tabbar {
+  @media (max-width: 51.99rem), (max-width: 63.99rem) and (min-height: 32.01rem) {
+    @slot;
+  }
+}
+
 /*
  * THEME TOKENS
  * Components use semantic names (bg-primary, text-muted-foreground, border-border),
