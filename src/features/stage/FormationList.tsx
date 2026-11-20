@@ -67,13 +67,14 @@ interface FormationListProps {
   currentId: Id
   onSelect: (id: Id) => void
   onReorder: (id: Id, toIndex: number) => void
+  className?: string
 }
 
 /**
  * The row of formations. Click one to open it; press and drag to change the
  * order. (Which count each place lands on stays put; see `moveFormation`.)
  */
-export function FormationList({ formations, currentId, onSelect, onReorder }: FormationListProps) {
+export function FormationList({ formations, currentId, onSelect, onReorder, className }: FormationListProps) {
   const sensors = useSensors(
     // A small movement threshold keeps a plain click a click.
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -90,7 +91,7 @@ export function FormationList({ formations, currentId, onSelect, onReorder }: Fo
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={formations.map((f) => f.id)} strategy={horizontalListSortingStrategy}>
-        <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Formations">
+        <div className={cn('flex gap-2 overflow-x-auto pb-1', className)} role="group" aria-label="Formations">
           {formations.map((f, i) => (
             <FormationChip
               key={f.id}

@@ -166,7 +166,40 @@ test.describe('phone', () => {
     await expect(page.getByRole('button', { name: 'Show formation bar' })).toBeVisible()
   })
 
-  test('the header is two rows (name row + tabs), not three', async ({ page }) => {
+  test('the formation bar keeps the name row, the chips and + New formation; the rest is under Formation details', async ({ page }) => {
+    await createProject(page)
+    const details = page.getByRole('button', { name: 'Formation details' })
+    await expect(details).toHaveAttribute('aria-expanded', 'false')
+    for (const label of ['Set', 'Count', 'Travel counts']) await expect(page.getByLabel(label, { exact: true })).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Delete' })).toBeHidden()
+    await expect(page.getByLabel('Formation name')).toBeVisible()
+    await expect(page.getByRole('button', { name: '+ New formation' })).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Formations' })).toBeVisible()
+
+    await details.tap()
+    await expect(details).toHaveAttribute('aria-expanded', 'true')
+    for (const label of ['Set', 'Count', 'Travel counts']) await expect(page.getByLabel(label, { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible()
+    await details.tap()
+    await expect(page.getByLabel('Set', { exact: true })).toBeHidden()
+  })
+
+  test('+ New formation sits beside the chips, and the bar is short, so the stage keeps the room', async ({ page }) => {
+    await createProject(page)
+    const add = (await page.getByRole('button', { name: '+ New formation' }).boundingBox())!
+    const chips = (await page.getByRole('group', { name: 'Formations' }).boundingBox())!
+    expect(Math.abs(add.y - chips.y), 'on the chips row').toBeLessThan(20)
+    expect(add.x + add.width).toBeLessThanOrEqual(390)
+    expect((await page.getByLabel('Formation name').boundingBox())!.width, 'name box width').toBeGreaterThan(120)
+    expect(chips.width, 'room for the chips').toBeGreaterThan(150)
+    const bar = (await page.locator('footer').boundingBox())!
+    expect(bar.height, 'bottom bar height').toBeLessThan(300)
+    const stage = await canvasBox(page)
+    expect(stage.height, 'stage height').toBeGreaterThan(250)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+  })
+
+  test('the header is two rows (app row + name row), not three', async ({ page }) => {
     await createProject(page)
     const height = await page.locator('header').evaluate((el) => el.getBoundingClientRect().height)
     expect(height).toBeLessThan(110)
