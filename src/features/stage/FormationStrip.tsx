@@ -41,7 +41,7 @@ export function FormationStrip() {
     // One wrapping row of items, placed by `order`. From md up: the name row with the timing fields and the buttons, then
     // the chips on their own line. On a phone: the name row; the chips with + New formation beside them; a Formation
     // details toggle; and (when open) the timing fields and Delete, so the bar leaves the stage most of the screen.
-    <div className="flex flex-wrap items-center gap-2 px-2 pb-1">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-2 pb-1 md:gap-y-0.5">
       {/* The name row: a line of its own on a phone, part of the one row from md up. */}
       <div className="flex basis-full items-center gap-2 md:contents">
         <IconButton

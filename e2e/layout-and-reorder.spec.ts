@@ -108,6 +108,18 @@ test.describe('collapsible panels', () => {
 })
 
 test.describe('stage size when the browser zooms', () => {
+  // The zoom test below passed here but failed on CI (0.5999 against 0.6) when the formation bar's chips line was given a
+  // row gap of 8px instead of 2px: a few pixels decide it in CI's wider font. This pins the cause directly.
+  test('the formation chips sit tight under the name row on a desktop, in a wide font', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 768 })
+    await createProject(page)
+    await useWideFont(page)
+    const name = (await page.getByLabel('Formation name').boundingBox())!
+    const chips = (await page.getByRole('group', { name: 'Formations' }).boundingBox())!
+    expect(chips.y, 'the chips are on their own line').toBeGreaterThan(name.y + name.height - 1)
+    expect(chips.y - (name.y + name.height), 'gap between the name row and the chips').toBeLessThanOrEqual(6)
+  })
+
   // Browser zoom (Ctrl +) shrinks the CSS-pixel viewport while the header and bars keep their
   // CSS-pixel heights, so they take a bigger share of the screen. The stage must stay usable
   // (it fits whatever room is left), and hiding the formation bar must give the room back.

@@ -14,4 +14,5 @@ Step 6 (responsive and mobile refinements), slice 2. At 390px the play bar was a
 ## Consequences
 - Setting a formation's timing by typing, and Delete, take one more tap on a phone. Tap-to-snap (Mark on the play bar) is the phone's main way to time formations and is not behind the button.
 - The "1 of N" text stays: a test and screen-reader users rely on it.
+- **Row gap on desktop stays 2px** (`gap-y-0.5`; 4px on a phone). The first version used `gap-2` for both axes, which put 8px between the name row and the chips: the desktop bar grew from 137px to 143px and, in CI's wider font, the stage fell to 0.5999 of the window against the zoom test's minimum of 0.6. A test now pins the gap directly.
 - A flex trap to remember: `md:flex-none` (a `flex` shorthand) resets the basis a `md:basis-full` set, so the strip uses `grow-0` instead.
