@@ -1,6 +1,22 @@
 import { expect, test } from '@playwright/test'
 import { createProject, legacyProject, resetStorage, savedProject } from './helpers'
 
+test.describe('projects home on a phone', () => {
+  test.use({ viewport: { width: 390, height: 780 }, hasTouch: true })
+
+  test('the title stays on one line and the buttons are not squeezed beside it', async ({ page }) => {
+    await resetStorage(page)
+    const title = (await page.getByRole('heading', { name: 'Your projects' }).boundingBox())!
+    expect(title.height, 'title wrapped').toBeLessThanOrEqual(32)
+    for (const name of ['Import project', '+ New project']) {
+      const box = (await page.getByRole('button', { name }).boundingBox())!
+      expect(box.height, `${name} wrapped`).toBeLessThanOrEqual(48)
+      expect(box.x + box.width).toBeLessThanOrEqual(390)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+  })
+})
+
 test.describe('projects home', () => {
   test('starts empty and creates a project that opens in the stage editor', async ({ page }) => {
     await resetStorage(page)

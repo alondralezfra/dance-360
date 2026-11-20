@@ -72,8 +72,8 @@ export function ProjectsHome() {
       </header>
 
       <main className="mx-auto max-w-3xl p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Your projects</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <h2 className="text-xl font-semibold whitespace-nowrap">Your projects</h2>
           <div className="flex flex-wrap gap-2">
             <FileButton accept=".json,application/json" onFile={(f) => void bringBack(f)}>
               Import project

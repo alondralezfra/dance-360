@@ -42,9 +42,9 @@ export function SectionsEditor() {
                 className="min-w-0 flex-1 basis-40"
               />
               {i === 0 ? (
-                <span className="text-sm text-muted-foreground">Starts at {formatCount(0)}</span>
+                <span className="order-2 basis-full text-sm text-muted-foreground sm:order-none sm:basis-auto">Starts at {formatCount(0)}</span>
               ) : (
-                <div role="group" aria-label={`Start of section ${i + 1}`} className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <div role="group" aria-label={`Start of section ${i + 1}`} className="order-2 flex basis-full flex-wrap items-center gap-x-3 gap-y-2 sm:order-none sm:basis-auto">
                   <span className="text-sm text-muted-foreground">Starts at</span>
                   <NumberField
                     label="Set"
@@ -64,7 +64,7 @@ export function SectionsEditor() {
               <IconButton
                 variant="danger-ghost"
                 icon="close"
-                className="ml-auto"
+                className="order-1 sm:order-3 sm:ml-auto"
                 label={`Remove ${section.name}`}
                 title={sections.length <= 1 ? 'There must be at least one section' : 'Remove section'}
                 disabled={sections.length <= 1}

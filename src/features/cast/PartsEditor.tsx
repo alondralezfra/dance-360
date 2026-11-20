@@ -65,27 +65,30 @@ export function PartsEditor() {
               aria-label={`Name of part ${i + 1}`}
               className="min-w-0 flex-1 basis-32"
             />
-            <Select
-              value={part.color}
-              onChange={(e) => setPartColor(part.id, e.target.value as PartColorId)}
-              aria-label={`Colour of part ${i + 1}`}
-            >
-              {PART_COLOR_IDS.map((id) => (
-                <option key={id} value={id}>
-                  {PART_COLOR_NAMES[id]}
-                </option>
-              ))}
-            </Select>
-            <SectionScopeSelect
-              label={`Sections of part ${i + 1}`}
-              sections={sections}
-              value={part.sectionIds}
-              onChange={(value) => setPartSections(part.id, value)}
-            />
+            {/* On a phone Remove sits beside the name and the two dropdowns share the line below; from sm up it is one row. */}
+            <div className="order-2 flex flex-wrap items-center gap-2 sm:contents">
+              <Select
+                value={part.color}
+                onChange={(e) => setPartColor(part.id, e.target.value as PartColorId)}
+                aria-label={`Colour of part ${i + 1}`}
+              >
+                {PART_COLOR_IDS.map((id) => (
+                  <option key={id} value={id}>
+                    {PART_COLOR_NAMES[id]}
+                  </option>
+                ))}
+              </Select>
+              <SectionScopeSelect
+                label={`Sections of part ${i + 1}`}
+                sections={sections}
+                value={part.sectionIds}
+                onChange={(value) => setPartSections(part.id, value)}
+              />
+            </div>
             <IconButton
               variant="danger-ghost"
               icon="close"
-              className="ml-auto"
+              className="order-1 sm:order-3 sm:ml-auto"
               label={`Remove ${part.name}`}
               title="Remove part"
               onClick={() => remove(part.id, part.name)}
