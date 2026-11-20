@@ -108,6 +108,18 @@ test.describe('collapsible panels', () => {
 })
 
 test.describe('stage size when the browser zooms', () => {
+  // The zoom test below passed here but failed on CI (0.5999 against 0.6) when the formation bar's chips line was given a
+  // row gap of 8px instead of 2px: a few pixels decide it in CI's wider font. This pins the cause directly.
+  test('the formation chips sit tight under the name row on a desktop, in a wide font', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 768 })
+    await createProject(page)
+    await useWideFont(page)
+    const name = (await page.getByLabel('Formation name').boundingBox())!
+    const chips = (await page.getByRole('group', { name: 'Formations' }).boundingBox())!
+    expect(chips.y, 'the chips are on their own line').toBeGreaterThan(name.y + name.height - 1)
+    expect(chips.y - (name.y + name.height), 'gap between the name row and the chips').toBeLessThanOrEqual(6)
+  })
+
   // Browser zoom (Ctrl +) shrinks the CSS-pixel viewport while the header and bars keep their
   // CSS-pixel heights, so they take a bigger share of the screen. The stage must stay usable
   // (it fits whatever room is left), and hiding the formation bar must give the room back.
@@ -166,7 +178,40 @@ test.describe('phone', () => {
     await expect(page.getByRole('button', { name: 'Show formation bar' })).toBeVisible()
   })
 
-  test('the header is two rows (name row + tabs), not three', async ({ page }) => {
+  test('the formation bar keeps the name row, the chips and + New formation; the rest is under Formation details', async ({ page }) => {
+    await createProject(page)
+    const details = page.getByRole('button', { name: 'Formation details' })
+    await expect(details).toHaveAttribute('aria-expanded', 'false')
+    for (const label of ['Set', 'Count', 'Travel counts']) await expect(page.getByLabel(label, { exact: true })).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Delete' })).toBeHidden()
+    await expect(page.getByLabel('Formation name')).toBeVisible()
+    await expect(page.getByRole('button', { name: '+ New formation' })).toBeVisible()
+    await expect(page.getByRole('group', { name: 'Formations' })).toBeVisible()
+
+    await details.tap()
+    await expect(details).toHaveAttribute('aria-expanded', 'true')
+    for (const label of ['Set', 'Count', 'Travel counts']) await expect(page.getByLabel(label, { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible()
+    await details.tap()
+    await expect(page.getByLabel('Set', { exact: true })).toBeHidden()
+  })
+
+  test('+ New formation sits beside the chips, and the bar is short, so the stage keeps the room', async ({ page }) => {
+    await createProject(page)
+    const add = (await page.getByRole('button', { name: '+ New formation' }).boundingBox())!
+    const chips = (await page.getByRole('group', { name: 'Formations' }).boundingBox())!
+    expect(Math.abs(add.y - chips.y), 'on the chips row').toBeLessThan(20)
+    expect(add.x + add.width).toBeLessThanOrEqual(390)
+    expect((await page.getByLabel('Formation name').boundingBox())!.width, 'name box width').toBeGreaterThan(120)
+    expect(chips.width, 'room for the chips').toBeGreaterThan(150)
+    const bar = (await page.locator('footer').boundingBox())!
+    expect(bar.height, 'bottom bar height').toBeLessThan(300)
+    const stage = await canvasBox(page)
+    expect(stage.height, 'stage height').toBeGreaterThan(250)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0)
+  })
+
+  test('the header is two rows (app row + name row), not three', async ({ page }) => {
     await createProject(page)
     const height = await page.locator('header').evaluate((el) => el.getBoundingClientRect().height)
     expect(height).toBeLessThan(110)

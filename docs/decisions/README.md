@@ -55,3 +55,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0030](0030-overview-problems-derived.md) | The Overview's problems are worked out from the project each time: nothing saved, nothing dismissible (yet); each links to where it is fixed |
 | [0031](0031-notes-beside-the-stage.md) | Notes beside the stage: a read-only panel for the playhead's section plus whole-dance notes, a reached count note stays "now" until the next; closed by default; a drawer on phones |
 | [0032](0032-phone-bottom-tab-bar.md) | Phone navigation: a bottom tab bar |
+| [0033](0033-phone-formation-bar.md) | Phone Stage: a shorter formation bar (name row, chips and + New formation stay; the timing fields and Delete are under Formation details) |

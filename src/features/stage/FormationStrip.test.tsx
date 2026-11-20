@@ -15,6 +15,26 @@ beforeEach(() => {
 const formations = () => useProject.getState().formations
 
 describe('FormationStrip', () => {
+  it('has a Formation details toggle (for a phone) that opens and closes the timing fields and Delete', async () => {
+    const user = userEvent.setup()
+    render(<FormationStrip />)
+    const toggle = screen.getByRole('button', { name: 'Formation details' })
+    const details = document.getElementById(toggle.getAttribute('aria-controls')!)!
+    expect(details).toContainElement(screen.getByLabelText('Set'))
+    expect(details).toContainElement(screen.getByLabelText('Travel counts'))
+    expect(details).toContainElement(screen.getByRole('button', { name: 'Delete' }))
+    expect(details).not.toContainElement(screen.getByRole('button', { name: '+ New formation' })) // always in reach
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(details).toHaveClass('hidden')
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(details).not.toHaveClass('hidden')
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(details).toHaveClass('hidden')
+  })
+
   it('shows the first formation when nothing is selected yet', () => {
     render(<FormationStrip />)
     expect(screen.getByLabelText('Formation name')).toHaveValue('Formation 1')

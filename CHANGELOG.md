@@ -4,6 +4,10 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Changed (Phone Stage: a shorter formation bar, step 6 slice 2)
+- **On a phone the bar under the stage is about a third shorter** (roughly 250px instead of 370px at 390px wide), so the stage is bigger. It keeps the formation name row, the formation chips with **+ New formation** beside them, and a new **Formation details** button that opens Set, Count, Travel counts and Delete (closed until asked for). Tablets and desktop are unchanged (the gap between the formation name row and the chips is kept at 2px on desktop: a wider gap pushed the stage just under its minimum share of the screen in CI's wider font). Decision record 0033.
+- `FormationList` takes a `className`.
+
 ### Changed (Phone and tablet navigation: a bottom tab bar, step 6 slice 1)
 - **On phones and an iPad held upright the project tabs are a bar along the bottom edge**: five equal tabs with an icon above each label, within thumb reach, the open one marked. Below 832px, and below 1024px unless the window is short, they are a bar; otherwise they stay in the header (so a laptop at 150% zoom keeps its room). Replaces the sideways-scrolling tab row, and fixes the header wrapping at 768px. In a short window too narrow for the header (a phone held sideways) the bar is a compact 40px.
 - **Below 640px the header is two rows**: the app link, save status and theme toggle, then the **project name** (now readable, it was cut to about 80px) beside Undo and Redo.
