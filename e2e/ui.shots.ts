@@ -9,7 +9,12 @@ import { addDancer, addLink, addNote, beatsWav, chooseFile, createProject, goToC
 // replace any earlier pictures with the same names. This file is not part of `npm run verify`.
 
 const dir = process.env.SCREENSHOT_DIR ?? 'screenshots'
-const sizes = { desktop: { width: 1280, height: 900 }, phone: { width: 390, height: 780 } }
+const sizes = {
+  desktop: { width: 1280, height: 900 },
+  tablet: { width: 768, height: 1024 },
+  phone: { width: 390, height: 780 },
+  small: { width: 360, height: 740 },
+}
 
 for (const scheme of ['light', 'dark'] as const) {
   for (const [sizeName, size] of Object.entries(sizes)) {
@@ -31,7 +36,9 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.getByRole('link', { name: /Untitled dance/ }).click()
       await expect(page.getByLabel('Formation name')).toBeVisible()
       await shoot('stage')
-      if (sizeName === 'phone') {
+      // Where the dancer panel is a drawer (a button opens it) rather than a sidebar:
+      const drawers = await page.getByRole('button', { name: 'Dancers', exact: true }).isVisible()
+      if (drawers) {
         await page.getByRole('button', { name: 'Dancers' }).click()
         await expect(page.getByRole('dialog')).toBeVisible()
         await shoot('dancers-drawer')
@@ -66,7 +73,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await addNote(page, 'Arms up on 5-6.\nHold until the next set.')
       await shoot('resources')
       await goToStage(page)
-      if (sizeName === 'phone') await page.getByRole('button', { name: /^Notes/ }).click()
+      if (drawers) await page.getByRole('button', { name: /^Notes/ }).click()
       else await page.getByRole('button', { name: /^Show notes/ }).click()
       await expect(page.getByText('Arms up on 5-6.').locator('visible=true')).toBeVisible()
       await shoot('stage-notes')
