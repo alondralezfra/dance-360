@@ -325,6 +325,21 @@ test.describe('phone layout', () => {
     expect(scrollable).toBe(true)
   })
 
+  test('a part or section row keeps its remove button beside its name, not alone on a line of its own', async ({ page }) => {
+    await createProject(page)
+    await goToCast(page)
+    await page.getByRole('button', { name: '+ Add part' }).click()
+    await page.getByRole('button', { name: '+ Add section' }).click()
+    for (const [nameLabel, rowName] of [['Name of part 1', 'part'], ['Name of section 1', 'section'], ['Name of section 2', 'second section']]) {
+      const row = page.locator('li').filter({ has: page.getByLabel(nameLabel) })
+      const name = (await row.getByLabel(nameLabel).boundingBox())!
+      const remove = (await row.getByRole('button', { name: /^Remove / }).boundingBox())!
+      expect(Math.abs(name.y - remove.y), `${rowName}: remove button on the name's line`).toBeLessThan(20)
+      expect(remove.x + remove.width, `${rowName}: remove button inside the screen`).toBeLessThanOrEqual(390)
+      expect(name.width, `${rowName}: the name box stays wide enough to read`).toBeGreaterThan(150)
+    }
+  })
+
   test('rows fit the screen and labels do not wrap awkwardly', async ({ page }) => {
     await createProject(page)
     await goToCast(page)

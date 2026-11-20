@@ -4,6 +4,11 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Changed (Phone polish, step 6 slice 3: the last of the responsive refinements)
+- **Cast & Parts on a phone:** each part row has Remove beside its name (it used to sit alone on a second line) with the colour and sections dropdowns below; each section row has Remove beside its name with "Starts at" below. Wider screens are unchanged.
+- **Projects home on a phone:** "Your projects" no longer wraps onto two lines; Import project and + New project sit on the line below it.
+- The README checklist step "Responsive/mobile refinements" is ticked: the bottom tab bar (0032), the shorter Stage formation bar (0033) and this polish. The plan's fuller phone modes (a stage-only Watch mode with swipe-in drawers, an Edit mode with a bottom sheet, a separate timeline mode) stay in the plan as later work.
+
 ### Changed (Phone Stage: a shorter formation bar, step 6 slice 2)
 - **On a phone the bar under the stage is about a third shorter** (roughly 250px instead of 370px at 390px wide), so the stage is bigger. It keeps the formation name row, the formation chips with **+ New formation** beside them, and a new **Formation details** button that opens Set, Count, Travel counts and Delete (closed until asked for). Tablets and desktop are unchanged (the gap between the formation name row and the chips is kept at 2px on desktop: a wider gap pushed the stage just under its minimum share of the screen in CI's wider font). Decision record 0033.
 - `FormationList` takes a `className`.
