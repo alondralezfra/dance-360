@@ -29,7 +29,7 @@ test.describe('exporting and importing a project', () => {
 
     await toHome(page)
     const { fileName, text } = await exportFromHome(page, 'Spring Show')
-    expect(fileName).toMatch(/^Spring Show \d{4}-\d{2}-\d{2}\.dance360\.json$/)
+    expect(fileName).toMatch(/^Spring Show \d{4}-\d{2}-\d{2}.formism.json$/)
     expect(JSON.parse(text).project).toEqual(original)
 
     await importFile(page, fileName, text)
@@ -109,11 +109,11 @@ test.describe('exporting and importing a project', () => {
   test('says what is wrong with a file that cannot be used, and adds nothing', async ({ page }) => {
     await resetStorage(page)
     await importFile(page, 'notes.json', 'this is not json at all')
-    await expect(page.getByRole('alert')).toContainText('This is not a Dance 360 project file.')
+    await expect(page.getByRole('alert')).toContainText('This is not a Formism project file.')
     await expect(page).toHaveURL('/')
 
     await importFile(page, 'future.json', JSON.stringify({ kind: 'dance-360-project', fileVersion: 1, dataVersion: 999, project: {} }))
-    await expect(page.getByRole('alert')).toContainText('newer version of Dance 360')
+    await expect(page.getByRole('alert')).toContainText('newer version of Formism')
 
     await importFile(page, 'damaged.json', JSON.stringify({ kind: 'dance-360-project', fileVersion: 1, dataVersion: 4, project: { name: 'x' } }))
     await expect(page.getByRole('alert')).toContainText('damaged')
@@ -155,7 +155,7 @@ test.describe('when something crashes', () => {
   test('lets the person download the project that crashed, and go back', async ({ page }) => {
     await crashTheStage(page)
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download this project' }).click()])
-    expect(download.suggestedFilename()).toMatch(/^Fragile Show .*\.dance360\.json$/)
+    expect(download.suggestedFilename()).toMatch(/^Fragile Show .*.formism.json$/)
     const file = JSON.parse(readFileSync((await download.path())!, 'utf8'))
     expect(file.kind).toBe('dance-360-project')
     expect(file.project.name).toBe('Fragile Show')

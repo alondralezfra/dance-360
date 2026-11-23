@@ -32,7 +32,7 @@ test.describe('projects home', () => {
     await page.getByLabel('Project name').fill('Spring Showcase')
     await expect(page.getByRole('status').getByText('Saved')).toBeVisible()
 
-    await page.getByRole('link', { name: 'Dance 360' }).click()
+    await page.getByRole('link', { name: 'Formism' }).click()
     await expect(page.getByRole('link', { name: /Spring Showcase/ })).toBeVisible()
     await page.getByRole('link', { name: /Spring Showcase/ }).click()
     await expect(page.getByLabel('Project name')).toHaveValue('Spring Showcase')
@@ -40,7 +40,7 @@ test.describe('projects home', () => {
 
   test('deletes a project after confirming', async ({ page }) => {
     await createProject(page)
-    await page.getByRole('link', { name: 'Dance 360' }).click()
+    await page.getByRole('link', { name: 'Formism' }).click()
 
     page.once('dialog', (d) => d.accept())
     await page.getByRole('button', { name: /^Delete / }).click()
@@ -50,7 +50,7 @@ test.describe('projects home', () => {
 
   test('keeps the project if deletion is cancelled', async ({ page }) => {
     await createProject(page)
-    await page.getByRole('link', { name: 'Dance 360' }).click()
+    await page.getByRole('link', { name: 'Formism' }).click()
 
     page.once('dialog', (d) => d.dismiss())
     await page.getByRole('button', { name: /^Delete / }).click()

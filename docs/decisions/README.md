@@ -56,3 +56,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0031](0031-notes-beside-the-stage.md) | Notes beside the stage: a read-only panel for the playhead's section plus whole-dance notes, a reached count note stays "now" until the next; closed by default; a drawer on phones |
 | [0032](0032-phone-bottom-tab-bar.md) | Phone navigation: a bottom tab bar |
 | [0033](0033-phone-formation-bar.md) | Phone Stage: a shorter formation bar (name row, chips and + New formation stay; the timing fields and Delete are under Formation details) |
+| [0034](0034-rename-to-formism.md) | The app is renamed Formism; storage keys, the audio database and the backup `kind` keep their `dance360` spelling so saved work and old backups still work |

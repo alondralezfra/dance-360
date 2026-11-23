@@ -1,4 +1,4 @@
-// `npm run doctor`: checks this machine can work on Dance 360 (Node version, installed packages, a
+// `npm run doctor`: checks this machine can work on Formism (Node version, installed packages, a
 // browser for the end-to-end tests, a free test port) and says how to fix what is wrong. It only reports: it never installs or changes anything. The judging is in doctorChecks.ts
 // (tested); this file only looks at the machine. Run with Node 24 (it loads TypeScript directly).
 
@@ -49,5 +49,5 @@ const checks = [
   checkPort(PORT, await portInUse(PORT)),
 ]
 
-console.log(`\nDance 360 setup check\n\n${formatReport(checks)}\n`)
+console.log(`\nFormism setup check\n\n${formatReport(checks)}\n`)
 process.exit(checks.every((check) => check.ok) ? 0 : 1)

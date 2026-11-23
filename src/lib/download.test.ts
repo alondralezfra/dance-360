@@ -26,8 +26,8 @@ afterEach(() => {
 
 describe('downloadTextFile', () => {
   it('clicks a link to the text, named as asked', async () => {
-    downloadTextFile('Show.dance360.json', '{"a":1}')
-    expect(clicked).toEqual([{ href: 'blob:fake', download: 'Show.dance360.json' }])
+    downloadTextFile('Show.formism.json', '{"a":1}')
+    expect(clicked).toEqual([{ href: 'blob:fake', download: 'Show.formism.json' }])
     expect(blobs[0].type).toBe('application/json')
     expect(await blobs[0].text()).toBe('{"a":1}')
   })

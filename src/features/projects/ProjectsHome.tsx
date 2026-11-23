@@ -65,7 +65,7 @@ export function ProjectsHome() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="flex items-center gap-3 border-b border-border bg-surface px-4 py-2">
-        <h1 className="text-lg font-semibold">Dance 360</h1>
+        <h1 className="text-lg font-semibold">Formism</h1>
         <div className="ml-auto">
           <ThemeToggle />
         </div>

@@ -1,4 +1,4 @@
-# Dance 360
+# Formism
 
 A workspace for dance directors: formations, cast, parts, music and resources in one place.
 Product plan: [dance-director-app-plan.md](dance-director-app-plan.md). All other documentation: [docs/](docs/README.md).

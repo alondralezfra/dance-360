@@ -226,7 +226,7 @@ test.describe('a song whose file is not on this device', () => {
     await waitForSaved(page)
     expect((await storedSongs(page)).length).toBe(1)
 
-    await page.getByRole('link', { name: 'Dance 360' }).click()
+    await page.getByRole('link', { name: 'Formism' }).click()
     page.once('dialog', (dialog) => void dialog.accept())
     await page.getByRole('button', { name: /^Delete / }).click()
     await expect.poll(async () => (await storedSongs(page)).length).toBe(0)
