@@ -4,6 +4,12 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Changed (A Formism app icon)
+- **New tab icon:** three white dots in a formation on the app's indigo, replacing Vite's default lightning bolt. Also a 32px PNG for browsers without SVG icons, a 180px home-screen icon for iPhones and iPads, and a `theme-color` so phone browsers tint their toolbar to match. No app code or saved data changed.
+
+### Changed (A Formism app icon)
+- **New tab icon:** three white dots in a formation on the app's indigo, replacing Vite's default lightning bolt. Also a 32px PNG for browsers without SVG icons, a 180px home-screen icon for iPhones and iPads, and a `theme-color` so phone browsers tint their toolbar to match. No app code or saved data changed.
+
 ### Added (Hosting on Cloudflare at formism.app)
 - **Deployment:** `wrangler.jsonc` serves the built app from Cloudflare Workers Static Assets (any address falls back to `index.html` so reloads on a project page work) on **formism.app**. `.github/workflows/deploy.yml` deploys production only from `main` after CI is green, and uploads a preview version for each pull request from this repository. It needs the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (one-time owner setup, see the operations doc).
 - **Security headers** in `public/_headers`: a Content-Security-Policy, nosniff, referrer and permissions policies, HSTS, and long caching for hashed files. Checked against the real app: it loads and creates a project with no policy violations.

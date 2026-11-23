@@ -6,7 +6,7 @@ import { requiredNodeMajor } from '../scripts/doctorChecks.ts'
 // by accident: put it back rather than loosening the test, unless the safeguard is deliberately changing
 // (then update docs/operations-and-quality.md and the decision record, docs/decisions/0022).
 
-const raw = import.meta.glob(['/.github/**/*.{yml,yaml}', '/package.json', '/.gitignore', '/playwright.screenshots.config.ts', '/wrangler.jsonc', '/public/_headers', '/.claude/skills/*/SKILL.md'], {
+const raw = import.meta.glob(['/.github/**/*.{yml,yaml}', '/package.json', '/.gitignore', '/playwright.screenshots.config.ts', '/wrangler.jsonc', '/public/_headers', '/index.html', '/.claude/skills/*/SKILL.md'], {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -132,6 +132,22 @@ describe('hosting on Cloudflare (decision 0035)', () => {
     }
     expect(csp).not.toMatch(/script-src[^;]*unsafe/)
     expect(headers).toMatch(/X-Content-Type-Options: nosniff/)
+  })
+})
+
+describe('the app icon', () => {
+  const page = file('/index.html')
+  const files = Object.keys(import.meta.glob('/public/*.{svg,png}', { query: '?url', import: 'default', eager: true }))
+
+  it('links a vector icon, a PNG fallback and a phone home-screen icon, and each file exists in public/', () => {
+    for (const href of ['/favicon.svg', '/favicon-32.png', '/apple-touch-icon.png']) {
+      expect(page, `index.html links ${href}`).toContain(`href="${href}"`)
+      expect(files, `public${href} exists`).toContain(`/public${href}`)
+    }
+  })
+
+  it('tells a phone browser the app colour', () => {
+    expect(page).toMatch(/<meta name="theme-color" content="#4f46e5" \/>/)
   })
 })
 
