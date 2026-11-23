@@ -19,3 +19,4 @@ The app is a static build (`dist/`) with no server. The owner bought `formism.ap
 - The CSP will need widening when a feature adds an outside host (Supabase in `connect-src`, a video embed in `frame-src`): do it in that change.
 - The deploy workflow has no automated smoke test yet (a separate slice), and the header policy is checked by `src/repoConfig.test.ts` and by hand, not against the live site.
 - Preview versions need the Worker to exist, so they work after the first production deploy.
+- The Wrangler version is pinned (`wranglerVersion` in both jobs of `deploy.yml`) because the action's default is 3.90, which cannot read `wrangler.jsonc`. Dependabot does not update it: bump it by hand now and then, after a `npx wrangler@<new> deploy --dry-run`.

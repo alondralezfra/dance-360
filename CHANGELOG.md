@@ -7,7 +7,7 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 ### Added (Hosting on Cloudflare at formism.app)
 - **Deployment:** `wrangler.jsonc` serves the built app from Cloudflare Workers Static Assets (any address falls back to `index.html` so reloads on a project page work) on **formism.app**. `.github/workflows/deploy.yml` deploys production only from `main` after CI is green, and uploads a preview version for each pull request from this repository. It needs the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (one-time owner setup, see the operations doc).
 - **Security headers** in `public/_headers`: a Content-Security-Policy, nosniff, referrer and permissions policies, HSTS, and long caching for hashed files. Checked against the real app: it loads and creates a project with no policy violations.
-- Tests in `src/repoConfig.test.ts` guard the hosting config, the deploy rules and the headers. Decision record 0035. No app code or saved data changed.
+- Tests in `src/repoConfig.test.ts` guard the hosting config, the deploy rules and the headers. Decision record 0035. The deploy workflow pins Wrangler 4 (the action's default, 3.90, cannot read the config). No app code or saved data changed.
 
 ### Changed (The app is now called Formism)
 - **Renamed from "Dance 360" to Formism** everywhere a person sees it: the page title, the Projects and project headers, the import error messages and the docs. New backup files are named `<project> <date>.formism.json`; older `.dance360.json` backups still import (the import accepts any `.json`).

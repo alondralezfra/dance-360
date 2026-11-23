@@ -116,6 +116,10 @@ describe('hosting on Cloudflare (decision 0035)', () => {
     expect(preview).not.toMatch(/command: deploy$/m)
   })
 
+  it('pins Wrangler 4 in both jobs: the action defaults to 3.90, which cannot read wrangler.jsonc', () => {
+    expect(deploy.match(/wranglerVersion: '4\.\d+\.\d+'/g)).toHaveLength(2)
+  })
+
   it('keeps the Cloudflare credentials in repository secrets, never in the file', () => {
     expect(deploy).toMatch(/apiToken: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/)
     expect(deploy).toMatch(/accountId: \$\{\{ secrets\.CLOUDFLARE_ACCOUNT_ID \}\}/)

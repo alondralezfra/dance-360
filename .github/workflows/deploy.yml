@@ -1,4 +1,4 @@
-name: Deploy
+﻿name: Deploy
 
 # Production goes live only from main, and only after the CI workflow finished green on that commit
 # (decision record 0035). A pull request from this repository gets a preview version with its own URL
@@ -43,6 +43,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.167.0'
           command: deploy
 
   preview:
@@ -73,6 +74,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.167.0'
           command: versions upload --message "PR ${{ github.event.pull_request.number }}"
 
       - name: Show the preview address
