@@ -69,7 +69,7 @@ Work is grouped by what must be true before the next audience can use the app. E
 | Privacy note, then privacy policy and terms | **Stage 1** (a plain note: what is stored, where) / **Stage 2** (policy + terms) | A cast roster is personal data and may be about minors, so be conservative: data stays on the device until the person opts into sync (0015), and say so. |
 | Cookie consent | **Stage 3 / When X** | Only needed if we add analytics or marketing cookies. Today we set none (only localStorage for the app's own data, which does not need consent). Prefer analytics that need no consent and no personal data. |
 | Analytics | **Stage 3** | Decide what question each metric answers; no roster, song or project content ever leaves the device; opt-out honoured. |
-| Favicon, social (OG) image, page title and description | **Stage 1** | A favicon exists; add the description, theme color, app icons and a social image. |
+| Favicon, social (OG) image, page title and description | **Stage 1** | **Partly done:** the icon (three white dots in a formation on indigo) is `public/favicon.svg` with a 32px PNG and a 180px Apple touch icon rendered from it (redraw the PNGs if the SVG changes), plus the `theme-color`. Still to add: the page description and a social image. |
 | SEO / AEO (search and answer-engine visibility) | **Stage 3** | The app itself is behind the editor and need not be indexed; a small marketing/landing page is what search and answer engines see. Validate: titles, descriptions, headings, structured data, sitemap, fast load, and a clear plain-text description of what the product is. N/A for the editor screens. |
 | Optimizing images, caching | **Stage 1** | Hashed asset filenames with long cache lifetimes, short or no cache for `index.html`, compressed images and fonts. (The app has few images today.) |
 | Custom domain, SSL, email authentication (SPF, DKIM, DMARC) | **Stage 2 / 3** | A domain when there is a public face; email authentication before the first transactional email (verification, password reset), or mail goes to spam. |
@@ -108,5 +108,5 @@ Walk through this before each time the app is handed to someone new (a beta test
 ## Suggested order of the first slices after tap-to-snap
 
 1. **Safety net** (stage 0): error boundary, export/import a project, request persistent storage, dependency audit + Dependabot + secret scanning, axe checks in e2e.
-2. **Ready to share** (stage 1): bundle splitting and a size budget, smoke test, error tracking, privacy note, favicon/description/social image.
+2. **Ready to share** (stage 1): bundle splitting and a size budget, smoke test, error tracking, privacy note, page description and social image.
 3. Then product step 4 (resources and notes), step 5 (problem checks), and the sync slices in 0015, reviewing this checklist before each.
