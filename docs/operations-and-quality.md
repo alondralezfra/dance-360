@@ -1,4 +1,4 @@
-# Operations and quality: the standing checklist
+﻿# Operations and quality: the standing checklist
 
 What it takes to run Formism well, beyond features: delivery, safety, privacy, reliability, accessibility. It is a **checklist with triggers**, not a to-do list: most items only become real when something specific is built (a server, accounts, an AI feature), so each one says *when* it applies. Review it at the start of every change (step 1 of the loop in [../CLAUDE.md](../CLAUDE.md)) and again before each stage below begins; update the status in the same change that moves an item.
 
@@ -6,7 +6,7 @@ Related: [architecture.md](architecture.md) (rules), [testing.md](testing.md) (h
 
 ## Where the app is today
 
-A front-end only app: no server, no accounts, no deployment. Data lives in the browser (localStorage for projects, IndexedDB for songs). CI runs `npm run verify` on every pull request and on `main`. Nothing is deployed and nobody outside the repository can use it yet. The next product slice is tap-to-snap placement and timeline markers (finishing build-order step 3).
+A front-end only app: no server, no accounts. Data lives in the browser (localStorage for projects, IndexedDB for songs). CI runs `npm run verify` on every pull request and on `main`, and a green `main` deploys to Cloudflare at formism.app (decision 0035; it goes live once the two secrets below are set). The next product slice is tap-to-snap placement and timeline markers (finishing build-order step 3).
 
 ## Stages
 
@@ -34,10 +34,10 @@ Work is grouped by what must be true before the next audience can use the app. E
 | Setup check for a new machine | **Done** (decision 0025) | `npm run doctor` checks the Node version (`engines.node` in `package.json`, which CI must match: tested), installed packages, a browser for the end-to-end tests and the test port, and says how to fix each. Report only. |
 | Dependency audit and automatic update PRs | **Done** (decision 0022) | `.github/workflows/security.yml` runs `npm audit --omit=dev --audit-level=high` (blocks a PR) and the same for build/test tools (warns only), on every PR, on `main` and every Monday; `npm run check:deps` runs the blocking check locally. `.github/dependabot.yml` opens weekly PRs for npm and GitHub Actions (small updates grouped, majors one at a time). |
 | Secret scanning and keeping secrets out of the repo | **Done** in CI (decision 0022); **needs two GitHub settings** (owner); **Stage 2** (real secrets) | gitleaks scans every PR and, weekly, the whole history. Still to switch on by the repository owner: **Settings → Code security → Secret scanning** and **Push protection**, which stop a key before it is pushed. No secrets exist today; `.env*` stays ignored, and only the Supabase *anon* key ever reaches the browser. |
-| Continuous deployment to a preview URL on each PR, and to staging on merge | **Stage 1** | Static hosting is enough (the app is a static build). Production only deploys from `main` after CI is green. |
+| Continuous deployment to a preview URL on each PR, and to staging on merge | **Done** (decision 0035); **needs one-time setup by the owner** | `.github/workflows/deploy.yml`: production deploys from `main` only after CI is green; a PR from this repository uploads a preview version (address in the job summary). Owner setup: create a Cloudflare API token (Workers Scripts: Edit, plus Workers Routes: Edit on the formism.app zone) and add it as the repository secret `CLOUDFLARE_API_TOKEN`, with `CLOUDFLARE_ACCOUNT_ID`. There is no separate staging site; the preview version is the staging. |
 | Staging environment | **Stage 1** (a preview URL) / **Stage 2** (a separate staging Supabase project) | Never test against production data. |
 | Smoke test of the deployed site | **Stage 1** | A tiny Playwright run against the real URL after each deploy: loads, creates a project, reloads, still there, no console errors. Fails the deploy. |
-| Rollback plan for a bad deploy | **Stage 1** | Static hosting keeps old builds: rolling back = re-promoting the previous one. Write the steps in this doc once the host is chosen. Database changes (stage 2) must be backward compatible for one release so a rollback is safe. |
+| Rollback plan for a bad deploy | **Done** (decision 0035) | Cloudflare keeps old versions: dashboard -> Workers & Pages -> formism -> Deployments -> roll back to the previous version (or re-run the Deploy workflow on an older commit). Database changes (stage 2) must be backward compatible for one release so a rollback is safe. |
 | Testing on multiple devices | **Stage 1** | Playwright device profiles (phone, tablet) in CI, plus a hands-on pass on a real iPhone/iPad and an Android phone before each beta release (Safari behaves differently: audio, storage eviction, 100vh). |
 | Testing on slow networks and offline | **Stage 1** | Throttled-network e2e run against the production build (first load, then a reload). The app should keep working offline once loaded: evaluate a service worker (PWA) for offline use in rehearsal rooms, as the plan wants. |
 | Performance budget | **Now** (measure) / **Stage 1** (enforce) | The build is one 867 kB JavaScript file (CI already warns above 500 kB). Code-split the heavy parts (the tempo estimator, Konva) and set a size budget that fails the build. |
@@ -45,7 +45,7 @@ Work is grouped by what must be true before the next audience can use the app. E
 ### Security
 | Item | Status | Notes |
 |---|---|---|
-| No `innerHTML`/eval, strict Content-Security-Policy, security headers | **Stage 1** | Add a CSP and the usual headers at the host. React escapes by default; keep it that way (imported project files are untrusted input: validate them, never trust their shape). |
+| No `innerHTML`/eval, strict Content-Security-Policy, security headers | **Done** (decision 0035) | `public/_headers` sends a CSP (own files only, `blob:` for songs, no outside scripts), nosniff, referrer and permissions policies and HSTS. React escapes by default; keep it that way. Widen the CSP only in the change that adds an outside host. |
 | Auth on every endpoint, row-level security | **Stage 2** | Supabase row-level security is the enforcement point, not the UI. Tests that prove user A cannot read or write user B's project (see 0015's membership roles). |
 | Rate limiting | **Stage 2** | Sign-in, password reset, email-sending and any function endpoint. Supabase provides auth limits; add limits on anything we write ourselves. |
 | Rotating leaked keys | **Stage 2** | A short runbook: where each key lives, how to revoke it, how to redeploy. Rehearse it once. |
@@ -108,5 +108,5 @@ Walk through this before each time the app is handed to someone new (a beta test
 ## Suggested order of the first slices after tap-to-snap
 
 1. **Safety net** (stage 0): error boundary, export/import a project, request persistent storage, dependency audit + Dependabot + secret scanning, axe checks in e2e.
-2. **Ready to share** (stage 1): bundle splitting and a size budget, security headers and CSP, hosting with preview URLs, smoke test, error tracking, privacy note, favicon/description/social image.
+2. **Ready to share** (stage 1): bundle splitting and a size budget, smoke test, error tracking, privacy note, favicon/description/social image.
 3. Then product step 4 (resources and notes), step 5 (problem checks), and the sync slices in 0015, reviewing this checklist before each.

@@ -6,7 +6,7 @@ import { requiredNodeMajor } from '../scripts/doctorChecks.ts'
 // by accident: put it back rather than loosening the test, unless the safeguard is deliberately changing
 // (then update docs/operations-and-quality.md and the decision record, docs/decisions/0022).
 
-const raw = import.meta.glob(['/.github/**/*.{yml,yaml}', '/package.json', '/.gitignore', '/playwright.screenshots.config.ts', '/.claude/skills/*/SKILL.md'], {
+const raw = import.meta.glob(['/.github/**/*.{yml,yaml}', '/package.json', '/.gitignore', '/playwright.screenshots.config.ts', '/wrangler.jsonc', '/public/_headers', '/.claude/skills/*/SKILL.md'], {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -89,6 +89,49 @@ describe('all workflows', () => {
     expect(ci).toMatch(/^name: CI$/m)
     expect(ci).toMatch(/^ {2}verify:$/m)
     expect(ci).toMatch(/run: npm run verify/)
+  })
+})
+
+describe('hosting on Cloudflare (decision 0035)', () => {
+  const deploy = file('/.github/workflows/deploy.yml')
+  const wrangler = file('/wrangler.jsonc')
+  const headers = file('/public/_headers')
+
+  it('serves the built app, and falls back to index.html so a reload on a deep address works', () => {
+    expect(wrangler).toMatch(/"directory": "\.\/dist"/)
+    expect(wrangler).toMatch(/"not_found_handling": "single-page-application"/)
+  })
+
+  it('serves production on formism.app', () => {
+    expect(wrangler).toMatch(/"pattern": "formism\.app", "custom_domain": true/)
+  })
+
+  it('deploys production only after CI succeeded on main, never from a pull request', () => {
+    expect(deploy).toMatch(/workflow_run:\n\s+workflows: \[CI\]\n\s+types: \[completed\]\n\s+branches: \[main\]/)
+    const production = deploy.slice(deploy.indexOf('  production:'), deploy.indexOf('  preview:'))
+    expect(production).toMatch(/github\.event_name == 'workflow_run' && github\.event\.workflow_run\.conclusion == 'success'/)
+    expect(production).toMatch(/command: deploy$/m)
+    const preview = deploy.slice(deploy.indexOf('  preview:'))
+    expect(preview).toMatch(/command: versions upload/)
+    expect(preview).not.toMatch(/command: deploy$/m)
+  })
+
+  it('pins Wrangler 4 in both jobs: the action defaults to 3.90, which cannot read wrangler.jsonc', () => {
+    expect(deploy.match(/wranglerVersion: '4\.\d+\.\d+'/g)).toHaveLength(2)
+  })
+
+  it('keeps the Cloudflare credentials in repository secrets, never in the file', () => {
+    expect(deploy).toMatch(/apiToken: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/)
+    expect(deploy).toMatch(/accountId: \$\{\{ secrets\.CLOUDFLARE_ACCOUNT_ID \}\}/)
+  })
+
+  it('sends a restrictive security policy that still allows what the app uses (blob: songs, inline styles)', () => {
+    const csp = /Content-Security-Policy: (.+)/.exec(headers)?.[1] ?? ''
+    for (const directive of ["default-src 'self'", "script-src 'self'", "object-src 'none'", "frame-ancestors 'none'", "media-src 'self' blob:"]) {
+      expect(csp).toContain(directive)
+    }
+    expect(csp).not.toMatch(/script-src[^;]*unsafe/)
+    expect(headers).toMatch(/X-Content-Type-Options: nosniff/)
   })
 })
 

@@ -1,0 +1,15 @@
+{
+  // Cloudflare Workers Static Assets: the built app (dist/) served from Cloudflare's edge. No Worker code.
+  // Why this and not Pages, and how deploys work: docs/decisions/0035-cloudflare-hosting.md
+  "name": "formism",
+  "compatibility_date": "2026-11-23",
+  "assets": {
+    "directory": "./dist",
+    // Any address that is not a file serves index.html, so a reload on /projects/abc works (client-side routing).
+    "not_found_handling": "single-page-application"
+  },
+  // Production address. The formism.app zone must be in the same Cloudflare account as the API token.
+  "routes": [{ "pattern": "formism.app", "custom_domain": true }],
+  "workers_dev": true,
+  "preview_urls": true
+}
