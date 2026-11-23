@@ -1,4 +1,4 @@
-# Dance 360: how to work in this repo
+# Formism: how to work in this repo
 
 A web app for dance directors (formations, cast, parts, music, resources in one place). Product intent: `dance-director-app-plan.md`. How the code is organised and the rules: `docs/architecture.md`. Read the relevant feature doc in `docs/features/` before changing a feature.
 

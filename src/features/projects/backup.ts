@@ -24,7 +24,7 @@ export async function exportProject(id: string): Promise<void> {
  * Throws a `ProjectFileError`, worded for the person, if the file is not a usable backup.
  */
 export async function importProjectFile(file: File): Promise<string> {
-  if (file.size > MAX_PROJECT_FILE_BYTES) throw new ProjectFileError('This file is too large to be a Dance 360 project.')
+  if (file.size > MAX_PROJECT_FILE_BYTES) throw new ProjectFileError('This file is too large to be a Formism project.')
   const project = parseProjectFile(await file.text())
   const id = await repository.create(importedCopy(project))
   void requestPersistentStorage() // a project worth keeping now exists: ask the browser not to clear it

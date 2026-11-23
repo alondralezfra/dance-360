@@ -122,13 +122,13 @@ describe('reading a backup back', () => {
     }
 
     it('text that is not JSON, or JSON that is not ours', () => {
-      refused('', /not a Dance 360 project file/)
-      refused('{ not json', /not a Dance 360 project file/)
-      refused('[1,2,3]', /not a Dance 360 project file/)
-      refused('"hello"', /not a Dance 360 project file/)
-      refused('null', /not a Dance 360 project file/)
-      refused(JSON.stringify({ kind: 'something-else', project: {} }), /not a Dance 360 project file/)
-      refused(JSON.stringify({ name: 'a project with no wrapper', formations: [] }), /not a Dance 360 project file/)
+      refused('', /not a Formism project file/)
+      refused('{ not json', /not a Formism project file/)
+      refused('[1,2,3]', /not a Formism project file/)
+      refused('"hello"', /not a Formism project file/)
+      refused('null', /not a Formism project file/)
+      refused(JSON.stringify({ kind: 'something-else', project: {} }), /not a Formism project file/)
+      refused(JSON.stringify({ name: 'a project with no wrapper', formations: [] }), /not a Formism project file/)
     })
 
     it('a file that is far too large', () => {
@@ -136,8 +136,8 @@ describe('reading a backup back', () => {
     })
 
     it('a file made by a newer version of the app, whether its wrapper or its data', () => {
-      refused(fileWith(createEmptyProject(), { fileVersion: 2 }), /newer version of Dance 360/)
-      refused(fileWith(createEmptyProject(), { dataVersion: CURRENT_VERSION + 1 }), /newer version of Dance 360/)
+      refused(fileWith(createEmptyProject(), { fileVersion: 2 }), /newer version of Formism/)
+      refused(fileWith(createEmptyProject(), { dataVersion: CURRENT_VERSION + 1 }), /newer version of Formism/)
     })
 
     it('a header with no usable version or project', () => {
@@ -220,21 +220,21 @@ describe('projectFileName', () => {
   const day = new Date('2026-11-10T12:00:00Z')
 
   it('is the project name and the date', () => {
-    expect(projectFileName('Spring Show', day)).toBe('Spring Show 2026-11-10.dance360.json')
+    expect(projectFileName('Spring Show', day)).toBe('Spring Show 2026-11-10.formism.json')
   })
 
   it('drops characters a file system refuses, and tidies the spaces', () => {
-    expect(projectFileName('  A/B: "C"?  *D*  <E>|F\\G  ', day)).toBe('AB C D EFG 2026-11-10.dance360.json')
+    expect(projectFileName('  A/B: "C"?  *D*  <E>|F\\G  ', day)).toBe('AB C D EFG 2026-11-10.formism.json')
   })
 
   it('keeps accents and other languages', () => {
-    expect(projectFileName('Café — 春', day)).toBe('Café — 春 2026-11-10.dance360.json')
+    expect(projectFileName('Café — 春', day)).toBe('Café — 春 2026-11-10.formism.json')
   })
 
   it('falls back to a plain name when nothing is left, and keeps long names short', () => {
-    expect(projectFileName('', day)).toBe('Dance 2026-11-10.dance360.json')
-    expect(projectFileName('///', day)).toBe('Dance 2026-11-10.dance360.json')
-    expect(projectFileName('x'.repeat(200), day)).toBe(`${'x'.repeat(60)} 2026-11-10.dance360.json`)
+    expect(projectFileName('', day)).toBe('Dance 2026-11-10.formism.json')
+    expect(projectFileName('///', day)).toBe('Dance 2026-11-10.formism.json')
+    expect(projectFileName('x'.repeat(200), day)).toBe(`${'x'.repeat(60)} 2026-11-10.formism.json`)
   })
 })
 

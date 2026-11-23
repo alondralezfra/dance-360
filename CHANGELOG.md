@@ -4,6 +4,11 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Changed (The app is now called Formism)
+- **Renamed from "Dance 360" to Formism** everywhere a person sees it: the page title, the Projects and project headers, the import error messages and the docs. New backup files are named `<project> <date>.formism.json`; older `.dance360.json` backups still import (the import accepts any `.json`).
+- **No saved data changes:** the browser storage keys, the audio database name and the backup file's `kind` keep their old `dance360` spelling so existing projects, songs and backups keep working. Decision record 0034.
+- The package is named `formism`; the setup check's messages say Formism.
+
 ### Changed (Phone polish, step 6 slice 3: the last of the responsive refinements)
 - **Cast & Parts on a phone:** each part row has Remove beside its name (it used to sit alone on a second line) with the colour and sections dropdowns below; each section row has Remove beside its name with "Starts at" below. Wider screens are unchanged.
 - **Projects home on a phone:** "Your projects" no longer wraps onto two lines; Import project and + New project sit on the line below it.

@@ -90,7 +90,7 @@ describe('ProjectsHome', () => {
 
 describe('backups', () => {
   const project = { ...createEmptyProject('Spring Show'), dancers: [{ id: 'd1', name: 'Maya' }] }
-  const backupFile = (text = exportProjectFile(project)) => new File([text], 'Spring Show.dance360.json', { type: 'application/json' })
+  const backupFile = (text = exportProjectFile(project)) => new File([text], 'Spring Show.formism.json', { type: 'application/json' })
   const fileInput = (container: HTMLElement) => container.querySelector('input[type="file"]') as HTMLInputElement
 
   describe('exporting', () => {
@@ -102,7 +102,7 @@ describe('backups', () => {
       await user.click(await screen.findByRole('button', { name: 'Export Spring Show' }))
       await waitFor(() => expect(download).toHaveBeenCalledOnce())
       const [fileName, text] = download.mock.calls[0]
-      expect(fileName).toMatch(/^Spring Show \d{4}-\d{2}-\d{2}\.dance360\.json$/)
+      expect(fileName).toMatch(/^Spring Show \d{4}-\d{2}-\d{2}.formism.json$/)
       expect(JSON.parse(text)).toMatchObject({ kind: PROJECT_FILE_KIND, project: { name: 'Spring Show', dancers: [{ name: 'Maya' }] } })
       expect(repository.load).toHaveBeenCalledWith('a')
     })
@@ -154,7 +154,7 @@ describe('backups', () => {
       const { container } = renderHome()
       await screen.findByText(/No projects yet/)
       await user.upload(fileInput(container), backupFile('{ definitely not json'))
-      expect(await screen.findByRole('alert')).toHaveTextContent('This is not a Dance 360 project file.')
+      expect(await screen.findByRole('alert')).toHaveTextContent('This is not a Formism project file.')
       expect(repository.create).not.toHaveBeenCalled()
       expect(screen.queryByText('Stage for project')).toBeNull()
     })
@@ -165,7 +165,7 @@ describe('backups', () => {
       const { container } = renderHome()
       await screen.findByText(/No projects yet/)
       await user.upload(fileInput(container), backupFile(text))
-      expect(await screen.findByRole('alert')).toHaveTextContent('newer version of Dance 360')
+      expect(await screen.findByRole('alert')).toHaveTextContent('newer version of Formism')
       expect(repository.create).not.toHaveBeenCalled()
     })
 

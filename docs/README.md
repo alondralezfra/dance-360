@@ -1,6 +1,6 @@
 # Documentation
 
-Living documentation for Dance 360. It is updated in the **same change** as the code it describes (enforced by `npm run verify`, see [testing.md](testing.md)), so it should always match what the app does.
+Living documentation for Formism. It is updated in the **same change** as the code it describes (enforced by `npm run verify`, see [testing.md](testing.md)), so it should always match what the app does.
 
 | Document | What it answers |
 |---|---|

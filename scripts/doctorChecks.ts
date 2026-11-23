@@ -74,6 +74,6 @@ export function formatReport(checks: Check[]): string {
     ...(check.ok || !check.fix ? [] : [`        -> ${check.fix}`]),
   ])
   const failed = checks.filter((check) => !check.ok).length
-  lines.push('', failed === 0 ? 'Everything needed to work on Dance 360 is in place.' : `${failed} of ${checks.length} checks failed. Fix those, then run npm run doctor again.`)
+  lines.push('', failed === 0 ? 'Everything needed to work on Formism is in place.' : `${failed} of ${checks.length} checks failed. Fix those, then run npm run doctor again.`)
   return lines.join('\n')
 }

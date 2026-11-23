@@ -1,6 +1,6 @@
 # Operations and quality: the standing checklist
 
-What it takes to run Dance 360 well, beyond features: delivery, safety, privacy, reliability, accessibility. It is a **checklist with triggers**, not a to-do list: most items only become real when something specific is built (a server, accounts, an AI feature), so each one says *when* it applies. Review it at the start of every change (step 1 of the loop in [../CLAUDE.md](../CLAUDE.md)) and again before each stage below begins; update the status in the same change that moves an item.
+What it takes to run Formism well, beyond features: delivery, safety, privacy, reliability, accessibility. It is a **checklist with triggers**, not a to-do list: most items only become real when something specific is built (a server, accounts, an AI feature), so each one says *when* it applies. Review it at the start of every change (step 1 of the loop in [../CLAUDE.md](../CLAUDE.md)) and again before each stage below begins; update the status in the same change that moves an item.
 
 Related: [architecture.md](architecture.md) (rules), [testing.md](testing.md) (how we verify), [decisions/0015](decisions/0015-cloud-storage-and-sync.md) (accounts and sync design), plan §10 (the only AI idea so far).
 
@@ -55,7 +55,7 @@ Work is grouped by what must be true before the next audience can use the app. E
 | Item | Status | Notes |
 |---|---|---|
 | Error screens for crashes, 404, empty and loading states | **Done** for crashes (a route-level error screen with reload, back and *Download this project*: decision 0021), 404 and missing project; **Now** to audit every screen for empty, loading and error states | Errors thrown in event handlers or background work are not caught by React error boundaries (they only reach the console until error tracking exists, stage 1). |
-| Protect users' work in the browser | **Done** (decision 0021) | **Export** a project to a `.dance360.json` file and **import** it back (always as a new copy, never over an existing project; the song audio is not in the file), and the browser is asked for persistent storage after a project is created or imported. Not yet: a one-click "export everything" or reminders to back up. |
+| Protect users' work in the browser | **Done** (decision 0021) | **Export** a project to a `.formism.json` file and **import** it back (always as a new copy, never over an existing project; the song audio is not in the file), and the browser is asked for persistent storage after a project is created or imported. Not yet: a one-click "export everything" or reminders to back up. |
 | Let people delete their data | **Now** (local) / **Stage 2** (account) | Deleting a project already removes its song file. Add "delete everything on this device"; with accounts, delete-account removes the cloud copy too. |
 | Backups of the database and **tested** restores | **Stage 2** | Daily backups plus point-in-time recovery for Supabase, and a restore drill into staging on a schedule (a backup that was never restored is not a backup). Tombstones in 0015 mean deletes can propagate; backups are the undo for mistakes. |
 | Logging and error tracking | **Stage 1** | Browser error tracking (Sentry or similar) with source maps, project/roster content scrubbed (it is personal data), and release tags. Console noise is already a failing test in e2e. |

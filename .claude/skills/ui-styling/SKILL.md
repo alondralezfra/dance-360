@@ -1,9 +1,9 @@
 ---
 name: ui-styling
-description: Build or restyle a Dance 360 screen or component so it matches the app. Use for any change to what the UI looks like or how a screen is laid out (new screen, new control, spacing, colours, dark mode, phone layout, "make it look right"). Reads the project's own conventions, then checks the result in screenshots.
+description: Build or restyle a Formism screen or component so it matches the app. Use for any change to what the UI looks like or how a screen is laid out (new screen, new control, spacing, colours, dark mode, phone layout, "make it look right"). Reads the project's own conventions, then checks the result in screenshots.
 ---
 
-# Styling Dance 360 UI
+# Styling Formism UI
 
 The rules and conventions live in the docs; this skill is the order to apply them in and how to check the result. Do not copy rules from the docs into your answer or into new files: link to them.
 

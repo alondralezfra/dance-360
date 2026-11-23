@@ -58,7 +58,7 @@ export function ProjectWorkspace() {
             save status on the first, the project name and Undo/Redo on the second (so the name can be read). Wider, one row. */}
         <nav aria-label="Breadcrumb" className="contents sm:flex sm:min-w-0 sm:items-center sm:gap-2 sm:py-2">
           <Link to="/" className="text-lg font-semibold whitespace-nowrap hover:text-link max-sm:order-1">
-            Dance 360
+            Formism
           </Link>
           <Icon name="chevronRight" className="hidden text-subtle-foreground sm:block" />
           {ready ? (

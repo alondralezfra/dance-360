@@ -44,7 +44,7 @@ export function exportProjectFile(project: Project, now: Date = new Date()): str
   )
 }
 
-/** A file name for the backup: "Spring Show 2026-11-10.dance360.json". Characters file systems refuse are dropped. */
+/** A file name for the backup: "Spring Show 2026-11-10.formism.json". Characters file systems refuse are dropped. */
 export function projectFileName(projectName: string, now: Date = new Date()): string {
   const safe = [...projectName]
     .filter((c) => !'\\/:*?"<>|'.includes(c) && c.charCodeAt(0) >= 32)
@@ -53,7 +53,7 @@ export function projectFileName(projectName: string, now: Date = new Date()): st
     .trim()
     .slice(0, 60)
     .trim()
-  return `${safe || 'Dance'} ${now.toISOString().slice(0, 10)}.dance360.json`
+  return `${safe || 'Dance'} ${now.toISOString().slice(0, 10)}.formism.json`
 }
 
 /** The project as an imported copy: same dance, with "(imported)" on its name so it is easy to tell apart. */
@@ -71,7 +71,7 @@ const isString = (v: unknown): v is string => typeof v === 'string'
 const isNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 const isArray = (v: unknown): v is unknown[] => Array.isArray(v)
 
-const DAMAGED = 'This file looks damaged: it does not hold a complete Dance 360 project.'
+const DAMAGED = 'This file looks damaged: it does not hold a complete Formism project.'
 
 /**
  * Checks the project is complete enough to open: every list is there and well formed, every number is a
@@ -157,17 +157,17 @@ function problemWith(p: unknown): string | null {
  * is damaged, or was made by a newer version of the app.
  */
 export function parseProjectFile(text: string): Project {
-  if (text.length > MAX_PROJECT_FILE_BYTES) throw new ProjectFileError('This file is too large to be a Dance 360 project.')
+  if (text.length > MAX_PROJECT_FILE_BYTES) throw new ProjectFileError('This file is too large to be a Formism project.')
 
   let file: unknown
   try {
     file = JSON.parse(text)
   } catch {
-    throw new ProjectFileError('This is not a Dance 360 project file.')
+    throw new ProjectFileError('This is not a Formism project file.')
   }
-  if (!isObject(file) || file.kind !== PROJECT_FILE_KIND) throw new ProjectFileError('This is not a Dance 360 project file.')
+  if (!isObject(file) || file.kind !== PROJECT_FILE_KIND) throw new ProjectFileError('This is not a Formism project file.')
   if (!isNumber(file.fileVersion) || file.fileVersion > PROJECT_FILE_VERSION) {
-    throw new ProjectFileError('This file was made by a newer version of Dance 360. Update the app, then try again.')
+    throw new ProjectFileError('This file was made by a newer version of Formism. Update the app, then try again.')
   }
   const version = file.dataVersion
   if (typeof version !== 'number' || !Number.isInteger(version) || version < 0) throw new ProjectFileError(DAMAGED)
@@ -178,7 +178,7 @@ export function parseProjectFile(text: string): Project {
     project = migrateProject(version, structuredClone(file.project))
   } catch (error) {
     if (version > CURRENT_VERSION) {
-      throw new ProjectFileError('This project was saved by a newer version of Dance 360. Update the app, then try again.')
+      throw new ProjectFileError('This project was saved by a newer version of Formism. Update the app, then try again.')
     }
     console.error('Importing a project file failed while upgrading it', error)
     throw new ProjectFileError(DAMAGED)

@@ -357,7 +357,7 @@ test.describe('phone layout', () => {
       const box = (await page.getByRole('button', { name }).boundingBox())!
       expect(box.height, `${name} wrapped`).toBeLessThanOrEqual(48)
     }
-    const title = (await page.getByRole('link', { name: 'Dance 360' }).boundingBox())!
+    const title = (await page.getByRole('link', { name: 'Formism' }).boundingBox())!
     expect(title.height, 'header title wrapped').toBeLessThanOrEqual(32)
   })
 
