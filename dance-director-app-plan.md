@@ -278,6 +278,24 @@ Same project, narrower tabs: **My Parts**, **Stage** (read-only playback with th
 - **Multi-project/team features:** roster library across projects, duplicating a project as a template
 - **Smart formation suggestions:** place a target shape and let the app assign each dancer a spot, minimising how far everyone moves (idea, see §10)
 
+### Ideas from the creator, to brainstorm and crack down before building (added 2026-11-24)
+
+None of these is decided or scheduled. Each needs its questions answered (with the owner, via the "ask first" step) and then a decision record before code. Related idea for #3: the "Dancer login & dancer view" item above and §6.4.
+
+1. **Two project modes: Full and Simple, chosen when a project is created.**
+   - *Full* is today's app: formations placed by sets and counts, dancers in sections and parts, a dancer's colour comes only from their part.
+   - *Simple* is for a director who "just needs to create some forms to place their dancers": formations are only an ordered list (1, 2, 3, ...), with **no sets, counts, sections or parts**, and a dancer's colour is changed directly by pressing the circle beside their name.
+   - To settle: is the mode fixed for the life of the project, or can a Simple project be upgraded to Full later (and Full to Simple, which would lose information)? Does Simple still have a song and playback, or none? Which tabs does Simple show (Cast, Stage, Resources, Overview)? Is it a saved-data change (a `mode` on the project: a migration, fixture and decision record)? How do backups and import treat the mode?
+2. **Showing how dancers move between formations** ("does this person pass behind or in front of that one? Do they go up first and then back down?").
+   - Idea: arrows on the stage for the travel from one formation to the next; possibly curved or bent paths, not only straight lines.
+   - To brainstorm: today every dancer travels a straight line over the transition counts. Is it enough to *draw* the straight path (an arrow per dancer, or a faint trail), or must the director be able to *shape* a path (add a waypoint, curve it) so the playback matches? Shaping paths changes the playback rule (decision 0003: positions come only from `positionsAt()`) and the saved data. How are many overlapping arrows kept readable (show only for the selected dancer or part, or on request)? Is "in front of / behind" a stage-depth idea (the audience side) that arrows must make obvious? Should the arrows also appear in the PDF (#4)?
+3. **Sharing with dancers: director accounts, a short project code, dancers pick their own slot.**
+   - A director signs in with an account. They share a short **project code**; a dancer goes to formism.app, types the code to join, then chooses **which of the roster's dancer slots is them** (if the director made ten slots, those ten names appear) and from then on sees what concerns them: their parts, their dot highlighted, notes about them.
+   - To crack down: this is the accounts-and-sync work of decision 0015 (Stage 2 of the operations doc) plus a dancer role, so it needs a server (Supabase) and the whole Stage 2 checklist. Questions: do dancers need an account or only a code plus a slot (and how is a slot protected from someone claiming the wrong one: a director approval, a PIN)? Can a dancer edit anything (probably not: read-only)? How does a director revoke a code or a dancer? Is the dancer's data (the roster is personal data and may be about minors) kept to the minimum? What does a dancer see when the song file is not on their device (the audio is stored per device today)? Does a shared project update live or on a refresh? The "view as dancer" button of §6.4 is the natural first slice.
+4. **Export only the formations as a PDF** (for directors who want to hand dancers a file instead of sharing the project).
+   - One formation per page, with its **counts** and its **notes** on the same page.
+   - To crack down: made in the browser (no server), so it works offline and nothing leaves the device. Questions: which library or the browser's own print-to-PDF (a print stylesheet is the lightest, but the stage is a canvas); page size and orientation (letter or A4, landscape); what each page shows (stage drawing with dancer names or numbers, formation name, set and count, transition counts, the notes that apply at that point, a legend of part colours); light colours that print well in black and white; whether Simple projects (#1) produce the same PDF without counts; whether the movement arrows (#2) appear; a size limit for long dances. Decide whether it is a button on the Stage tab or in the project menu next to Export.
+
 ---
 
 ## 9. Open Questions
