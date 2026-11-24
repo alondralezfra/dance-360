@@ -4,8 +4,9 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
-### Changed (A Formism app icon)
-- **New tab icon:** three white dots in a formation on the app's indigo, replacing Vite's default lightning bolt. Also a 32px PNG for browsers without SVG icons, a 180px home-screen icon for iPhones and iPads, and a `theme-color` so phone browsers tint their toolbar to match. No app code or saved data changed.
+### Changed (Docs brought up to date after the first deploys)
+- **Hosting is live:** the two Cloudflare secrets are set in GitHub and deploys on merge to `main` work (confirmed by the owner). The operations doc and `CLAUDE.md` now say so, so nobody asks for the setup again.
+- Removed a duplicated changelog entry for the app icon; the operations doc's "where the app is today" no longer says tap-to-snap is next (it and steps 0-6 are built), and Stage 1 is marked as started.
 
 ### Changed (A Formism app icon)
 - **New tab icon:** three white dots in a formation on the app's indigo, replacing Vite's default lightning bolt. Also a 32px PNG for browsers without SVG icons, a 180px home-screen icon for iPhones and iPads, and a `theme-color` so phone browsers tint their toolbar to match. No app code or saved data changed.

@@ -6,7 +6,7 @@ Related: [architecture.md](architecture.md) (rules), [testing.md](testing.md) (h
 
 ## Where the app is today
 
-A front-end only app: no server, no accounts. Data lives in the browser (localStorage for projects, IndexedDB for songs). CI runs `npm run verify` on every pull request and on `main`, and a green `main` deploys to Cloudflare at formism.app (decision 0035; it goes live once the two secrets below are set). The next product slice is tap-to-snap placement and timeline markers (finishing build-order step 3).
+A front-end only app: no server, no accounts. Data lives in the browser (localStorage for projects, IndexedDB for songs). CI runs `npm run verify` on every pull request and on `main`, and a green `main` deploys to Cloudflare at formism.app (decision 0035; the two Cloudflare secrets are set in GitHub and deploys on merge work, confirmed by the owner, so do not ask for that setup again). Build-order steps 0-6 are built, so **Stage 1 (hosted beta) has started**: what remains of it is in the checklist below, and the hands-on **Release readiness** list has not been walked yet.
 
 ## Stages
 
@@ -15,7 +15,7 @@ Work is grouped by what must be true before the next audience can use the app. E
 | Stage | Audience | Starts when | What it adds |
 |---|---|---|---|
 | **0. Code quality** (always on) | Developers | Now | Everything under "Now" below that needs no hosting. |
-| **1. Hosted beta** | A few directors on a preview/staging URL | Step 3 (tap-to-snap) is done | Hosting + SSL, error tracking, export/import backup, a short privacy note, accessibility and slow-network checks, smoke test of the deployed site. |
+| **1. Hosted beta** | A few directors on a preview/staging URL | Step 3 (tap-to-snap) is done: **started** | Hosting + SSL, error tracking, export/import backup, a short privacy note, accessibility and slow-network checks, smoke test of the deployed site. |
 | **2. Accounts and sync** | Directors across devices | The sync design in 0015 is started | Supabase, auth, backups and restore tests, rate limits, email, legal pages, delete-account, secrets and key rotation. |
 | **3. Public launch / AI features** | Anyone | Stage 2 works and a launch date exists | Custom domain, analytics + consent, SEO and social images, uptime and alerting, and (only if plan §10 idea 4 is built) the AI items. |
 
@@ -34,7 +34,7 @@ Work is grouped by what must be true before the next audience can use the app. E
 | Setup check for a new machine | **Done** (decision 0025) | `npm run doctor` checks the Node version (`engines.node` in `package.json`, which CI must match: tested), installed packages, a browser for the end-to-end tests and the test port, and says how to fix each. Report only. |
 | Dependency audit and automatic update PRs | **Done** (decision 0022) | `.github/workflows/security.yml` runs `npm audit --omit=dev --audit-level=high` (blocks a PR) and the same for build/test tools (warns only), on every PR, on `main` and every Monday; `npm run check:deps` runs the blocking check locally. `.github/dependabot.yml` opens weekly PRs for npm and GitHub Actions (small updates grouped, majors one at a time). |
 | Secret scanning and keeping secrets out of the repo | **Done** in CI (decision 0022); **needs two GitHub settings** (owner); **Stage 2** (real secrets) | gitleaks scans every PR and, weekly, the whole history. Still to switch on by the repository owner: **Settings → Code security → Secret scanning** and **Push protection**, which stop a key before it is pushed. No secrets exist today; `.env*` stays ignored, and only the Supabase *anon* key ever reaches the browser. |
-| Continuous deployment to a preview URL on each PR, and to staging on merge | **Done** (decision 0035); **needs one-time setup by the owner** | `.github/workflows/deploy.yml`: production deploys from `main` only after CI is green; a PR from this repository uploads a preview version (address in the job summary). Owner setup: create a Cloudflare API token (Workers Scripts: Edit, plus Workers Routes: Edit on the formism.app zone) and add it as the repository secret `CLOUDFLARE_API_TOKEN`, with `CLOUDFLARE_ACCOUNT_ID`. There is no separate staging site; the preview version is the staging. |
+| Continuous deployment to a preview URL on each PR, and to staging on merge | **Done** (decision 0035); owner setup **done**, deploys on merge work | `.github/workflows/deploy.yml`: production deploys from `main` only after CI is green; a PR from this repository uploads a preview version (address in the job summary). The owner has created the Cloudflare API token (Workers Scripts: Edit, plus Workers Routes: Edit on the formism.app zone) and set the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`; to rotate them, see the secrets runbook (stage 2). There is no separate staging site; the preview version is the staging. |
 | Staging environment | **Stage 1** (a preview URL) / **Stage 2** (a separate staging Supabase project) | Never test against production data. |
 | Smoke test of the deployed site | **Stage 1** | A tiny Playwright run against the real URL after each deploy: loads, creates a project, reloads, still there, no console errors. Fails the deploy. |
 | Rollback plan for a bad deploy | **Done** (decision 0035) | Cloudflare keeps old versions: dashboard -> Workers & Pages -> formism -> Deployments -> roll back to the previous version (or re-run the Deploy workflow on an older commit). Database changes (stage 2) must be backward compatible for one release so a rollback is safe. |
@@ -105,7 +105,7 @@ Walk through this before each time the app is handed to someone new (a beta test
 6. Does a test that depends on timing, fonts or load survive a slower Linux machine?
 7. How would we roll it back?
 
-## Suggested order of the first slices after tap-to-snap
+## Suggested order of the first slices (done: 1, and the product steps; next: 2)
 
 1. **Safety net** (stage 0): error boundary, export/import a project, request persistent storage, dependency audit + Dependabot + secret scanning, axe checks in e2e.
 2. **Ready to share** (stage 1): bundle splitting and a size budget, smoke test, error tracking, privacy note, page description and social image.

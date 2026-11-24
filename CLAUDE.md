@@ -64,3 +64,5 @@ A change is **not implemented** until the full `verify` passes: the Stop hook ru
 ## Environment notes
 
 Windows + Git Bash/PowerShell. E2E uses the system Edge locally (`channel: 'msedge'`). Put scratch files in the session scratchpad, not the repo. Playwright builds the app and serves that production build itself on port 5199 (don't leave something else on that port).
+
+**Hosting is live.** Formism deploys to Cloudflare at formism.app whenever a pull request is merged into `main`. The repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are already set in GitHub (confirmed by the owner, 2026-11-24): don't ask the user to set them up. GitHub deletes a merged PR's remote branch itself.
