@@ -58,3 +58,4 @@ What becomes easier, what becomes harder, what to watch for. Alternatives consid
 | [0033](0033-phone-formation-bar.md) | Phone Stage: a shorter formation bar (name row, chips and + New formation stay; the timing fields and Delete are under Formation details) |
 | [0034](0034-rename-to-formism.md) | The app is renamed Formism; storage keys, the audio database and the backup `kind` keep their `dance360` spelling so saved work and old backups still work |
 | [0035](0035-cloudflare-hosting.md) | Hosting on Cloudflare Workers Static Assets, deployed from GitHub Actions after CI is green; security headers in public/_headers |
+| [0036](0036-smoke-test-of-the-deployed-site.md) | A smoke test of the live site after each production deploy: load, create, reload, no errors (`npm run test:smoke`)

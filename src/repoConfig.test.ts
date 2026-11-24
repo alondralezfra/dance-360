@@ -6,7 +6,7 @@ import { requiredNodeMajor } from '../scripts/doctorChecks.ts'
 // by accident: put it back rather than loosening the test, unless the safeguard is deliberately changing
 // (then update docs/operations-and-quality.md and the decision record, docs/decisions/0022).
 
-const raw = import.meta.glob(['/.github/**/*.{yml,yaml}', '/package.json', '/.gitignore', '/playwright.screenshots.config.ts', '/wrangler.jsonc', '/public/_headers', '/index.html', '/.claude/skills/*/SKILL.md'], {
+const raw = import.meta.glob(['/.github/**/*.{yml,yaml}', '/package.json', '/.gitignore', '/playwright.screenshots.config.ts', '/playwright.smoke.config.ts', '/wrangler.jsonc', '/public/_headers', '/index.html', '/.claude/skills/*/SKILL.md'], {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -114,6 +114,17 @@ describe('hosting on Cloudflare (decision 0035)', () => {
     const preview = deploy.slice(deploy.indexOf('  preview:'))
     expect(preview).toMatch(/command: versions upload/)
     expect(preview).not.toMatch(/command: deploy$/m)
+  })
+
+  it('smoke-tests the live site after each production deploy, and never after a preview (decision 0036)', () => {
+    const smoke = deploy.slice(deploy.indexOf('  smoke-test:'), deploy.indexOf('  preview:'))
+    expect(smoke).toMatch(/needs: production/)
+    expect(smoke).toMatch(/run: npm run test:smoke/)
+    expect(smoke).not.toMatch(/secrets\./) // it only reads the public site
+    expect(deploy.indexOf('  smoke-test:')).toBeGreaterThan(deploy.indexOf('  production:'))
+    expect(deploy.indexOf('  smoke-test:')).toBeLessThan(deploy.indexOf('  preview:'))
+    expect(file('/package.json')).toMatch(/"test:smoke": "playwright test -c playwright\.smoke\.config\.ts"/)
+    expect(file('/playwright.smoke.config.ts')).toMatch(/process\.env\.SMOKE_URL \?\? 'https:\/\/formism\.app'/)
   })
 
   it('pins Wrangler 4 in both jobs: the action defaults to 3.90, which cannot read wrangler.jsonc', () => {

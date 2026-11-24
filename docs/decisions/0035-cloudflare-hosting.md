@@ -17,6 +17,6 @@ The app is a static build (`dist/`) with no server. The owner bought `formism.ap
 ## Consequences
 - Rolling back = in the Cloudflare dashboard, Workers & Pages -> formism -> Deployments, roll back to the previous version (or re-run the deploy workflow on an older commit).
 - The CSP will need widening when a feature adds an outside host (Supabase in `connect-src`, a video embed in `frame-src`): do it in that change.
-- The deploy workflow has no automated smoke test yet (a separate slice), and the header policy is checked by `src/repoConfig.test.ts` and by hand, not against the live site.
+- The deploy workflow runs a smoke test of the live site after each production deploy (decision 0036); the header policy is also checked by `src/repoConfig.test.ts`.
 - Preview versions need the Worker to exist, so they work after the first production deploy.
 - The Wrangler version is pinned (`wranglerVersion` in both jobs of `deploy.yml`) because the action's default is 3.90, which cannot read `wrangler.jsonc`. Dependabot does not update it: bump it by hand now and then, after a `npx wrangler@<new> deploy --dry-run`.
