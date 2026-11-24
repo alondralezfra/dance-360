@@ -4,6 +4,10 @@ All notable changes. Newest first. Add an entry under **Unreleased** in the same
 
 ## Unreleased
 
+### Added (A smoke test of the live site after each deploy)
+- **`npm run test:smoke`** opens the deployed formism.app in a fresh browser, creates a project, reloads its address and checks it came back, and fails on any console error, crash, failed request or HTTP error. The **Deploy workflow runs it after every production deploy** (a new `smoke-test` job); a failure is a red check and an email, and production is not rolled back automatically. It lives in `smoke/` with its own `playwright.smoke.config.ts`, so `verify` and `npm run test:e2e` never touch the live site. Decision record 0036.
+- **It already found something:** Cloudflare adds its Web Analytics script to every page and our Content-Security-Policy blocks it, so every visitor gets a console error. Turn the automatic injection off in the Cloudflare dashboard (analytics is a Stage 3 decision); the smoke test stays red until then. No app code or saved data changed.
+
 ### Changed (Docs brought up to date after the first deploys)
 - **Hosting is live:** the two Cloudflare secrets are set in GitHub and deploys on merge to `main` work (confirmed by the owner). The operations doc and `CLAUDE.md` now say so, so nobody asks for the setup again.
 - Removed a duplicated changelog entry for the app icon; the operations doc's "where the app is today" no longer says tap-to-snap is next (it and steps 0-6 are built), and Stage 1 is marked as started.

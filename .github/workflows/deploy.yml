@@ -4,7 +4,7 @@
 # (decision record 0035). A pull request from this repository gets a preview version with its own URL
 # (the URL is in the job summary), which never touches production. Needs two repository secrets:
 # CLOUDFLARE_API_TOKEN (permission "Workers Scripts: Edit" plus "Workers Routes: Edit" on the formism.app zone)
-# and CLOUDFLARE_ACCOUNT_ID.
+# and CLOUDFLARE_ACCOUNT_ID. After a production deploy the smoke-test job opens the live site.
 
 on:
   workflow_run:
@@ -45,6 +45,37 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '4.167.0'
           command: deploy
+
+  smoke-test:
+    # After production is live: open the real site and check the basics (decision record 0036). A failure
+    # is a red check on the commit, not a rollback: production is already live, so roll back by hand (0035).
+    needs: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Smoke test formism.app
+        run: npm run test:smoke
+        env:
+          CI: '1'
+
+      - name: Keep the Playwright trace of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-test-trace
+          path: test-results/
 
   preview:
     # Not for pull requests from forks or from Dependabot: GitHub gives those no secrets.
